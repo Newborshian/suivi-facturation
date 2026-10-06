@@ -450,10 +450,10 @@ export function mettreAJourPort({ dossierDonnees, port, env = process.env, pid =
 }
 
 /** Supprime le verrou s'il contient encore notre PID (jamais celui d'une autre instance). Synchrone, ne lève jamais. */
-export function libererVerrou({ dossierDonnees, env = process.env, pid = process.pid, journal = null, fsApi, reessai } = {}) {
+export function libererVerrou({ dossierDonnees, env = process.env, pid = process.pid, journal = null, fsApi, reessai, systeme } = {}) {
   try {
     const ctx = contexte({ fsApi, journal, reessai });
-    const chemin = cheminVerrou(dossierDonnees, { env });
+    const chemin = cheminVerrou(dossierDonnees, { env, systeme });
     const v = lireSync(ctx, chemin);
     if (!v || v.pid !== pid) return false;
     essayerSync(ctx, 'suppression du verrou', () => ctx.fs.unlinkSync(chemin));

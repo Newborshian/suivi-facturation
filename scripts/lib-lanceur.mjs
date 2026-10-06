@@ -143,6 +143,10 @@ export function nomProcessus(pid) {
       const m = /^"([^"]+)","(\d+)"/m.exec(r.stdout ?? '');
       return m && Number(m[2]) === pid ? m[1] : null;
     }
+    if (process.platform === 'linux') {
+      // Le programme réellement exécuté : plus fiable que `comm`, que certains environnements Linux réécrivent (nom de fil, titre du processus).
+      try { return path.basename(fs.readlinkSync(`/proc/${pid}/exe`)); } catch { /* processus d'un autre compte ou /proc absent : repli sur ps */ }
+    }
     const r = spawnSync('ps', ['-p', String(pid), '-o', 'comm='], { encoding: 'utf8', timeout: 10_000 });
     const nom = (r.stdout ?? '').trim();
     return r.status === 0 && nom !== '' ? path.basename(nom) : null;
