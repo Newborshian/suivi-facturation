@@ -24,8 +24,9 @@ on:
 permissions:
   contents: read
 
-# Actions tierces (actions/checkout, actions/setup-node, actions/upload-artifact) référencées par ÉTIQUETTE de version (v5, v4), pas par
-# empreinte de commit : acceptable pour un dépôt privé. À ÉPINGLER par empreinte (SHA complet) AVANT la publication du dépôt.
+# Actions tierces (actions/checkout, actions/setup-node, actions/upload-artifact) épinglées par EMPREINTE de commit (SHA complet), avec
+# la version en commentaire : une étiquette de version peut être déplacée, pas une empreinte. Pour mettre à jour une action, retrouver le
+# commit de la nouvelle version (git ls-remote --tags <dépôt de l'action>) et remplacer l'empreinte et le commentaire ensemble.
 jobs:
   tests:
     name: npm test (${{ matrix.os }})
@@ -37,12 +38,12 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - name: Récupérer le code
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           persist-credentials: false
 
       - name: Installer Node.js 24
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: 24
 
@@ -56,7 +57,7 @@ jobs:
       # (données fictives uniquement : les tests n'utilisent jamais data/).
       - name: Conserver la sortie des tests (échec)
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: sortie-tests-${{ matrix.os }}
           path: |
