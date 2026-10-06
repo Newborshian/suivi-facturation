@@ -40,7 +40,7 @@ Exemple **fictif**, inventé pour illustrer : « Séance individuelle 30 min, 40
 Prérequis : [Node.js 24](https://nodejs.org) (et git).
 
 ```
-git clone <adresse-du-depot> suivi-facturation
+git clone https://github.com/Newborshian/suivi-facturation.git suivi-facturation
 cd suivi-facturation
 npm start
 ```

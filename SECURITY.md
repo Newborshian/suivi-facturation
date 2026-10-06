@@ -17,7 +17,7 @@ Seule la dernière version de la branche principale reçoit des correctifs.
 ## Signaler une faille
 
 - **N'ouvrez pas de ticket public** pour une faille exploitable (fuite de données, accès depuis un autre ordinateur ou un site web, exécution de code, contournement des contrôles `Host`/`Origin`, lecture de fichiers hors du dossier prévu…).
-- Écrivez d'abord, en privé, à : `<contact-securite>` (ou utilisez le signalement privé de vulnérabilité de la plateforme qui héberge `<adresse-du-depot>`, s'il est activé).
+- Utilisez le **signalement privé de vulnérabilité** du dépôt : https://github.com/Newborshian/suivi-facturation/security/advisories/new (onglet « Security », bouton « Report a vulnerability »).
 - Décrivez : la version ou le commit, le système (Windows, Linux, macOS) et la version de Node.js, les étapes pour reproduire, l'effet observé et l'effet attendu.
 
 ## Aucune donnée de santé dans un signalement

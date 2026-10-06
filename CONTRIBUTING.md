@@ -14,7 +14,7 @@ Merci de votre intérêt. Le projet est personnel et volontairement petit ; les 
 ## Mise en route
 
 ```
-git clone <adresse-du-depot> suivi-facturation
+git clone https://github.com/Newborshian/suivi-facturation.git suivi-facturation
 cd suivi-facturation
 npm start      # http://127.0.0.1:4780
 npm test       # tests node:test
