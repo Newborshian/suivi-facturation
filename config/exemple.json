@@ -1,0 +1,4433 @@
+{
+  "format": "suivi-facturation",
+  "schemaVersion": 1,
+  "revision": 1,
+  "majLe": "2026-10-02T08:00:00.000Z",
+  "parametres": {
+    "sauvegardesConservees": 30,
+    "dernierModePaiement": "virement"
+  },
+  "catalogue": [
+    {
+      "id": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "tarifCentimes": 4200,
+      "categorie": "seance",
+      "actif": true,
+      "ordre": 1
+    },
+    {
+      "id": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "tarifCentimes": 5800,
+      "categorie": "seance",
+      "actif": true,
+      "ordre": 2
+    },
+    {
+      "id": "seance-domicile-45",
+      "libelle": "Séance à domicile 45 min",
+      "tarifCentimes": 6800,
+      "categorie": "seance",
+      "actif": true,
+      "ordre": 3
+    },
+    {
+      "id": "bilan-initial",
+      "libelle": "Bilan initial",
+      "tarifCentimes": 17000,
+      "categorie": "bilan",
+      "actif": true,
+      "ordre": 4
+    },
+    {
+      "id": "compte-rendu",
+      "libelle": "Compte rendu",
+      "tarifCentimes": 2800,
+      "categorie": "autre",
+      "actif": true,
+      "ordre": 5
+    },
+    {
+      "id": "reunion-synthese",
+      "libelle": "Réunion de synthèse",
+      "tarifCentimes": 5200,
+      "categorie": "autre",
+      "actif": true,
+      "ordre": 6
+    }
+  ],
+  "prestations": [
+    {
+      "id": "efabd193-ac6f-41a3-8872-0d0623766c4a",
+      "patient": {
+        "id": "f32438d4-4873-4e94-8184-546b5f109097",
+        "nom": "Lapin",
+        "prenom": "Pierre"
+      },
+      "date": "2025-09-03",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Graphisme",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2025-09-30",
+      "versements": [
+        {
+          "id": "0568f6b1-9833-4961-8bce-aab83ac942d0",
+          "montantCentimes": 5800,
+          "date": "2025-10-04",
+          "mode": "cheque"
+        }
+      ],
+      "creeLe": "2025-09-03T16:00:00.000Z",
+      "modifieLe": "2025-09-03T16:00:00.000Z"
+    },
+    {
+      "id": "f3abd7df-b5c1-482f-804c-6beaf7650626",
+      "patient": {
+        "id": "f5243bfa-cd1c-41da-8408-9665c907dd85",
+        "nom": "Tortue",
+        "prenom": "Franklin"
+      },
+      "date": "2025-09-05",
+      "prestationId": "seance-domicile-45",
+      "libelle": "Séance à domicile 45 min",
+      "categorie": "seance",
+      "motif": "Autonomie",
+      "montantCentimes": 6800,
+      "statut": "facture",
+      "factureLe": "2025-09-30",
+      "versements": [
+        {
+          "id": "48b86935-c19d-4aa5-84f2-f6147c56ab84",
+          "montantCentimes": 6800,
+          "date": "2025-10-04",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2025-09-05T16:00:00.000Z",
+      "modifieLe": "2025-09-05T16:00:00.000Z"
+    },
+    {
+      "id": "f1abd4b9-3118-44e9-8d6f-2b008d6db938",
+      "patient": {
+        "id": "f4243a67-0ac8-4037-8e06-98b2940c370e",
+        "nom": "Ours",
+        "prenom": "Baloo"
+      },
+      "date": "2025-09-06",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Motricité fine",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2025-09-30",
+      "versements": [
+        {
+          "id": "ca65ce13-0edf-4623-8b20-618602033eca",
+          "montantCentimes": 4200,
+          "date": "2025-10-10",
+          "mode": "cheque"
+        }
+      ],
+      "creeLe": "2025-09-06T16:00:00.000Z",
+      "modifieLe": "2025-09-06T16:00:00.000Z"
+    },
+    {
+      "id": "f5abdb05-3a6a-4b75-8b16-fe64615c5314",
+      "patient": {
+        "id": "f6243d8d-8f71-437d-803b-bf2cfe0383fc",
+        "nom": "Renard",
+        "prenom": "Goupil"
+      },
+      "date": "2025-09-08",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Écriture",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2025-09-30",
+      "versements": [
+        {
+          "id": "af1a8067-c024-4637-8117-b2b20871c50e",
+          "montantCentimes": 4200,
+          "date": "2025-10-04",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2025-09-08T16:00:00.000Z",
+      "modifieLe": "2025-09-08T16:00:00.000Z"
+    },
+    {
+      "id": "ed7b0206-794b-4c26-89ce-78094f84b421",
+      "patient": {
+        "id": "f024341b-0175-49ab-800f-a9cec01d9d32",
+        "nom": "Hérisson",
+        "prenom": "Sonic"
+      },
+      "date": "2025-09-09",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Coordination",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2025-09-30",
+      "versements": [
+        {
+          "id": "cbb5c55a-b54a-4d3a-8faa-aec515881765",
+          "montantCentimes": 4200,
+          "date": "2025-10-05",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2025-09-09T16:00:00.000Z",
+      "modifieLe": "2025-09-09T16:00:00.000Z"
+    },
+    {
+      "id": "f7abde2b-bf13-4ebb-8014-1c5ecb53a002",
+      "patient": {
+        "id": "ef243288-3f21-4808-838d-65878b21f6bb",
+        "nom": "Souris",
+        "prenom": "Stuart"
+      },
+      "date": "2025-09-09",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Organisation",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2025-09-30",
+      "versements": [
+        {
+          "id": "0d6ce929-2850-4659-8be4-eef0e35062e8",
+          "montantCentimes": 5800,
+          "date": "2025-10-05",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2025-09-09T16:00:00.000Z",
+      "modifieLe": "2025-09-09T16:00:00.000Z"
+    },
+    {
+      "id": "f0abd326-6ec3-4346-84f6-ca29587212c1",
+      "patient": {
+        "id": "f32438d4-4873-4e94-8184-546b5f109097",
+        "nom": "Lapin",
+        "prenom": "Pierre"
+      },
+      "date": "2025-09-18",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Graphisme",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2025-09-30",
+      "versements": [
+        {
+          "id": "3f07b1dc-35a6-451c-8d29-63b3ad9ee5ff",
+          "montantCentimes": 5800,
+          "date": "2025-10-05",
+          "mode": "cheque"
+        }
+      ],
+      "creeLe": "2025-09-18T16:00:00.000Z",
+      "modifieLe": "2025-09-18T16:00:00.000Z"
+    },
+    {
+      "id": "f4abd972-7816-49d2-82e3-d59d2c60ac9d",
+      "patient": {
+        "id": "f5243bfa-cd1c-41da-8408-9665c907dd85",
+        "nom": "Tortue",
+        "prenom": "Franklin"
+      },
+      "date": "2025-09-19",
+      "prestationId": "seance-domicile-45",
+      "libelle": "Séance à domicile 45 min",
+      "categorie": "seance",
+      "motif": "Autonomie",
+      "montantCentimes": 6800,
+      "statut": "facture",
+      "factureLe": "2025-09-30",
+      "versements": [
+        {
+          "id": "839458e0-6fb3-42e0-8ca1-181f82b2f933",
+          "montantCentimes": 6800,
+          "date": "2025-10-09",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2025-09-19T16:00:00.000Z",
+      "modifieLe": "2025-09-19T16:00:00.000Z"
+    },
+    {
+      "id": "f2abd64c-f36d-468c-8a43-03a3c2695faf",
+      "patient": {
+        "id": "f4243a67-0ac8-4037-8e06-98b2940c370e",
+        "nom": "Ours",
+        "prenom": "Baloo"
+      },
+      "date": "2025-09-20",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Motricité fine",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2025-09-30",
+      "versements": [
+        {
+          "id": "2e831716-a846-4c36-8313-c999e3e225f1",
+          "montantCentimes": 4200,
+          "date": "2025-10-06",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2025-09-20T16:00:00.000Z",
+      "modifieLe": "2025-09-20T16:00:00.000Z"
+    },
+    {
+      "id": "f6abdc98-fcbf-4d18-8791-d8179657f98b",
+      "patient": {
+        "id": "f6243d8d-8f71-437d-803b-bf2cfe0383fc",
+        "nom": "Renard",
+        "prenom": "Goupil"
+      },
+      "date": "2025-09-21",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Écriture",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2025-09-30",
+      "versements": [
+        {
+          "id": "11fa94ea-48e9-4fca-8db7-36d556ca01b5",
+          "montantCentimes": 4200,
+          "date": "2025-10-10",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2025-09-21T16:00:00.000Z",
+      "modifieLe": "2025-09-21T16:00:00.000Z"
+    },
+    {
+      "id": "ee7b0399-3b9f-4dc9-83cd-fce084805a98",
+      "patient": {
+        "id": "ef243288-3f21-4808-838d-65878b21f6bb",
+        "nom": "Souris",
+        "prenom": "Stuart"
+      },
+      "date": "2025-09-22",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Organisation",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2025-09-30",
+      "versements": [
+        {
+          "id": "c7281999-94b2-43c9-8311-66e0a20e7898",
+          "montantCentimes": 5800,
+          "date": "2025-10-09",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2025-09-22T16:00:00.000Z",
+      "modifieLe": "2025-09-22T16:00:00.000Z"
+    },
+    {
+      "id": "ec7b0073-b6f6-4a83-8198-d6661a890daa",
+      "patient": {
+        "id": "f024341b-0175-49ab-800f-a9cec01d9d32",
+        "nom": "Hérisson",
+        "prenom": "Sonic"
+      },
+      "date": "2025-09-24",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Coordination",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2025-09-30",
+      "versements": [
+        {
+          "id": "ad6257db-6692-416b-89ed-730e9c43edf2",
+          "montantCentimes": 4200,
+          "date": "2025-10-06",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2025-09-24T16:00:00.000Z",
+      "modifieLe": "2025-09-24T16:00:00.000Z"
+    },
+    {
+      "id": "eb7afee0-f4a2-48e0-8d31-021fe58d6733",
+      "patient": {
+        "id": "f32438d4-4873-4e94-8184-546b5f109097",
+        "nom": "Lapin",
+        "prenom": "Pierre"
+      },
+      "date": "2025-10-05",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Graphisme",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2025-10-31",
+      "versements": [
+        {
+          "id": "a2037224-6310-4ee4-8e59-64bbca0c59a7",
+          "montantCentimes": 5800,
+          "date": "2025-11-03",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2025-10-05T16:00:00.000Z",
+      "modifieLe": "2025-10-05T16:00:00.000Z"
+    },
+    {
+      "id": "ef7b052c-fdf4-4f6c-8c52-ba03b97c010f",
+      "patient": {
+        "id": "f5243bfa-cd1c-41da-8408-9665c907dd85",
+        "nom": "Tortue",
+        "prenom": "Franklin"
+      },
+      "date": "2025-10-06",
+      "prestationId": "seance-domicile-45",
+      "libelle": "Séance à domicile 45 min",
+      "categorie": "seance",
+      "motif": "Autonomie",
+      "montantCentimes": 6800,
+      "statut": "facture",
+      "factureLe": "2025-10-31",
+      "versements": [
+        {
+          "id": "6690e2a8-c766-4e28-8db6-cea71cf3a85b",
+          "montantCentimes": 6800,
+          "date": "2025-11-09",
+          "mode": "cheque"
+        }
+      ],
+      "creeLe": "2025-10-06T16:00:00.000Z",
+      "modifieLe": "2025-10-06T16:00:00.000Z"
+    },
+    {
+      "id": "f17b0852-829d-42b2-87bb-837d23734dfd",
+      "patient": {
+        "id": "f4243a67-0ac8-4037-8e06-98b2940c370e",
+        "nom": "Ours",
+        "prenom": "Baloo"
+      },
+      "date": "2025-10-06",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Motricité fine",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2025-10-31",
+      "versements": [
+        {
+          "id": "10426c5e-ef57-4afe-8eac-46a1ea9c2a99",
+          "montantCentimes": 4200,
+          "date": "2025-11-06",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2025-10-06T16:00:00.000Z",
+      "modifieLe": "2025-10-06T16:00:00.000Z"
+    },
+    {
+      "id": "f57b0e9e-8bef-493e-8ef7-ab61f761e7d9",
+      "patient": {
+        "id": "f6243d8d-8f71-437d-803b-bf2cfe0383fc",
+        "nom": "Renard",
+        "prenom": "Goupil"
+      },
+      "date": "2025-10-07",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Écriture",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2025-10-31",
+      "versements": [
+        {
+          "id": "a3b1a082-da9b-4be2-820b-15adcd8c286d",
+          "montantCentimes": 4200,
+          "date": "2025-11-08",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2025-10-07T16:00:00.000Z",
+      "modifieLe": "2025-10-07T16:00:00.000Z"
+    },
+    {
+      "id": "f57d4d35-4183-4ea5-895f-b214f92e3f84",
+      "patient": {
+        "id": "ef243288-3f21-4808-838d-65878b21f6bb",
+        "nom": "Souris",
+        "prenom": "Stuart"
+      },
+      "date": "2025-10-08",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Organisation",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2025-10-31",
+      "versements": [
+        {
+          "id": "421adc11-2c3d-40c1-8a0c-4718979628b0",
+          "montantCentimes": 5800,
+          "date": "2025-11-10",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2025-10-08T16:00:00.000Z",
+      "modifieLe": "2025-10-08T16:00:00.000Z"
+    },
+    {
+      "id": "f37d4a0f-bcda-4b5f-86db-701a8f36f296",
+      "patient": {
+        "id": "f024341b-0175-49ab-800f-a9cec01d9d32",
+        "nom": "Hérisson",
+        "prenom": "Sonic"
+      },
+      "date": "2025-10-10",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Coordination",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2025-10-31",
+      "versements": [
+        {
+          "id": "8855b173-ddd4-4b83-8725-cf66702a0aaa",
+          "montantCentimes": 4200,
+          "date": "2025-11-09",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2025-10-10T16:00:00.000Z",
+      "modifieLe": "2025-10-10T16:00:00.000Z"
+    },
+    {
+      "id": "f07b06bf-c048-410f-88d4-fe4aee77a786",
+      "patient": {
+        "id": "f4243a67-0ac8-4037-8e06-98b2940c370e",
+        "nom": "Ours",
+        "prenom": "Baloo"
+      },
+      "date": "2025-10-19",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Motricité fine",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2025-10-31",
+      "versements": [
+        {
+          "id": "70d9a34f-bca3-409f-8074-deda6fb6fad6",
+          "montantCentimes": 4200,
+          "date": "2025-11-05",
+          "mode": "cheque"
+        }
+      ],
+      "creeLe": "2025-10-19T16:00:00.000Z",
+      "modifieLe": "2025-10-19T16:00:00.000Z"
+    },
+    {
+      "id": "f27b09e5-44f2-4455-81c4-ebc4586ef474",
+      "patient": {
+        "id": "f32438d4-4873-4e94-8184-546b5f109097",
+        "nom": "Lapin",
+        "prenom": "Pierre"
+      },
+      "date": "2025-10-19",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Graphisme",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2025-10-31",
+      "versements": [
+        {
+          "id": "2bb4f2fd-1950-45ed-8f36-e39c16975aac",
+          "montantCentimes": 5800,
+          "date": "2025-11-09",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2025-10-19T16:00:00.000Z",
+      "modifieLe": "2025-10-19T16:00:00.000Z"
+    },
+    {
+      "id": "f27d487c-fa85-49bc-8ea8-47535a3b4c1f",
+      "patient": {
+        "id": "ef243288-3f21-4808-838d-65878b21f6bb",
+        "nom": "Souris",
+        "prenom": "Stuart"
+      },
+      "date": "2025-10-21",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Organisation",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2025-10-31",
+      "versements": [
+        {
+          "id": "7cf6cbbc-da52-48fc-837c-55139df2765f",
+          "montantCentimes": 5800,
+          "date": "2025-11-09",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2025-10-21T16:00:00.000Z",
+      "modifieLe": "2025-10-21T16:00:00.000Z"
+    },
+    {
+      "id": "f47d4ba2-7f2e-4d02-80dd-6dcdc432990d",
+      "patient": {
+        "id": "f6243d8d-8f71-437d-803b-bf2cfe0383fc",
+        "nom": "Renard",
+        "prenom": "Goupil"
+      },
+      "date": "2025-10-21",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Écriture",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2025-10-31",
+      "versements": [
+        {
+          "id": "26a85572-0243-45d2-87d7-e99d6b9af89d",
+          "montantCentimes": 4200,
+          "date": "2025-11-09",
+          "mode": "cheque"
+        }
+      ],
+      "creeLe": "2025-10-21T16:00:00.000Z",
+      "modifieLe": "2025-10-21T16:00:00.000Z"
+    },
+    {
+      "id": "f67b1031-4e44-4ae1-818c-9c382c5d8e50",
+      "patient": {
+        "id": "f5243bfa-cd1c-41da-8408-9665c907dd85",
+        "nom": "Tortue",
+        "prenom": "Franklin"
+      },
+      "date": "2025-10-21",
+      "prestationId": "seance-domicile-45",
+      "libelle": "Séance à domicile 45 min",
+      "categorie": "seance",
+      "motif": "Autonomie",
+      "montantCentimes": 6800,
+      "statut": "facture",
+      "factureLe": "2025-10-31",
+      "versements": [
+        {
+          "id": "bde6f2a1-f3f2-4a51-85dd-b2286600ae00",
+          "montantCentimes": 6800,
+          "date": "2025-11-07",
+          "mode": "cheque"
+        }
+      ],
+      "creeLe": "2025-10-21T16:00:00.000Z",
+      "modifieLe": "2025-10-21T16:00:00.000Z"
+    },
+    {
+      "id": "f07d4556-75dc-4676-838e-9959f043ff31",
+      "patient": {
+        "id": "f024341b-0175-49ab-800f-a9cec01d9d32",
+        "nom": "Hérisson",
+        "prenom": "Sonic"
+      },
+      "date": "2025-10-23",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Coordination",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2025-10-31",
+      "versements": [
+        {
+          "id": "eb35c5f6-6699-4516-83cf-36f9be824751",
+          "montantCentimes": 4200,
+          "date": "2025-11-04",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2025-10-23T16:00:00.000Z",
+      "modifieLe": "2025-10-23T16:00:00.000Z"
+    },
+    {
+      "id": "f17d46e9-3831-4819-8c06-fa30253fa5a8",
+      "patient": {
+        "id": "f32438d4-4873-4e94-8184-546b5f109097",
+        "nom": "Lapin",
+        "prenom": "Pierre"
+      },
+      "date": "2025-11-03",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Graphisme",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2025-11-30",
+      "versements": [
+        {
+          "id": "06a84c95-9092-4005-8d05-9474ea7d7764",
+          "montantCentimes": 5800,
+          "date": "2025-12-05",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2025-11-03T16:00:00.000Z",
+      "modifieLe": "2025-11-03T16:00:00.000Z"
+    },
+    {
+      "id": "18ab4685-3f53-4ef5-8a98-9de46ca9c894",
+      "patient": {
+        "id": "f024341b-0175-49ab-800f-a9cec01d9d32",
+        "nom": "Hérisson",
+        "prenom": "Sonic"
+      },
+      "date": "2025-11-04",
+      "prestationId": "bilan-initial",
+      "libelle": "Bilan initial",
+      "categorie": "bilan",
+      "motif": "Bilan de contrôle",
+      "montantCentimes": 17000,
+      "statut": "facture",
+      "factureLe": "2025-11-30",
+      "versements": [
+        {
+          "id": "62ecee73-973a-4883-8adc-4866c12623aa",
+          "montantCentimes": 17000,
+          "date": "2025-12-06",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2025-11-04T16:00:00.000Z",
+      "modifieLe": "2025-11-04T16:00:00.000Z"
+    },
+    {
+      "id": "fd7d59cd-5427-4bbd-84f4-90eca10b733c",
+      "patient": {
+        "id": "f5243bfa-cd1c-41da-8408-9665c907dd85",
+        "nom": "Tortue",
+        "prenom": "Franklin"
+      },
+      "date": "2025-11-05",
+      "prestationId": "seance-domicile-45",
+      "libelle": "Séance à domicile 45 min",
+      "categorie": "seance",
+      "motif": "Autonomie",
+      "montantCentimes": 6800,
+      "statut": "facture",
+      "factureLe": "2025-11-30",
+      "versements": [
+        {
+          "id": "cb5ccc89-f745-4bb9-83f7-8d5051772ec8",
+          "montantCentimes": 6800,
+          "date": "2025-12-04",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2025-11-05T16:00:00.000Z",
+      "modifieLe": "2025-11-05T16:00:00.000Z"
+    },
+    {
+      "id": "ef7d43c3-b388-44d3-8709-dc36bb4858ba",
+      "patient": {
+        "id": "f4243a67-0ac8-4037-8e06-98b2940c370e",
+        "nom": "Ours",
+        "prenom": "Baloo"
+      },
+      "date": "2025-11-06",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Motricité fine",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2025-11-30",
+      "versements": [
+        {
+          "id": "6bcd2f47-7e77-4f17-8a79-7492e311e66e",
+          "montantCentimes": 4200,
+          "date": "2025-12-06",
+          "mode": "cheque"
+        }
+      ],
+      "creeLe": "2025-11-06T16:00:00.000Z",
+      "modifieLe": "2025-11-06T16:00:00.000Z"
+    },
+    {
+      "id": "f97f9218-0069-4a98-8217-fd97cee9310b",
+      "patient": {
+        "id": "f6243d8d-8f71-437d-803b-bf2cfe0383fc",
+        "nom": "Renard",
+        "prenom": "Goupil"
+      },
+      "date": "2025-11-07",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Écriture",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2025-11-30",
+      "versements": [
+        {
+          "id": "eb313670-b1d1-4370-8999-322fe9019983",
+          "montantCentimes": 4200,
+          "date": "2025-12-07",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2025-11-07T16:00:00.000Z",
+      "modifieLe": "2025-11-07T16:00:00.000Z"
+    },
+    {
+      "id": "fb7f953e-8512-4dde-84a6-230138e07df9",
+      "patient": {
+        "id": "ef243288-3f21-4808-838d-65878b21f6bb",
+        "nom": "Souris",
+        "prenom": "Stuart"
+      },
+      "date": "2025-11-08",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Organisation",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2025-11-30",
+      "versements": [
+        {
+          "id": "94e2c026-d9c2-4046-8c7b-0329b6aa1bc1",
+          "montantCentimes": 5800,
+          "date": "2025-12-03",
+          "mode": "cheque"
+        }
+      ],
+      "creeLe": "2025-11-08T16:00:00.000Z",
+      "modifieLe": "2025-11-08T16:00:00.000Z"
+    },
+    {
+      "id": "fd7f9864-09bb-4124-800e-ec7ba2d7cae7",
+      "patient": {
+        "id": "f024341b-0175-49ab-800f-a9cec01d9d32",
+        "nom": "Hérisson",
+        "prenom": "Sonic"
+      },
+      "date": "2025-11-10",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Coordination",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2025-11-30",
+      "versements": [
+        {
+          "id": "a6a48f6c-77c5-45ac-8a21-7dc313ed864f",
+          "montantCentimes": 4200,
+          "date": "2025-12-09",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2025-11-10T16:00:00.000Z",
+      "modifieLe": "2025-11-10T16:00:00.000Z"
+    },
+    {
+      "id": "fc7d583a-91d3-4a1a-8e9c-0d256c0fccc5",
+      "patient": {
+        "id": "f4243a67-0ac8-4037-8e06-98b2940c370e",
+        "nom": "Ours",
+        "prenom": "Baloo"
+      },
+      "date": "2025-11-18",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Motricité fine",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2025-11-30",
+      "versements": [
+        {
+          "id": "4fe9aeca-ed95-43aa-8fd9-43b5471d9215",
+          "montantCentimes": 4200,
+          "date": "2025-12-06",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2025-11-18T16:00:00.000Z",
+      "modifieLe": "2025-11-18T16:00:00.000Z"
+    },
+    {
+      "id": "ee7d4230-f133-4330-80b1-586f864cb243",
+      "patient": {
+        "id": "f32438d4-4873-4e94-8184-546b5f109097",
+        "nom": "Lapin",
+        "prenom": "Pierre"
+      },
+      "date": "2025-11-19",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Graphisme",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2025-11-30",
+      "versements": [
+        {
+          "id": "c18372c0-145f-46c0-8ec3-24ff73068993",
+          "montantCentimes": 5800,
+          "date": "2025-12-07",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2025-11-19T16:00:00.000Z",
+      "modifieLe": "2025-11-19T16:00:00.000Z"
+    },
+    {
+      "id": "fa7f93ab-c2bd-4c3b-8c21-65de03e4d782",
+      "patient": {
+        "id": "f5243bfa-cd1c-41da-8408-9665c907dd85",
+        "nom": "Tortue",
+        "prenom": "Franklin"
+      },
+      "date": "2025-11-21",
+      "prestationId": "seance-domicile-45",
+      "libelle": "Séance à domicile 45 min",
+      "categorie": "seance",
+      "motif": "Autonomie",
+      "montantCentimes": 6800,
+      "statut": "facture",
+      "factureLe": "2025-11-30",
+      "versements": [
+        {
+          "id": "157a2977-f1a0-4a47-857b-8042db39bade",
+          "montantCentimes": 6800,
+          "date": "2025-12-05",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2025-11-21T16:00:00.000Z",
+      "modifieLe": "2025-11-21T16:00:00.000Z"
+    },
+    {
+      "id": "007f9d1d-50b9-460d-8ec6-573c41cabe4c",
+      "patient": {
+        "id": "f024341b-0175-49ab-800f-a9cec01d9d32",
+        "nom": "Hérisson",
+        "prenom": "Sonic"
+      },
+      "date": "2025-11-22",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Coordination",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2025-11-30",
+      "versements": [
+        {
+          "id": "6bc89fc1-c9af-4d71-8a38-93c80d9138a0",
+          "montantCentimes": 4200,
+          "date": "2025-12-09",
+          "mode": "cheque"
+        }
+      ],
+      "creeLe": "2025-11-22T16:00:00.000Z",
+      "modifieLe": "2025-11-22T16:00:00.000Z"
+    },
+    {
+      "id": "fc7f96d1-4767-4f81-816d-9f586ddc2470",
+      "patient": {
+        "id": "f6243d8d-8f71-437d-803b-bf2cfe0383fc",
+        "nom": "Renard",
+        "prenom": "Goupil"
+      },
+      "date": "2025-11-22",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Écriture",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2025-11-30",
+      "versements": [
+        {
+          "id": "b05546c5-03bc-4b35-8a4a-2ba4e2a54bd4",
+          "montantCentimes": 4200,
+          "date": "2025-12-08",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2025-11-22T16:00:00.000Z",
+      "modifieLe": "2025-11-22T16:00:00.000Z"
+    },
+    {
+      "id": "fe7f99f7-cc10-42c7-8a18-54c2d7d3715e",
+      "patient": {
+        "id": "ef243288-3f21-4808-838d-65878b21f6bb",
+        "nom": "Souris",
+        "prenom": "Stuart"
+      },
+      "date": "2025-11-23",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Organisation",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2025-11-30",
+      "versements": [
+        {
+          "id": "b0c640a3-6aa4-4bb3-8711-5096529e701a",
+          "montantCentimes": 5800,
+          "date": "2025-12-07",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2025-11-23T16:00:00.000Z",
+      "modifieLe": "2025-11-23T16:00:00.000Z"
+    },
+    {
+      "id": "f17f8580-edc4-4d80-8459-5e3f270bfd53",
+      "patient": {
+        "id": "f4243a67-0ac8-4037-8e06-98b2940c370e",
+        "nom": "Ours",
+        "prenom": "Baloo"
+      },
+      "date": "2025-12-04",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Motricité fine",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2025-12-31",
+      "versements": [
+        {
+          "id": "13355b48-8c81-44c8-8d06-3fc730fd887b",
+          "montantCentimes": 4200,
+          "date": "2026-01-08",
+          "mode": "cheque"
+        }
+      ],
+      "creeLe": "2025-12-04T16:00:00.000Z",
+      "modifieLe": "2025-12-04T16:00:00.000Z"
+    },
+    {
+      "id": "ff7f9b8a-8e64-446a-8244-12f50ccf17d5",
+      "patient": {
+        "id": "f32438d4-4873-4e94-8184-546b5f109097",
+        "nom": "Lapin",
+        "prenom": "Pierre"
+      },
+      "date": "2025-12-04",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Graphisme",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2025-12-31",
+      "versements": [
+        {
+          "id": "50561922-9fb6-4282-808b-6b4de196088d",
+          "montantCentimes": 5800,
+          "date": "2026-01-06",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2025-12-04T16:00:00.000Z",
+      "modifieLe": "2025-12-04T16:00:00.000Z"
+    },
+    {
+      "id": "7d82a07b-e998-480b-8877-84ae22775e12",
+      "patient": {
+        "id": "ef243288-3f21-4808-838d-65878b21f6bb",
+        "nom": "Souris",
+        "prenom": "Stuart"
+      },
+      "date": "2025-12-07",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Organisation",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2025-12-31",
+      "versements": [
+        {
+          "id": "db4d5a43-ee8a-4353-8f72-06b6d0507d3a",
+          "montantCentimes": 5800,
+          "date": "2026-01-10",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2025-12-07T16:00:00.000Z",
+      "modifieLe": "2025-12-07T16:00:00.000Z"
+    },
+    {
+      "id": "8182a6c7-f2ea-4e97-8002-c812f665f7ee",
+      "patient": {
+        "id": "f5243bfa-cd1c-41da-8408-9665c907dd85",
+        "nom": "Tortue",
+        "prenom": "Franklin"
+      },
+      "date": "2025-12-07",
+      "prestationId": "seance-domicile-45",
+      "libelle": "Séance à domicile 45 min",
+      "categorie": "seance",
+      "motif": "Autonomie",
+      "montantCentimes": 6800,
+      "statut": "facture",
+      "factureLe": "2025-12-31",
+      "versements": [
+        {
+          "id": "c0020c97-9fcf-4367-8bce-90e2d6bf037e",
+          "montantCentimes": 6800,
+          "date": "2026-01-08",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2025-12-07T16:00:00.000Z",
+      "modifieLe": "2025-12-07T16:00:00.000Z"
+    },
+    {
+      "id": "8382a9ed-7793-41dd-88a3-9a0c605d44dc",
+      "patient": {
+        "id": "f6243d8d-8f71-437d-803b-bf2cfe0383fc",
+        "nom": "Renard",
+        "prenom": "Goupil"
+      },
+      "date": "2025-12-07",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Écriture",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2025-12-31",
+      "versements": [
+        {
+          "id": "599ff565-a148-47d5-8c26-0b444aa3e9f4",
+          "montantCentimes": 4200,
+          "date": "2026-01-09",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2025-12-07T16:00:00.000Z",
+      "modifieLe": "2025-12-07T16:00:00.000Z"
+    },
+    {
+      "id": "7f82a3a1-6e41-4b51-8aac-ab288c6eab00",
+      "patient": {
+        "id": "f024341b-0175-49ab-800f-a9cec01d9d32",
+        "nom": "Hérisson",
+        "prenom": "Sonic"
+      },
+      "date": "2025-12-08",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Coordination",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2025-12-31",
+      "versements": [
+        {
+          "id": "15134e61-673c-4a11-8f3f-4f68758fd6c0",
+          "montantCentimes": 4200,
+          "date": "2026-01-09",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2025-12-08T16:00:00.000Z",
+      "modifieLe": "2025-12-08T16:00:00.000Z"
+    },
+    {
+      "id": "f27f8713-b019-4f23-80db-a2865c07a3ca",
+      "patient": {
+        "id": "f32438d4-4873-4e94-8184-546b5f109097",
+        "nom": "Lapin",
+        "prenom": "Pierre"
+      },
+      "date": "2025-12-17",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Graphisme",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2025-12-31",
+      "versements": [
+        {
+          "id": "9ebc19ef-bca8-453f-8366-c67a951ac0f6",
+          "montantCentimes": 5800,
+          "date": "2026-01-06",
+          "mode": "cheque"
+        }
+      ],
+      "creeLe": "2025-12-17T16:00:00.000Z",
+      "modifieLe": "2025-12-17T16:00:00.000Z"
+    },
+    {
+      "id": "8082a534-3095-4cf4-8731-684bc16a5177",
+      "patient": {
+        "id": "f4243a67-0ac8-4037-8e06-98b2940c370e",
+        "nom": "Ours",
+        "prenom": "Baloo"
+      },
+      "date": "2025-12-18",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Motricité fine",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2025-12-31",
+      "versements": [
+        {
+          "id": "947be510-4f5d-4010-8f25-f64f510037a3",
+          "montantCentimes": 4200,
+          "date": "2026-01-04",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2025-12-18T16:00:00.000Z",
+      "modifieLe": "2025-12-18T16:00:00.000Z"
+    },
+    {
+      "id": "7c829ee8-2743-4668-89d8-b067ed7bb79b",
+      "patient": {
+        "id": "f6243d8d-8f71-437d-803b-bf2cfe0383fc",
+        "nom": "Renard",
+        "prenom": "Goupil"
+      },
+      "date": "2025-12-20",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Écriture",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2025-12-31",
+      "versements": [
+        {
+          "id": "cfee748c-eb08-40cc-8bc8-8c63fe18e8ef",
+          "montantCentimes": 4200,
+          "date": "2026-01-08",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2025-12-20T16:00:00.000Z",
+      "modifieLe": "2025-12-20T16:00:00.000Z"
+    },
+    {
+      "id": "7e82a20e-abec-49ae-84ad-265157730489",
+      "patient": {
+        "id": "ef243288-3f21-4808-838d-65878b21f6bb",
+        "nom": "Souris",
+        "prenom": "Stuart"
+      },
+      "date": "2025-12-21",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Organisation",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2025-12-31",
+      "versements": [
+        {
+          "id": "faddfc42-4de4-4ba2-8d13-b2eddd1b512d",
+          "montantCentimes": 5800,
+          "date": "2026-01-07",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2025-12-21T16:00:00.000Z",
+      "modifieLe": "2025-12-21T16:00:00.000Z"
+    },
+    {
+      "id": "8282a85a-b53e-403a-829a-31c52b619e65",
+      "patient": {
+        "id": "f5243bfa-cd1c-41da-8408-9665c907dd85",
+        "nom": "Tortue",
+        "prenom": "Franklin"
+      },
+      "date": "2025-12-21",
+      "prestationId": "seance-domicile-45",
+      "libelle": "Séance à domicile 45 min",
+      "categorie": "seance",
+      "motif": "Autonomie",
+      "montantCentimes": 6800,
+      "statut": "facture",
+      "factureLe": "2025-12-31",
+      "versements": [
+        {
+          "id": "3e2d6ec6-774f-4ce6-801b-6e491ea8b9e1",
+          "montantCentimes": 6800,
+          "date": "2026-01-03",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2025-12-21T16:00:00.000Z",
+      "modifieLe": "2025-12-21T16:00:00.000Z"
+    },
+    {
+      "id": "7882989c-1df1-4fdc-8208-34f3198d1dbf",
+      "patient": {
+        "id": "f024341b-0175-49ab-800f-a9cec01d9d32",
+        "nom": "Hérisson",
+        "prenom": "Sonic"
+      },
+      "date": "2025-12-22",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Coordination",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2025-12-31",
+      "versements": [
+        {
+          "id": "bdbd3e68-3aaf-4de8-8b08-6be72c82d11b",
+          "montantCentimes": 4200,
+          "date": "2026-01-03",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2025-12-22T16:00:00.000Z",
+      "modifieLe": "2025-12-22T16:00:00.000Z"
+    },
+    {
+      "id": "79829a2f-e045-417f-8a8a-793a4e88c436",
+      "patient": {
+        "id": "f32438d4-4873-4e94-8184-546b5f109097",
+        "nom": "Lapin",
+        "prenom": "Pierre"
+      },
+      "date": "2026-01-04",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Graphisme",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2026-01-31",
+      "versements": [
+        {
+          "id": "c805ff0f-2fec-405f-83ff-451a7f462396",
+          "montantCentimes": 5800,
+          "date": "2026-02-07",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2026-01-04T16:00:00.000Z",
+      "modifieLe": "2026-01-04T16:00:00.000Z"
+    },
+    {
+      "id": "8584ebaa-b1d0-4a8a-87bc-1c15cc20e975",
+      "patient": {
+        "id": "f4243a67-0ac8-4037-8e06-98b2940c370e",
+        "nom": "Ours",
+        "prenom": "Baloo"
+      },
+      "date": "2026-01-04",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Motricité fine",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-01-31",
+      "versements": [
+        {
+          "id": "f4818cf6-660c-4c16-88b5-75f9d7a56251",
+          "montantCentimes": 4200,
+          "date": "2026-02-04",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2026-01-04T16:00:00.000Z",
+      "modifieLe": "2026-01-04T16:00:00.000Z"
+    },
+    {
+      "id": "8184e55e-a87e-43fe-8a6d-47a1f8324f99",
+      "patient": {
+        "id": "f6243d8d-8f71-437d-803b-bf2cfe0383fc",
+        "nom": "Renard",
+        "prenom": "Goupil"
+      },
+      "date": "2026-01-07",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Écriture",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-01-31",
+      "versements": [
+        {
+          "id": "2ff41c72-01b7-4cd2-89ce-289d84be139d",
+          "montantCentimes": 4200,
+          "date": "2026-02-04",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2026-01-07T16:00:00.000Z",
+      "modifieLe": "2026-01-07T16:00:00.000Z"
+    },
+    {
+      "id": "8384e884-2d27-4744-8537-da1b62299c87",
+      "patient": {
+        "id": "f5243bfa-cd1c-41da-8408-9665c907dd85",
+        "nom": "Tortue",
+        "prenom": "Franklin"
+      },
+      "date": "2026-01-07",
+      "prestationId": "seance-domicile-45",
+      "libelle": "Séance à domicile 45 min",
+      "categorie": "seance",
+      "motif": "Autonomie",
+      "montantCentimes": 6800,
+      "statut": "facture",
+      "factureLe": "2026-01-31",
+      "versements": [
+        {
+          "id": "cacf39c0-13d2-4dc0-8920-87ff8c29a493",
+          "montantCentimes": 6800,
+          "date": "2026-02-05",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2026-01-07T16:00:00.000Z",
+      "modifieLe": "2026-01-07T16:00:00.000Z"
+    },
+    {
+      "id": "7f84e238-23d4-40b8-8790-06b78e3b02ab",
+      "patient": {
+        "id": "ef243288-3f21-4808-838d-65878b21f6bb",
+        "nom": "Souris",
+        "prenom": "Stuart"
+      },
+      "date": "2026-01-09",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Organisation",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2026-01-31",
+      "versements": [
+        {
+          "id": "864292bc-d9c6-4ffc-8862-9413b715915f",
+          "montantCentimes": 5800,
+          "date": "2026-02-05",
+          "mode": "cheque"
+        }
+      ],
+      "creeLe": "2026-01-09T16:00:00.000Z",
+      "modifieLe": "2026-01-09T16:00:00.000Z"
+    },
+    {
+      "id": "7d84df12-9f2b-4d72-8c76-58bd2443b5bd",
+      "patient": {
+        "id": "f024341b-0175-49ab-800f-a9cec01d9d32",
+        "nom": "Hérisson",
+        "prenom": "Sonic"
+      },
+      "date": "2026-01-10",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Coordination",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-01-31",
+      "versements": [
+        {
+          "id": "1dc2e64e-515e-49ee-827f-d011b327fbc9",
+          "montantCentimes": 4200,
+          "date": "2026-02-10",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2026-01-10T16:00:00.000Z",
+      "modifieLe": "2026-01-10T16:00:00.000Z"
+    },
+    {
+      "id": "8684ed3d-7424-4c2d-843e-605c011c8fec",
+      "patient": {
+        "id": "f32438d4-4873-4e94-8184-546b5f109097",
+        "nom": "Lapin",
+        "prenom": "Pierre"
+      },
+      "date": "2026-01-18",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Graphisme",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2026-01-31",
+      "versements": [
+        {
+          "id": "0ff41395-9005-4705-8c82-f77403a09264",
+          "montantCentimes": 5800,
+          "date": "2026-02-10",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2026-01-18T16:00:00.000Z",
+      "modifieLe": "2026-01-18T16:00:00.000Z"
+    },
+    {
+      "id": "8484ea17-ef7b-48e7-81ba-1e62972542fe",
+      "patient": {
+        "id": "f4243a67-0ac8-4037-8e06-98b2940c370e",
+        "nom": "Ours",
+        "prenom": "Baloo"
+      },
+      "date": "2026-01-19",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Motricité fine",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-01-31",
+      "versements": [
+        {
+          "id": "7518f647-7dea-4617-8216-b392fc35016e",
+          "montantCentimes": 4200,
+          "date": "2026-02-09",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2026-01-19T16:00:00.000Z",
+      "modifieLe": "2026-01-19T16:00:00.000Z"
+    },
+    {
+      "id": "8284e6f1-6ad2-45a1-86e5-a8782d2df610",
+      "patient": {
+        "id": "f5243bfa-cd1c-41da-8408-9665c907dd85",
+        "nom": "Tortue",
+        "prenom": "Franklin"
+      },
+      "date": "2026-01-20",
+      "prestationId": "seance-domicile-45",
+      "libelle": "Séance à domicile 45 min",
+      "categorie": "seance",
+      "motif": "Autonomie",
+      "montantCentimes": 6800,
+      "statut": "facture",
+      "factureLe": "2026-01-31",
+      "versements": [
+        {
+          "id": "4b66a311-2bb0-47c1-8989-aa18b0b943b0",
+          "montantCentimes": 6800,
+          "date": "2026-02-04",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2026-01-20T16:00:00.000Z",
+      "modifieLe": "2026-01-20T16:00:00.000Z"
+    },
+    {
+      "id": "7e84e0a5-6180-4f15-8f15-2d04593f5c34",
+      "patient": {
+        "id": "ef243288-3f21-4808-838d-65878b21f6bb",
+        "nom": "Souris",
+        "prenom": "Stuart"
+      },
+      "date": "2026-01-22",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Organisation",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2026-01-31",
+      "versements": [
+        {
+          "id": "39356ced-7b57-44dd-8a9c-6d0cdf232bdc",
+          "montantCentimes": 5800,
+          "date": "2026-02-08",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2026-01-22T16:00:00.000Z",
+      "modifieLe": "2026-01-22T16:00:00.000Z"
+    },
+    {
+      "id": "8084e3cb-e629-425b-81e8-8a7ec336a922",
+      "patient": {
+        "id": "f6243d8d-8f71-437d-803b-bf2cfe0383fc",
+        "nom": "Renard",
+        "prenom": "Goupil"
+      },
+      "date": "2026-01-22",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Écriture",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-01-31",
+      "versements": [
+        {
+          "id": "91a17873-dd47-4283-8e55-0e66894d25aa",
+          "montantCentimes": 4200,
+          "date": "2026-02-06",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2026-01-22T16:00:00.000Z",
+      "modifieLe": "2026-01-22T16:00:00.000Z"
+    },
+    {
+      "id": "6c8702e6-6d21-4706-800f-2369a159ff81",
+      "patient": {
+        "id": "f024341b-0175-49ab-800f-a9cec01d9d32",
+        "nom": "Hérisson",
+        "prenom": "Sonic"
+      },
+      "date": "2026-01-24",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Coordination",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-01-31",
+      "versements": [
+        {
+          "id": "c6968a8e-de14-4a2e-8ee7-32d1a398d309",
+          "montantCentimes": 4200,
+          "date": "2026-02-07",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2026-01-24T16:00:00.000Z",
+      "modifieLe": "2026-01-24T16:00:00.000Z"
+    },
+    {
+      "id": "6d870479-2f76-48a9-8887-8440d655a5f8",
+      "patient": {
+        "id": "f32438d4-4873-4e94-8184-546b5f109097",
+        "nom": "Lapin",
+        "prenom": "Pierre"
+      },
+      "date": "2026-02-03",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Graphisme",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2026-02-28",
+      "versements": [
+        {
+          "id": "e209112d-080e-451d-85f3-cfcccf94031c",
+          "montantCentimes": 5800,
+          "date": "2026-03-05",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2026-02-03T16:00:00.000Z",
+      "modifieLe": "2026-02-03T16:00:00.000Z"
+    },
+    {
+      "id": "6b870153-aacd-4563-838a-66466c5e590a",
+      "patient": {
+        "id": "f4243a67-0ac8-4037-8e06-98b2940c370e",
+        "nom": "Ours",
+        "prenom": "Baloo"
+      },
+      "date": "2026-02-04",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Motricité fine",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-02-28",
+      "versements": [
+        {
+          "id": "272dc17f-ab60-4fcf-82c7-e68a28b3a346",
+          "montantCentimes": 4200,
+          "date": "2026-03-03",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2026-02-04T16:00:00.000Z",
+      "modifieLe": "2026-02-04T16:00:00.000Z"
+    },
+    {
+      "id": "71870ac5-38c8-4f35-862f-57a4aa443fd4",
+      "patient": {
+        "id": "f5243bfa-cd1c-41da-8408-9665c907dd85",
+        "nom": "Tortue",
+        "prenom": "Franklin"
+      },
+      "date": "2026-02-06",
+      "prestationId": "seance-domicile-45",
+      "libelle": "Séance à domicile 45 min",
+      "categorie": "seance",
+      "motif": "Autonomie",
+      "montantCentimes": 6800,
+      "statut": "facture",
+      "factureLe": "2026-02-28",
+      "versements": [
+        {
+          "id": "7d7c37c9-836f-42f9-8f96-fa105b0b2108",
+          "montantCentimes": 6800,
+          "date": "2026-03-09",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2026-02-06T16:00:00.000Z",
+      "modifieLe": "2026-02-06T16:00:00.000Z"
+    },
+    {
+      "id": "6f87079f-b41f-4bef-8ac6-8e2a404cf2e6",
+      "patient": {
+        "id": "f6243d8d-8f71-437d-803b-bf2cfe0383fc",
+        "nom": "Renard",
+        "prenom": "Goupil"
+      },
+      "date": "2026-02-08",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Écriture",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-02-28",
+      "versements": [
+        {
+          "id": "6279418b-44ae-441b-8b7c-eebec1b9ebe2",
+          "montantCentimes": 4200,
+          "date": "2026-03-03",
+          "mode": "cheque"
+        }
+      ],
+      "creeLe": "2026-02-08T16:00:00.000Z",
+      "modifieLe": "2026-02-08T16:00:00.000Z"
+    },
+    {
+      "id": "f18a12dc-18a5-461c-89fa-68b329e3d2ff",
+      "patient": {
+        "id": "f024341b-0175-49ab-800f-a9cec01d9d32",
+        "nom": "Hérisson",
+        "prenom": "Sonic"
+      },
+      "date": "2026-02-08",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Coordination",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-02-28",
+      "versements": [
+        {
+          "id": "26417a5c-77df-459c-87c2-2c3305f1147f",
+          "montantCentimes": 4200,
+          "date": "2026-03-07",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2026-02-08T16:00:00.000Z",
+      "modifieLe": "2026-02-08T16:00:00.000Z"
+    },
+    {
+      "id": "75871111-421a-45c1-837e-2c187e32d9b0",
+      "patient": {
+        "id": "ef243288-3f21-4808-838d-65878b21f6bb",
+        "nom": "Souris",
+        "prenom": "Stuart"
+      },
+      "date": "2026-02-09",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Organisation",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2026-02-28",
+      "versements": [
+        {
+          "id": "b8c7b7d5-1cbc-4745-8d23-0134f41169a4",
+          "montantCentimes": 5800,
+          "date": "2026-03-09",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2026-02-09T16:00:00.000Z",
+      "modifieLe": "2026-02-09T16:00:00.000Z"
+    },
+    {
+      "id": "6a86ffc0-e878-43c0-8322-91ff3762b293",
+      "patient": {
+        "id": "f32438d4-4873-4e94-8184-546b5f109097",
+        "nom": "Lapin",
+        "prenom": "Pierre"
+      },
+      "date": "2026-02-18",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Graphisme",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2026-02-28",
+      "versements": [
+        {
+          "id": "9ba702d8-7b39-4f58-8e30-5fd7c4966acb",
+          "montantCentimes": 5800,
+          "date": "2026-03-07",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2026-02-18T16:00:00.000Z",
+      "modifieLe": "2026-02-18T16:00:00.000Z"
+    },
+    {
+      "id": "70870932-7673-4d92-8d5d-f7dd7548995d",
+      "patient": {
+        "id": "f4243a67-0ac8-4037-8e06-98b2940c370e",
+        "nom": "Ours",
+        "prenom": "Baloo"
+      },
+      "date": "2026-02-19",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Motricité fine",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-02-28",
+      "versements": [
+        {
+          "id": "02091a0a-79bf-4aea-82ef-e57550b18455",
+          "montantCentimes": 4200,
+          "date": "2026-03-10",
+          "mode": "cheque"
+        }
+      ],
+      "creeLe": "2026-02-19T16:00:00.000Z",
+      "modifieLe": "2026-02-19T16:00:00.000Z"
+    },
+    {
+      "id": "6e87060c-f1ca-4a4c-84bd-25e30b514c6f",
+      "patient": {
+        "id": "f5243bfa-cd1c-41da-8408-9665c907dd85",
+        "nom": "Tortue",
+        "prenom": "Franklin"
+      },
+      "date": "2026-02-20",
+      "prestationId": "seance-domicile-45",
+      "libelle": "Séance à domicile 45 min",
+      "categorie": "seance",
+      "motif": "Autonomie",
+      "montantCentimes": 6800,
+      "statut": "facture",
+      "factureLe": "2026-02-28",
+      "versements": [
+        {
+          "id": "58579054-51ce-4e14-8f32-87eb83090217",
+          "montantCentimes": 6800,
+          "date": "2026-03-04",
+          "mode": "cheque"
+        }
+      ],
+      "creeLe": "2026-02-20T16:00:00.000Z",
+      "modifieLe": "2026-02-20T16:00:00.000Z"
+    },
+    {
+      "id": "f28a146f-daf9-47bf-867c-acfa5edf7976",
+      "patient": {
+        "id": "ef243288-3f21-4808-838d-65878b21f6bb",
+        "nom": "Souris",
+        "prenom": "Stuart"
+      },
+      "date": "2026-02-21",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Organisation",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2026-02-28",
+      "versements": [
+        {
+          "id": "b19f9693-5117-46a3-80e7-4e065a556d4a",
+          "montantCentimes": 5800,
+          "date": "2026-03-05",
+          "mode": "cheque"
+        }
+      ],
+      "creeLe": "2026-02-21T16:00:00.000Z",
+      "modifieLe": "2026-02-21T16:00:00.000Z"
+    },
+    {
+      "id": "74870f7e-7fc6-441e-8538-56c149373339",
+      "patient": {
+        "id": "f6243d8d-8f71-437d-803b-bf2cfe0383fc",
+        "nom": "Renard",
+        "prenom": "Goupil"
+      },
+      "date": "2026-02-22",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Écriture",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-02-28",
+      "versements": [
+        {
+          "id": "9d553136-f2c3-4c56-82e5-d8b9c8163991",
+          "montantCentimes": 4200,
+          "date": "2026-03-07",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2026-02-22T16:00:00.000Z",
+      "modifieLe": "2026-02-22T16:00:00.000Z"
+    },
+    {
+      "id": "f48a1795-5fa2-4b05-88b1-d374c8d6c664",
+      "patient": {
+        "id": "f024341b-0175-49ab-800f-a9cec01d9d32",
+        "nom": "Hérisson",
+        "prenom": "Sonic"
+      },
+      "date": "2026-02-23",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Coordination",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-02-28",
+      "versements": [
+        {
+          "id": "eca2bf31-da6b-49e1-8eb5-9738931b7150",
+          "montantCentimes": 4200,
+          "date": "2026-03-03",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2026-02-23T16:00:00.000Z",
+      "modifieLe": "2026-02-23T16:00:00.000Z"
+    },
+    {
+      "id": "f38a1602-9d4e-4962-8ea8-6b2d93db1fed",
+      "patient": {
+        "id": "f32438d4-4873-4e94-8184-546b5f109097",
+        "nom": "Lapin",
+        "prenom": "Pierre"
+      },
+      "date": "2026-03-03",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Graphisme",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2026-03-31",
+      "versements": [
+        {
+          "id": "d1303892-b072-4ef2-84c7-8a3d6720413d",
+          "montantCentimes": 5800,
+          "date": "2026-04-07",
+          "mode": "cheque"
+        }
+      ],
+      "creeLe": "2026-03-03T16:00:00.000Z",
+      "modifieLe": "2026-03-03T16:00:00.000Z"
+    },
+    {
+      "id": "ed8a0c90-0f52-4f90-8c03-79cf55f53923",
+      "patient": {
+        "id": "f4243a67-0ac8-4037-8e06-98b2940c370e",
+        "nom": "Ours",
+        "prenom": "Baloo"
+      },
+      "date": "2026-03-04",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Motricité fine",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-03-31",
+      "versements": [
+        {
+          "id": "6ace2160-b1eb-4360-8668-049fdb0527b3",
+          "montantCentimes": 4200,
+          "date": "2026-04-04",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2026-03-04T16:00:00.000Z",
+      "modifieLe": "2026-03-04T16:00:00.000Z"
+    },
+    {
+      "id": "ef8a0fb6-93fb-42d6-8e91-9f39bfec8611",
+      "patient": {
+        "id": "f5243bfa-cd1c-41da-8408-9665c907dd85",
+        "nom": "Tortue",
+        "prenom": "Franklin"
+      },
+      "date": "2026-03-06",
+      "prestationId": "seance-domicile-45",
+      "libelle": "Séance à domicile 45 min",
+      "categorie": "seance",
+      "motif": "Autonomie",
+      "montantCentimes": 6800,
+      "statut": "facture",
+      "factureLe": "2026-03-31",
+      "versements": [
+        {
+          "id": "15bcdf96-ea7e-4cb6-8b91-b6193c345471",
+          "montantCentimes": 6800,
+          "date": "2026-04-07",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2026-03-06T16:00:00.000Z",
+      "modifieLe": "2026-03-06T16:00:00.000Z"
+    },
+    {
+      "id": "f98a1f74-2b49-4334-8f23-9c0bd1c106b7",
+      "patient": {
+        "id": "f6243d8d-8f71-437d-803b-bf2cfe0383fc",
+        "nom": "Renard",
+        "prenom": "Goupil"
+      },
+      "date": "2026-03-08",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Écriture",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-03-31",
+      "versements": [
+        {
+          "id": "4f82d3b4-6330-4374-8cfb-8ecbe173adf7",
+          "montantCentimes": 4200,
+          "date": "2026-04-07",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2026-03-08T16:00:00.000Z",
+      "modifieLe": "2026-03-08T16:00:00.000Z"
+    },
+    {
+      "id": "f98c5e0b-e0dd-489b-8bb5-633ed38d5e62",
+      "patient": {
+        "id": "ef243288-3f21-4808-838d-65878b21f6bb",
+        "nom": "Souris",
+        "prenom": "Stuart"
+      },
+      "date": "2026-03-09",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Organisation",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2026-03-31",
+      "versements": [
+        {
+          "id": "e8cdd433-5090-4243-86f6-74a698dc4e6a",
+          "montantCentimes": 5800,
+          "date": "2026-04-08",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2026-03-09T16:00:00.000Z",
+      "modifieLe": "2026-03-09T16:00:00.000Z"
+    },
+    {
+      "id": "fb8c6131-6586-4be1-8456-35383d84ab50",
+      "patient": {
+        "id": "f024341b-0175-49ab-800f-a9cec01d9d32",
+        "nom": "Hérisson",
+        "prenom": "Sonic"
+      },
+      "date": "2026-03-09",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Coordination",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-03-31",
+      "versements": [
+        {
+          "id": "a292fed1-9ef9-4781-8122-4758c0486c70",
+          "montantCentimes": 4200,
+          "date": "2026-04-08",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2026-03-09T16:00:00.000Z",
+      "modifieLe": "2026-03-09T16:00:00.000Z"
+    },
+    {
+      "id": "1dab4e64-0afa-4724-810a-667b759408e7",
+      "patient": {
+        "id": "f32438d4-4873-4e94-8184-546b5f109097",
+        "nom": "Lapin",
+        "prenom": "Pierre"
+      },
+      "date": "2026-03-12",
+      "prestationId": "bilan-initial",
+      "libelle": "Bilan initial",
+      "categorie": "bilan",
+      "motif": "Bilan initial",
+      "montantCentimes": 17000,
+      "statut": "facture",
+      "factureLe": "2026-03-31",
+      "versements": [
+        {
+          "id": "2a80ebca-a6fb-40aa-8fd3-70b59819ab15",
+          "montantCentimes": 17000,
+          "date": "2026-04-06",
+          "mode": "cheque"
+        }
+      ],
+      "creeLe": "2026-03-12T16:00:00.000Z",
+      "modifieLe": "2026-03-12T16:00:00.000Z"
+    },
+    {
+      "id": "ee8a0e23-d1a7-4133-8885-be168af0df9a",
+      "patient": {
+        "id": "f32438d4-4873-4e94-8184-546b5f109097",
+        "nom": "Lapin",
+        "prenom": "Pierre"
+      },
+      "date": "2026-03-17",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Graphisme",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2026-03-31",
+      "versements": [
+        {
+          "id": "965448e7-025c-46b7-85c7-9f3260c3f38e",
+          "montantCentimes": 5800,
+          "date": "2026-04-04",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2026-03-17T16:00:00.000Z",
+      "modifieLe": "2026-03-17T16:00:00.000Z"
+    },
+    {
+      "id": "f08a1149-5650-4479-8175-ab90f4e82c88",
+      "patient": {
+        "id": "f4243a67-0ac8-4037-8e06-98b2940c370e",
+        "nom": "Ours",
+        "prenom": "Baloo"
+      },
+      "date": "2026-03-19",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Motricité fine",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-03-31",
+      "versements": [
+        {
+          "id": "2ff231b5-03d5-4b25-83d9-e294d4a8da04",
+          "montantCentimes": 4200,
+          "date": "2026-04-04",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2026-03-19T16:00:00.000Z",
+      "modifieLe": "2026-03-19T16:00:00.000Z"
+    },
+    {
+      "id": "fa8a2107-ed9e-44d7-8173-54d206bcad2e",
+      "patient": {
+        "id": "f5243bfa-cd1c-41da-8408-9665c907dd85",
+        "nom": "Tortue",
+        "prenom": "Franklin"
+      },
+      "date": "2026-03-21",
+      "prestationId": "seance-domicile-45",
+      "libelle": "Séance à domicile 45 min",
+      "categorie": "seance",
+      "motif": "Autonomie",
+      "montantCentimes": 6800,
+      "statut": "facture",
+      "factureLe": "2026-03-31",
+      "versements": [
+        {
+          "id": "dae0efeb-3c68-447b-8917-e79e35d806c2",
+          "montantCentimes": 6800,
+          "date": "2026-04-04",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2026-03-21T16:00:00.000Z",
+      "modifieLe": "2026-03-21T16:00:00.000Z"
+    },
+    {
+      "id": "fa8c5f9e-a331-4a3e-85c1-4461088904d9",
+      "patient": {
+        "id": "ef243288-3f21-4808-838d-65878b21f6bb",
+        "nom": "Souris",
+        "prenom": "Stuart"
+      },
+      "date": "2026-03-21",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Organisation",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2026-03-31",
+      "versements": [
+        {
+          "id": "87207832-7500-4c92-86e5-1edd944d3c5d",
+          "montantCentimes": 5800,
+          "date": "2026-04-04",
+          "mode": "cheque"
+        }
+      ],
+      "creeLe": "2026-03-21T16:00:00.000Z",
+      "modifieLe": "2026-03-21T16:00:00.000Z"
+    },
+    {
+      "id": "f88c5c78-1e88-46f8-8382-3a779e91b7eb",
+      "patient": {
+        "id": "f6243d8d-8f71-437d-803b-bf2cfe0383fc",
+        "nom": "Renard",
+        "prenom": "Goupil"
+      },
+      "date": "2026-03-22",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Écriture",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-03-31",
+      "versements": [
+        {
+          "id": "dd6eee7c-4d0f-4fbc-83eb-3153c6a4ba1f",
+          "montantCentimes": 4200,
+          "date": "2026-04-09",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2026-03-22T16:00:00.000Z",
+      "modifieLe": "2026-03-22T16:00:00.000Z"
+    },
+    {
+      "id": "fc8c62c4-27da-4d84-812a-0ddb728051c7",
+      "patient": {
+        "id": "f024341b-0175-49ab-800f-a9cec01d9d32",
+        "nom": "Hérisson",
+        "prenom": "Sonic"
+      },
+      "date": "2026-03-23",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Coordination",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-03-31",
+      "versements": [
+        {
+          "id": "21fb9580-871b-4d80-8ed1-ee3f9bb8cd53",
+          "montantCentimes": 4200,
+          "date": "2026-04-04",
+          "mode": "cheque"
+        }
+      ],
+      "creeLe": "2026-03-23T16:00:00.000Z",
+      "modifieLe": "2026-03-23T16:00:00.000Z"
+    },
+    {
+      "id": "fd8c6457-ea2f-4f27-89ac-5222a77bf83e",
+      "patient": {
+        "id": "f32438d4-4873-4e94-8184-546b5f109097",
+        "nom": "Lapin",
+        "prenom": "Pierre"
+      },
+      "date": "2026-04-04",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Graphisme",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2026-04-30",
+      "versements": [
+        {
+          "id": "cc455207-f134-45d7-8d86-a9d20bc42a2e",
+          "montantCentimes": 5800,
+          "date": "2026-05-07",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2026-04-04T16:00:00.000Z",
+      "modifieLe": "2026-04-04T16:00:00.000Z"
+    },
+    {
+      "id": "ff8c677d-6ed8-426d-8c30-941c1173452c",
+      "patient": {
+        "id": "f4243a67-0ac8-4037-8e06-98b2940c370e",
+        "nom": "Ours",
+        "prenom": "Baloo"
+      },
+      "date": "2026-04-05",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Motricité fine",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-04-30",
+      "versements": [
+        {
+          "id": "67206f55-034f-46c5-841b-94b4132fbb24",
+          "montantCentimes": 4200,
+          "date": "2026-05-04",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2026-04-05T16:00:00.000Z",
+      "modifieLe": "2026-04-05T16:00:00.000Z"
+    },
+    {
+      "id": "f18c5173-ce38-4b83-8462-6f662bb02aaa",
+      "patient": {
+        "id": "f5243bfa-cd1c-41da-8408-9665c907dd85",
+        "nom": "Tortue",
+        "prenom": "Franklin"
+      },
+      "date": "2026-04-06",
+      "prestationId": "seance-domicile-45",
+      "libelle": "Séance à domicile 45 min",
+      "categorie": "seance",
+      "motif": "Autonomie",
+      "montantCentimes": 6800,
+      "statut": "facture",
+      "factureLe": "2026-04-30",
+      "versements": [
+        {
+          "id": "10d1f90b-2b40-439b-86f3-823ee0d83d62",
+          "montantCentimes": 6800,
+          "date": "2026-05-04",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2026-04-06T16:00:00.000Z",
+      "modifieLe": "2026-04-06T16:00:00.000Z"
+    },
+    {
+      "id": "fd8ea2ee-9fc3-448e-824d-d1b1a9484fe9",
+      "patient": {
+        "id": "f6243d8d-8f71-437d-803b-bf2cfe0383fc",
+        "nom": "Renard",
+        "prenom": "Goupil"
+      },
+      "date": "2026-04-07",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Écriture",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-04-30",
+      "versements": [
+        {
+          "id": "b0ce3be2-1273-4942-8e81-6b8d0a484c4d",
+          "montantCentimes": 4200,
+          "date": "2026-05-08",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2026-04-07T16:00:00.000Z",
+      "modifieLe": "2026-04-07T16:00:00.000Z"
+    },
+    {
+      "id": "1cab4cd1-48a5-4581-8885-a95840986270",
+      "patient": {
+        "id": "f4243a67-0ac8-4037-8e06-98b2940c370e",
+        "nom": "Ours",
+        "prenom": "Baloo"
+      },
+      "date": "2026-04-08",
+      "prestationId": "bilan-initial",
+      "libelle": "Bilan initial",
+      "categorie": "bilan",
+      "motif": "Bilan de graphisme",
+      "montantCentimes": 17000,
+      "statut": "facture",
+      "factureLe": "2026-04-30",
+      "versements": [
+        {
+          "id": "4fa5933f-d89c-458f-834f-16ca701bca06",
+          "montantCentimes": 17000,
+          "date": "2026-05-07",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2026-04-08T16:00:00.000Z",
+      "modifieLe": "2026-04-08T16:00:00.000Z"
+    },
+    {
+      "id": "fb8e9fc8-1b1a-4148-872a-40473f5102fb",
+      "patient": {
+        "id": "ef243288-3f21-4808-838d-65878b21f6bb",
+        "nom": "Souris",
+        "prenom": "Stuart"
+      },
+      "date": "2026-04-08",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Organisation",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2026-04-30",
+      "versements": [
+        {
+          "id": "071cb22c-ea81-4c6c-800e-b3033c9fca0f",
+          "montantCentimes": 5800,
+          "date": "2026-05-07",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2026-04-08T16:00:00.000Z",
+      "modifieLe": "2026-04-08T16:00:00.000Z"
+    },
+    {
+      "id": "018ea93a-a915-4b1a-8f9c-a6257d36e9c5",
+      "patient": {
+        "id": "f024341b-0175-49ab-800f-a9cec01d9d32",
+        "nom": "Hérisson",
+        "prenom": "Sonic"
+      },
+      "date": "2026-04-10",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Coordination",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-04-30",
+      "versements": [
+        {
+          "id": "f55ae2e6-4c7f-4706-8a71-0369df5c5f81",
+          "montantCentimes": 4200,
+          "date": "2026-05-06",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2026-04-10T16:00:00.000Z",
+      "modifieLe": "2026-04-10T16:00:00.000Z"
+    },
+    {
+      "id": "fe8c65ea-ac84-40ca-83ae-4fd5dc779eb5",
+      "patient": {
+        "id": "f32438d4-4873-4e94-8184-546b5f109097",
+        "nom": "Lapin",
+        "prenom": "Pierre"
+      },
+      "date": "2026-04-17",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Graphisme",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2026-04-30",
+      "versements": [
+        {
+          "id": "4bade8b6-d955-4bd6-89bc-6c39e7348b11",
+          "montantCentimes": 5800,
+          "date": "2026-05-10",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2026-04-17T16:00:00.000Z",
+      "modifieLe": "2026-04-17T16:00:00.000Z"
+    },
+    {
+      "id": "f08c4fe0-0be4-49e0-85c3-9b1ff6b48433",
+      "patient": {
+        "id": "f4243a67-0ac8-4037-8e06-98b2940c370e",
+        "nom": "Ours",
+        "prenom": "Baloo"
+      },
+      "date": "2026-04-20",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Motricité fine",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-04-30",
+      "versements": [
+        {
+          "id": "06b047d4-3860-4d94-8d95-af6ba2275397",
+          "montantCentimes": 4200,
+          "date": "2026-05-03",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2026-04-20T16:00:00.000Z",
+      "modifieLe": "2026-04-20T16:00:00.000Z"
+    },
+    {
+      "id": "fe8ea481-6217-4631-8e77-1708de43f660",
+      "patient": {
+        "id": "f5243bfa-cd1c-41da-8408-9665c907dd85",
+        "nom": "Tortue",
+        "prenom": "Franklin"
+      },
+      "date": "2026-04-21",
+      "prestationId": "seance-domicile-45",
+      "libelle": "Séance à domicile 45 min",
+      "categorie": "seance",
+      "motif": "Autonomie",
+      "montantCentimes": 6800,
+      "statut": "facture",
+      "factureLe": "2026-04-30",
+      "versements": [
+        {
+          "id": "cc40c281-3c6c-4431-8d45-c90836437c60",
+          "montantCentimes": 6800,
+          "date": "2026-05-10",
+          "mode": "cheque"
+        }
+      ],
+      "creeLe": "2026-04-21T16:00:00.000Z",
+      "modifieLe": "2026-04-21T16:00:00.000Z"
+    },
+    {
+      "id": "028eaacd-6b69-4cbd-8c6e-05ecb232903c",
+      "patient": {
+        "id": "ef243288-3f21-4808-838d-65878b21f6bb",
+        "nom": "Souris",
+        "prenom": "Stuart"
+      },
+      "date": "2026-04-22",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Organisation",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2026-04-30",
+      "versements": [
+        {
+          "id": "10cd6985-7678-41f5-8dbe-84e40b578f94",
+          "montantCentimes": 5800,
+          "date": "2026-05-08",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2026-04-22T16:00:00.000Z",
+      "modifieLe": "2026-04-22T16:00:00.000Z"
+    },
+    {
+      "id": "fc8ea15b-dd6e-42eb-89c9-148e744ca972",
+      "patient": {
+        "id": "f6243d8d-8f71-437d-803b-bf2cfe0383fc",
+        "nom": "Renard",
+        "prenom": "Goupil"
+      },
+      "date": "2026-04-22",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Écriture",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-04-30",
+      "versements": [
+        {
+          "id": "113e6363-dd61-4273-8987-50d67b50b3da",
+          "montantCentimes": 4200,
+          "date": "2026-05-07",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2026-04-22T16:00:00.000Z",
+      "modifieLe": "2026-04-22T16:00:00.000Z"
+    },
+    {
+      "id": "008ea7a7-e6c0-4977-8105-3c72483b434e",
+      "patient": {
+        "id": "f024341b-0175-49ab-800f-a9cec01d9d32",
+        "nom": "Hérisson",
+        "prenom": "Sonic"
+      },
+      "date": "2026-04-23",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Coordination",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-04-30",
+      "versements": [
+        {
+          "id": "75f24c37-645d-4107-8e6c-258203ebfe9e",
+          "montantCentimes": 4200,
+          "date": "2026-05-07",
+          "mode": "cheque"
+        }
+      ],
+      "creeLe": "2026-04-23T16:00:00.000Z",
+      "modifieLe": "2026-04-23T16:00:00.000Z"
+    },
+    {
+      "id": "f58e9656-8d1e-4776-8708-0e59016b1c31",
+      "patient": {
+        "id": "f4243a67-0ac8-4037-8e06-98b2940c370e",
+        "nom": "Ours",
+        "prenom": "Baloo"
+      },
+      "date": "2026-05-04",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Motricité fine",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-05-31",
+      "versements": [
+        {
+          "id": "da0f953a-fdc4-471a-8a33-aa25e5cae5c5",
+          "montantCentimes": 4200,
+          "date": "2026-06-07",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2026-05-04T16:00:00.000Z",
+      "modifieLe": "2026-05-04T16:00:00.000Z"
+    },
+    {
+      "id": "ff8ea614-246c-47d4-86fb-d42b133f9cd7",
+      "patient": {
+        "id": "f32438d4-4873-4e94-8184-546b5f109097",
+        "nom": "Lapin",
+        "prenom": "Pierre"
+      },
+      "date": "2026-05-05",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Graphisme",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2026-05-31",
+      "versements": [
+        {
+          "id": "4ba95930-248e-4a30-8d0d-8b6f11b3dd43",
+          "montantCentimes": 5800,
+          "date": "2026-06-04",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2026-05-05T16:00:00.000Z",
+      "modifieLe": "2026-05-05T16:00:00.000Z"
+    },
+    {
+      "id": "13a6c178-0885-4bf8-8a55-cf776026d8eb",
+      "patient": {
+        "id": "f5243bfa-cd1c-41da-8408-9665c907dd85",
+        "nom": "Tortue",
+        "prenom": "Franklin"
+      },
+      "date": "2026-05-07",
+      "prestationId": "seance-domicile-45",
+      "libelle": "Séance à domicile 45 min",
+      "categorie": "seance",
+      "motif": "Autonomie",
+      "montantCentimes": 6800,
+      "statut": "facture",
+      "factureLe": "2026-05-31",
+      "versements": [
+        {
+          "id": "a27bae92-6a64-44f2-814e-c43d9ef93f3d",
+          "montantCentimes": 6800,
+          "date": "2026-06-04",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2026-05-07T16:00:00.000Z",
+      "modifieLe": "2026-05-07T16:00:00.000Z"
+    },
+    {
+      "id": "15a6c49e-8d2e-4f3e-8f0d-b561ca1e25d9",
+      "patient": {
+        "id": "f6243d8d-8f71-437d-803b-bf2cfe0383fc",
+        "nom": "Renard",
+        "prenom": "Goupil"
+      },
+      "date": "2026-05-07",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Écriture",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-05-31",
+      "versements": [
+        {
+          "id": "f78cf05c-31d1-4b9c-8665-f6333dca127f",
+          "montantCentimes": 4200,
+          "date": "2026-06-09",
+          "mode": "cheque"
+        }
+      ],
+      "creeLe": "2026-05-07T16:00:00.000Z",
+      "modifieLe": "2026-05-07T16:00:00.000Z"
+    },
+    {
+      "id": "17a6c7c4-11d7-4284-81e1-12db341572c7",
+      "patient": {
+        "id": "ef243288-3f21-4808-838d-65878b21f6bb",
+        "nom": "Souris",
+        "prenom": "Stuart"
+      },
+      "date": "2026-05-07",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Organisation",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2026-05-31",
+      "versements": [
+        {
+          "id": "e7085596-a471-42b6-89d7-8019740d5271",
+          "montantCentimes": 5800,
+          "date": "2026-06-07",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2026-05-07T16:00:00.000Z",
+      "modifieLe": "2026-05-07T16:00:00.000Z"
+    },
+    {
+      "id": "19a6caea-9680-45ca-8cfa-c0d59e0cbfb5",
+      "patient": {
+        "id": "f024341b-0175-49ab-800f-a9cec01d9d32",
+        "nom": "Hérisson",
+        "prenom": "Sonic"
+      },
+      "date": "2026-05-10",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Coordination",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-05-31",
+      "versements": [
+        {
+          "id": "3c199760-6bde-4960-8f7f-3e9f12de25b3",
+          "montantCentimes": 4200,
+          "date": "2026-06-10",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2026-05-10T16:00:00.000Z",
+      "modifieLe": "2026-05-10T16:00:00.000Z"
+    },
+    {
+      "id": "f68e97e9-4f73-4919-8107-93303666c2a8",
+      "patient": {
+        "id": "f32438d4-4873-4e94-8184-546b5f109097",
+        "nom": "Lapin",
+        "prenom": "Pierre"
+      },
+      "date": "2026-05-17",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Graphisme",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2026-05-31",
+      "versements": [
+        {
+          "id": "d444b4f9-cc89-4129-878e-98c0deca9c78",
+          "montantCentimes": 5800,
+          "date": "2026-06-07",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2026-05-17T16:00:00.000Z",
+      "modifieLe": "2026-05-17T16:00:00.000Z"
+    },
+    {
+      "id": "1bab4b3e-8651-43de-8bbe-2d010b9cbbf9",
+      "patient": {
+        "id": "f5243bfa-cd1c-41da-8408-9665c907dd85",
+        "nom": "Tortue",
+        "prenom": "Franklin"
+      },
+      "date": "2026-05-19",
+      "prestationId": "reunion-synthese",
+      "libelle": "Réunion de synthèse",
+      "categorie": "autre",
+      "motif": "Équipe de suivi",
+      "montantCentimes": 5200,
+      "statut": "facture",
+      "factureLe": "2026-05-31",
+      "versements": [
+        {
+          "id": "c41ed498-a874-4518-87ce-90170bfe918b",
+          "montantCentimes": 5200,
+          "date": "2026-06-07",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2026-05-19T16:00:00.000Z",
+      "modifieLe": "2026-05-19T16:00:00.000Z"
+    },
+    {
+      "id": "14a6c30b-cada-4d9b-8688-f83e95227f62",
+      "patient": {
+        "id": "f4243a67-0ac8-4037-8e06-98b2940c370e",
+        "nom": "Ours",
+        "prenom": "Baloo"
+      },
+      "date": "2026-05-20",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Motricité fine",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-05-31",
+      "versements": [
+        {
+          "id": "bdee3531-945d-4fe1-80eb-6138caf46f50",
+          "montantCentimes": 4200,
+          "date": "2026-06-03",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2026-05-20T16:00:00.000Z",
+      "modifieLe": "2026-05-20T16:00:00.000Z"
+    },
+    {
+      "id": "16a6c631-4f83-40e1-8b86-1638ff19cc50",
+      "patient": {
+        "id": "f5243bfa-cd1c-41da-8408-9665c907dd85",
+        "nom": "Tortue",
+        "prenom": "Franklin"
+      },
+      "date": "2026-05-21",
+      "prestationId": "seance-domicile-45",
+      "libelle": "Séance à domicile 45 min",
+      "categorie": "seance",
+      "motif": "Autonomie",
+      "montantCentimes": 6800,
+      "statut": "facture",
+      "factureLe": "2026-05-31",
+      "versements": [
+        {
+          "id": "82eb0c93-0b0a-4ca3-83ad-1806922e6b4a",
+          "montantCentimes": 6800,
+          "date": "2026-06-03",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2026-05-21T16:00:00.000Z",
+      "modifieLe": "2026-05-21T16:00:00.000Z"
+    },
+    {
+      "id": "18a6c957-d42c-4427-847f-e7226911193e",
+      "patient": {
+        "id": "f6243d8d-8f71-437d-803b-bf2cfe0383fc",
+        "nom": "Renard",
+        "prenom": "Goupil"
+      },
+      "date": "2026-05-21",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Écriture",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-05-31",
+      "versements": [
+        {
+          "id": "013da7b5-bdc8-4125-8061-1c940c81d804",
+          "montantCentimes": 4200,
+          "date": "2026-06-04",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2026-05-21T16:00:00.000Z",
+      "modifieLe": "2026-05-21T16:00:00.000Z"
+    },
+    {
+      "id": "1aa6cc7d-58d5-476d-897d-051cd308662c",
+      "patient": {
+        "id": "ef243288-3f21-4808-838d-65878b21f6bb",
+        "nom": "Souris",
+        "prenom": "Stuart"
+      },
+      "date": "2026-05-21",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Organisation",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2026-05-31",
+      "versements": [
+        {
+          "id": "679fbee7-bc4f-4cb7-8e4e-d932989cf18e",
+          "montantCentimes": 5800,
+          "date": "2026-06-04",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2026-05-21T16:00:00.000Z",
+      "modifieLe": "2026-05-21T16:00:00.000Z"
+    },
+    {
+      "id": "0ca6b673-b835-4083-8b92-5066ed454baa",
+      "patient": {
+        "id": "f024341b-0175-49ab-800f-a9cec01d9d32",
+        "nom": "Hérisson",
+        "prenom": "Sonic"
+      },
+      "date": "2026-05-24",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Coordination",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-05-31",
+      "versements": [
+        {
+          "id": "c5f227a9-247b-4cd9-8775-1570737b8f68",
+          "montantCentimes": 4200,
+          "date": "2026-06-10",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2026-05-24T16:00:00.000Z",
+      "modifieLe": "2026-05-24T16:00:00.000Z"
+    },
+    {
+      "id": "1aab49ab-c3fc-423b-8339-6fded6a11582",
+      "patient": {
+        "id": "f6243d8d-8f71-437d-803b-bf2cfe0383fc",
+        "nom": "Renard",
+        "prenom": "Goupil"
+      },
+      "date": "2026-06-02",
+      "prestationId": "compte-rendu",
+      "libelle": "Compte rendu",
+      "categorie": "autre",
+      "motif": "Compte rendu pour l’école",
+      "montantCentimes": 2800,
+      "statut": "facture",
+      "factureLe": "2026-06-30",
+      "versements": [
+        {
+          "id": "0a80e2ed-3549-4add-8550-370c16fc29dc",
+          "montantCentimes": 2800,
+          "date": "2026-07-04",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2026-06-02T16:00:00.000Z",
+      "modifieLe": "2026-06-02T16:00:00.000Z"
+    },
+    {
+      "id": "0ba6b4e0-f5e0-4ee0-8f10-0c1fb849a533",
+      "patient": {
+        "id": "f32438d4-4873-4e94-8184-546b5f109097",
+        "nom": "Lapin",
+        "prenom": "Pierre"
+      },
+      "date": "2026-06-04",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Graphisme",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2026-06-30",
+      "versements": [
+        {
+          "id": "ca7fd36a-4514-464a-850a-ed55e6f52e35",
+          "montantCentimes": 5800,
+          "date": "2026-07-06",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2026-06-04T16:00:00.000Z",
+      "modifieLe": "2026-06-04T16:00:00.000Z"
+    },
+    {
+      "id": "0fa47c95-499f-4005-83c7-44748a6be764",
+      "patient": {
+        "id": "f4243a67-0ac8-4037-8e06-98b2940c370e",
+        "nom": "Ours",
+        "prenom": "Baloo"
+      },
+      "date": "2026-06-04",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Motricité fine",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-06-30",
+      "versements": [
+        {
+          "id": "d93e1263-97e0-4173-8396-b7d69a0696da",
+          "montantCentimes": 4200,
+          "date": "2026-07-06",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2026-06-04T16:00:00.000Z",
+      "modifieLe": "2026-06-04T16:00:00.000Z"
+    },
+    {
+      "id": "0da4796f-c4f6-4cbf-8f19-41fa20749a76",
+      "patient": {
+        "id": "f5243bfa-cd1c-41da-8408-9665c907dd85",
+        "nom": "Tortue",
+        "prenom": "Franklin"
+      },
+      "date": "2026-06-06",
+      "prestationId": "seance-domicile-45",
+      "libelle": "Séance à domicile 45 min",
+      "categorie": "seance",
+      "motif": "Autonomie",
+      "montantCentimes": 6800,
+      "statut": "facture",
+      "factureLe": "2026-06-30",
+      "versements": [
+        {
+          "id": "94407181-f6eb-4331-86a5-540854f95f60",
+          "montantCentimes": 6800,
+          "date": "2026-07-10",
+          "mode": "cheque"
+        }
+      ],
+      "creeLe": "2026-06-06T16:00:00.000Z",
+      "modifieLe": "2026-06-06T16:00:00.000Z"
+    },
+    {
+      "id": "0ba47649-404d-4979-866e-8c90b67d4d88",
+      "patient": {
+        "id": "f6243d8d-8f71-437d-803b-bf2cfe0383fc",
+        "nom": "Renard",
+        "prenom": "Goupil"
+      },
+      "date": "2026-06-08",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Écriture",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-06-30",
+      "versements": [
+        {
+          "id": "3df1fb37-1edc-4007-8439-b08222a1e19e",
+          "montantCentimes": 4200,
+          "date": "2026-07-10",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2026-06-08T16:00:00.000Z",
+      "modifieLe": "2026-06-08T16:00:00.000Z"
+    },
+    {
+      "id": "09a47323-bba4-4633-8122-53164c86009a",
+      "patient": {
+        "id": "ef243288-3f21-4808-838d-65878b21f6bb",
+        "nom": "Souris",
+        "prenom": "Stuart"
+      },
+      "date": "2026-06-09",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Organisation",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2026-06-30",
+      "versements": [
+        {
+          "id": "d8cd1885-30f7-40f5-87cd-ebe42a0d7294",
+          "montantCentimes": 5800,
+          "date": "2026-07-04",
+          "mode": "cheque"
+        }
+      ],
+      "creeLe": "2026-06-09T16:00:00.000Z",
+      "modifieLe": "2026-06-09T16:00:00.000Z"
+    },
+    {
+      "id": "17a4892d-5c44-4d1d-8d44-07cc32491b1c",
+      "patient": {
+        "id": "f024341b-0175-49ab-800f-a9cec01d9d32",
+        "nom": "Hérisson",
+        "prenom": "Sonic"
+      },
+      "date": "2026-06-09",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Coordination",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-06-30",
+      "versements": [
+        {
+          "id": "027f6bbb-8331-4f4b-8e99-1a6e75893052",
+          "montantCentimes": 4200,
+          "date": "2026-07-07",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2026-06-09T16:00:00.000Z",
+      "modifieLe": "2026-06-09T16:00:00.000Z"
+    },
+    {
+      "id": "1aa90b14-0e69-4cd4-88d1-692bd4d4bdd7",
+      "patient": {
+        "id": "f024341b-0175-49ab-800f-a9cec01d9d32",
+        "nom": "Hérisson",
+        "prenom": "Sonic"
+      },
+      "date": "2026-06-10",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Coordination",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-06-30",
+      "versements": [],
+      "creeLe": "2026-06-10T16:00:00.000Z",
+      "modifieLe": "2026-06-10T16:00:00.000Z"
+    },
+    {
+      "id": "0ea47b02-874a-4e62-8b45-002d557040ed",
+      "patient": {
+        "id": "f32438d4-4873-4e94-8184-546b5f109097",
+        "nom": "Lapin",
+        "prenom": "Pierre"
+      },
+      "date": "2026-06-18",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Graphisme",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2026-06-30",
+      "versements": [
+        {
+          "id": "cf1c612c-a500-4b6c-896e-3e035b55ad0f",
+          "montantCentimes": 5800,
+          "date": "2026-07-04",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2026-06-18T16:00:00.000Z",
+      "modifieLe": "2026-06-18T16:00:00.000Z"
+    },
+    {
+      "id": "08a47190-f94f-4490-88a0-0ecf178a5a23",
+      "patient": {
+        "id": "f6243d8d-8f71-437d-803b-bf2cfe0383fc",
+        "nom": "Renard",
+        "prenom": "Goupil"
+      },
+      "date": "2026-06-20",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Écriture",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-06-30",
+      "versements": [
+        {
+          "id": "bd5a91e6-06fe-4606-8207-8e69fe124281",
+          "montantCentimes": 4200,
+          "date": "2026-07-03",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2026-06-20T16:00:00.000Z",
+      "modifieLe": "2026-06-20T16:00:00.000Z"
+    },
+    {
+      "id": "0ca477dc-02a1-4b1c-807a-6db3eb78f3ff",
+      "patient": {
+        "id": "f4243a67-0ac8-4037-8e06-98b2940c370e",
+        "nom": "Ours",
+        "prenom": "Baloo"
+      },
+      "date": "2026-06-20",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Motricité fine",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-06-30",
+      "versements": [
+        {
+          "id": "78cdeae2-ccf2-4842-86c7-d28d28fe2f4d",
+          "montantCentimes": 4200,
+          "date": "2026-07-03",
+          "mode": "cheque"
+        }
+      ],
+      "creeLe": "2026-06-20T16:00:00.000Z",
+      "modifieLe": "2026-06-20T16:00:00.000Z"
+    },
+    {
+      "id": "0aa474b6-7df8-47d6-8da7-10398181a711",
+      "patient": {
+        "id": "f5243bfa-cd1c-41da-8408-9665c907dd85",
+        "nom": "Tortue",
+        "prenom": "Franklin"
+      },
+      "date": "2026-06-21",
+      "prestationId": "seance-domicile-45",
+      "libelle": "Séance à domicile 45 min",
+      "categorie": "seance",
+      "motif": "Autonomie",
+      "montantCentimes": 6800,
+      "statut": "facture",
+      "factureLe": "2026-06-30",
+      "versements": [
+        {
+          "id": "13a90830-df0d-4930-871c-f26f3069c043",
+          "montantCentimes": 6800,
+          "date": "2026-07-05",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2026-06-21T16:00:00.000Z",
+      "modifieLe": "2026-06-21T16:00:00.000Z"
+    },
+    {
+      "id": "16a4879a-99ef-4b7a-8ea5-3385fd4d74a5",
+      "patient": {
+        "id": "ef243288-3f21-4808-838d-65878b21f6bb",
+        "nom": "Souris",
+        "prenom": "Stuart"
+      },
+      "date": "2026-06-23",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Organisation",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2026-06-30",
+      "versements": [
+        {
+          "id": "f7208604-7fb0-4cc4-83fe-979ba3519c07",
+          "montantCentimes": 5800,
+          "date": "2026-07-07",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2026-06-23T16:00:00.000Z",
+      "modifieLe": "2026-06-23T16:00:00.000Z"
+    },
+    {
+      "id": "88a16979-1973-4da9-8894-194097eac6f8",
+      "patient": {
+        "id": "f024341b-0175-49ab-800f-a9cec01d9d32",
+        "nom": "Hérisson",
+        "prenom": "Sonic"
+      },
+      "date": "2026-06-24",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Coordination",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-06-30",
+      "versements": [
+        {
+          "id": "4225194f-7695-469f-8fca-a8daa78ff8d6",
+          "montantCentimes": 4200,
+          "date": "2026-07-07",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2026-06-24T16:00:00.000Z",
+      "modifieLe": "2026-06-24T16:00:00.000Z"
+    },
+    {
+      "id": "85a164c0-d275-48c0-8371-02fff8f7d393",
+      "patient": {
+        "id": "f4243a67-0ac8-4037-8e06-98b2940c370e",
+        "nom": "Ours",
+        "prenom": "Baloo"
+      },
+      "date": "2026-07-05",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Motricité fine",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-07-31",
+      "versements": [
+        {
+          "id": "e18de25e-a949-40fe-8d50-10a122752899",
+          "montantCentimes": 4200,
+          "date": "2026-08-06",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2026-07-05T16:00:00.000Z",
+      "modifieLe": "2026-07-05T16:00:00.000Z"
+    },
+    {
+      "id": "87a167e6-571e-4c06-85ff-286962ef2081",
+      "patient": {
+        "id": "f32438d4-4873-4e94-8184-546b5f109097",
+        "nom": "Lapin",
+        "prenom": "Pierre"
+      },
+      "date": "2026-07-05",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Graphisme",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2026-07-31",
+      "versements": [
+        {
+          "id": "37dc58a8-8158-4428-8fec-98a754cca65b",
+          "montantCentimes": 5800,
+          "date": "2026-08-04",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2026-07-05T16:00:00.000Z",
+      "modifieLe": "2026-07-05T16:00:00.000Z"
+    },
+    {
+      "id": "19ab4818-01a8-4098-8930-0797a1a56f0b",
+      "patient": {
+        "id": "ef243288-3f21-4808-838d-65878b21f6bb",
+        "nom": "Souris",
+        "prenom": "Stuart"
+      },
+      "date": "2026-07-07",
+      "prestationId": "reunion-synthese",
+      "libelle": "Réunion de synthèse",
+      "categorie": "autre",
+      "motif": "Synthèse annuelle",
+      "montantCentimes": 5200,
+      "statut": "facture",
+      "factureLe": "2026-07-31",
+      "versements": [
+        {
+          "id": "ef0e5c4e-0b50-4fee-88b5-9a11eb00f9c9",
+          "montantCentimes": 5200,
+          "date": "2026-08-03",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2026-07-07T16:00:00.000Z",
+      "modifieLe": "2026-07-07T16:00:00.000Z"
+    },
+    {
+      "id": "89a16b0c-dbc7-4f4c-80c9-bae3cce66d6f",
+      "patient": {
+        "id": "f6243d8d-8f71-437d-803b-bf2cfe0383fc",
+        "nom": "Renard",
+        "prenom": "Goupil"
+      },
+      "date": "2026-07-07",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Écriture",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-07-31",
+      "versements": [
+        {
+          "id": "9d013b5a-6f3d-433a-8df0-78c54d611565",
+          "montantCentimes": 4200,
+          "date": "2026-08-06",
+          "mode": "cheque"
+        }
+      ],
+      "creeLe": "2026-07-07T16:00:00.000Z",
+      "modifieLe": "2026-07-07T16:00:00.000Z"
+    },
+    {
+      "id": "8ba16e32-6070-4292-85c6-d8dd36ddba5d",
+      "patient": {
+        "id": "f5243bfa-cd1c-41da-8408-9665c907dd85",
+        "nom": "Tortue",
+        "prenom": "Franklin"
+      },
+      "date": "2026-07-07",
+      "prestationId": "seance-domicile-45",
+      "libelle": "Séance à domicile 45 min",
+      "categorie": "seance",
+      "motif": "Autonomie",
+      "montantCentimes": 6800,
+      "statut": "facture",
+      "factureLe": "2026-07-31",
+      "versements": [
+        {
+          "id": "734ee824-1d03-44e4-8cfd-2ebb01e557a7",
+          "montantCentimes": 6800,
+          "date": "2026-08-09",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2026-07-07T16:00:00.000Z",
+      "modifieLe": "2026-07-07T16:00:00.000Z"
+    },
+    {
+      "id": "8fa1747e-69c3-491e-83bd-c7c10acc5439",
+      "patient": {
+        "id": "ef243288-3f21-4808-838d-65878b21f6bb",
+        "nom": "Souris",
+        "prenom": "Stuart"
+      },
+      "date": "2026-07-07",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Organisation",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2026-07-31",
+      "versements": [
+        {
+          "id": "0e9aff50-9607-4650-8e8b-ca0f794a0ce3",
+          "montantCentimes": 5800,
+          "date": "2026-08-07",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2026-07-07T16:00:00.000Z",
+      "modifieLe": "2026-07-07T16:00:00.000Z"
+    },
+    {
+      "id": "839f2303-9838-4013-872a-49f68d342efa",
+      "patient": {
+        "id": "f024341b-0175-49ab-800f-a9cec01d9d32",
+        "nom": "Hérisson",
+        "prenom": "Sonic"
+      },
+      "date": "2026-07-10",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Coordination",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-07-31",
+      "versements": [
+        {
+          "id": "6ec5cbe9-b132-4d19-8e31-af3063ec66a8",
+          "montantCentimes": 4200,
+          "date": "2026-08-03",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2026-07-10T16:00:00.000Z",
+      "modifieLe": "2026-07-10T16:00:00.000Z"
+    },
+    {
+      "id": "86a16653-94c9-4a63-8ff3-47462df37a0a",
+      "patient": {
+        "id": "f32438d4-4873-4e94-8184-546b5f109097",
+        "nom": "Lapin",
+        "prenom": "Pierre"
+      },
+      "date": "2026-07-17",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Graphisme",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2026-07-31",
+      "versements": [
+        {
+          "id": "fd0068fd-d343-4bed-8d7c-ad9c4e7058ac",
+          "montantCentimes": 5800,
+          "date": "2026-08-04",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2026-07-17T16:00:00.000Z",
+      "modifieLe": "2026-07-17T16:00:00.000Z"
+    },
+    {
+      "id": "8ca16fc5-22c5-4435-801f-5ca46bd960d4",
+      "patient": {
+        "id": "f4243a67-0ac8-4037-8e06-98b2940c370e",
+        "nom": "Ours",
+        "prenom": "Baloo"
+      },
+      "date": "2026-07-18",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Motricité fine",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-07-31",
+      "versements": [
+        {
+          "id": "7eadcddb-2084-476b-8c91-3d0ed41cebf2",
+          "montantCentimes": 4200,
+          "date": "2026-08-03",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2026-07-18T16:00:00.000Z",
+      "modifieLe": "2026-07-18T16:00:00.000Z"
+    },
+    {
+      "id": "8aa16c9f-9e1c-40ef-8d4b-ff2a01e213e6",
+      "patient": {
+        "id": "f5243bfa-cd1c-41da-8408-9665c907dd85",
+        "nom": "Tortue",
+        "prenom": "Franklin"
+      },
+      "date": "2026-07-21",
+      "prestationId": "seance-domicile-45",
+      "libelle": "Séance à domicile 45 min",
+      "categorie": "seance",
+      "motif": "Autonomie",
+      "montantCentimes": 6800,
+      "statut": "facture",
+      "factureLe": "2026-07-31",
+      "versements": [
+        {
+          "id": "98738f99-4ea4-49c9-88b8-a0e0d9e77698",
+          "montantCentimes": 6800,
+          "date": "2026-08-08",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2026-07-21T16:00:00.000Z",
+      "modifieLe": "2026-07-21T16:00:00.000Z"
+    },
+    {
+      "id": "849f2496-5a8d-41b6-83af-0719c22fd571",
+      "patient": {
+        "id": "f024341b-0175-49ab-800f-a9cec01d9d32",
+        "nom": "Hérisson",
+        "prenom": "Sonic"
+      },
+      "date": "2026-07-22",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Coordination",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-07-31",
+      "versements": [
+        {
+          "id": "c9a1edf4-a9d9-49b4-80e1-628b09bd8337",
+          "montantCentimes": 4200,
+          "date": "2026-08-04",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2026-07-22T16:00:00.000Z",
+      "modifieLe": "2026-07-22T16:00:00.000Z"
+    },
+    {
+      "id": "90a17611-2c17-4ac1-8fe7-0d183fc7fab0",
+      "patient": {
+        "id": "f6243d8d-8f71-437d-803b-bf2cfe0383fc",
+        "nom": "Renard",
+        "prenom": "Goupil"
+      },
+      "date": "2026-07-22",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Écriture",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-07-31",
+      "versements": [
+        {
+          "id": "3a2126d7-e678-49a7-8fb4-64a2ff08d8be",
+          "montantCentimes": 4200,
+          "date": "2026-08-08",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2026-07-22T16:00:00.000Z",
+      "modifieLe": "2026-07-22T16:00:00.000Z"
+    },
+    {
+      "id": "829f2170-d5e4-4e70-8ef7-212f58388883",
+      "patient": {
+        "id": "ef243288-3f21-4808-838d-65878b21f6bb",
+        "nom": "Souris",
+        "prenom": "Stuart"
+      },
+      "date": "2026-07-23",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Organisation",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2026-07-31",
+      "versements": [
+        {
+          "id": "735377aa-d1cb-468a-812e-c015d7660575",
+          "montantCentimes": 5800,
+          "date": "2026-08-03",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2026-07-23T16:00:00.000Z",
+      "modifieLe": "2026-07-23T16:00:00.000Z"
+    },
+    {
+      "id": "859f2629-1ce1-4359-8c27-67f0f72b7be8",
+      "patient": {
+        "id": "f32438d4-4873-4e94-8184-546b5f109097",
+        "nom": "Lapin",
+        "prenom": "Pierre"
+      },
+      "date": "2026-08-04",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Graphisme",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2026-08-31",
+      "versements": [
+        {
+          "id": "55000a2b-8312-4abb-823d-f05e5e21dc02",
+          "montantCentimes": 5800,
+          "date": "2026-09-04",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2026-08-04T16:00:00.000Z",
+      "modifieLe": "2026-08-04T16:00:00.000Z"
+    },
+    {
+      "id": "879f294f-a18a-469f-8521-38da6122c8d6",
+      "patient": {
+        "id": "f4243a67-0ac8-4037-8e06-98b2940c370e",
+        "nom": "Ours",
+        "prenom": "Baloo"
+      },
+      "date": "2026-08-04",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Motricité fine",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-08-31",
+      "versements": [
+        {
+          "id": "d352a54d-35d0-4f3d-8f41-106cd87548bc",
+          "montantCentimes": 4200,
+          "date": "2026-09-08",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2026-08-04T16:00:00.000Z",
+      "modifieLe": "2026-08-04T16:00:00.000Z"
+    },
+    {
+      "id": "8b9f2f9b-aadd-4d2b-8c53-7d4e351162b2",
+      "patient": {
+        "id": "f6243d8d-8f71-437d-803b-bf2cfe0383fc",
+        "nom": "Renard",
+        "prenom": "Goupil"
+      },
+      "date": "2026-08-06",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Écriture",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-08-31",
+      "versements": [
+        {
+          "id": "66c1d971-2114-4021-8437-faf8bb654690",
+          "montantCentimes": 4200,
+          "date": "2026-09-07",
+          "mode": "cheque"
+        }
+      ],
+      "creeLe": "2026-08-06T16:00:00.000Z",
+      "modifieLe": "2026-08-06T16:00:00.000Z"
+    },
+    {
+      "id": "899f2c75-2634-49e5-8a1e-56d4cb1a15c4",
+      "patient": {
+        "id": "f5243bfa-cd1c-41da-8408-9665c907dd85",
+        "nom": "Tortue",
+        "prenom": "Franklin"
+      },
+      "date": "2026-08-07",
+      "prestationId": "seance-domicile-45",
+      "libelle": "Séance à domicile 45 min",
+      "categorie": "seance",
+      "motif": "Autonomie",
+      "montantCentimes": 6800,
+      "statut": "facture",
+      "factureLe": "2026-08-31",
+      "versements": [
+        {
+          "id": "19b48a1f-e9c5-466f-8db9-ccaac51b9366",
+          "montantCentimes": 6800,
+          "date": "2026-09-03",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2026-08-07T16:00:00.000Z",
+      "modifieLe": "2026-08-07T16:00:00.000Z"
+    },
+    {
+      "id": "8bb078bc-f678-45fc-82a2-4e133d4e3f5f",
+      "patient": {
+        "id": "ef243288-3f21-4808-838d-65878b21f6bb",
+        "nom": "Souris",
+        "prenom": "Stuart"
+      },
+      "date": "2026-08-08",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Organisation",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2026-08-31",
+      "versements": [
+        {
+          "id": "c12be5ae-0b4b-4b4e-877b-baf1c59d33a9",
+          "montantCentimes": 5800,
+          "date": "2026-09-04",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2026-08-08T16:00:00.000Z",
+      "modifieLe": "2026-08-08T16:00:00.000Z"
+    },
+    {
+      "id": "8db07be2-7b21-4942-8575-ab8da7458c4d",
+      "patient": {
+        "id": "f024341b-0175-49ab-800f-a9cec01d9d32",
+        "nom": "Hérisson",
+        "prenom": "Sonic"
+      },
+      "date": "2026-08-10",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Coordination",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-08-31",
+      "versements": [
+        {
+          "id": "177a5bf8-e359-4e78-8ab6-79f7f7f4b16b",
+          "montantCentimes": 4200,
+          "date": "2026-09-08",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2026-08-10T16:00:00.000Z",
+      "modifieLe": "2026-08-10T16:00:00.000Z"
+    },
+    {
+      "id": "869f27bc-df36-44fc-8633-49132c27225f",
+      "patient": {
+        "id": "f32438d4-4873-4e94-8184-546b5f109097",
+        "nom": "Lapin",
+        "prenom": "Pierre"
+      },
+      "date": "2026-08-17",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Graphisme",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2026-08-31",
+      "versements": [
+        {
+          "id": "b7e01eae-0bd7-444e-8ee7-57f1ac7a18a9",
+          "montantCentimes": 5800,
+          "date": "2026-09-06",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2026-08-17T16:00:00.000Z",
+      "modifieLe": "2026-08-17T16:00:00.000Z"
+    },
+    {
+      "id": "889f2ae2-63df-4842-819c-128d961e6f4d",
+      "patient": {
+        "id": "f4243a67-0ac8-4037-8e06-98b2940c370e",
+        "nom": "Ours",
+        "prenom": "Baloo"
+      },
+      "date": "2026-08-18",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Motricité fine",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-08-31",
+      "versements": [
+        {
+          "id": "0e2e94f8-e3e6-4778-8600-16f7ded1966b",
+          "montantCentimes": 4200,
+          "date": "2026-09-10",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2026-08-18T16:00:00.000Z",
+      "modifieLe": "2026-08-18T16:00:00.000Z"
+    },
+    {
+      "id": "8a9f2e08-e888-4b88-864a-15070015bc3b",
+      "patient": {
+        "id": "f5243bfa-cd1c-41da-8408-9665c907dd85",
+        "nom": "Tortue",
+        "prenom": "Franklin"
+      },
+      "date": "2026-08-19",
+      "prestationId": "seance-domicile-45",
+      "libelle": "Séance à domicile 45 min",
+      "categorie": "seance",
+      "motif": "Autonomie",
+      "montantCentimes": 6800,
+      "statut": "facture",
+      "factureLe": "2026-08-31",
+      "versements": [
+        {
+          "id": "4b4f52d2-f71b-4532-879d-5dfd8f6a167d",
+          "montantCentimes": 6800,
+          "date": "2026-09-07",
+          "mode": "especes"
+        }
+      ],
+      "creeLe": "2026-08-19T16:00:00.000Z",
+      "modifieLe": "2026-08-19T16:00:00.000Z"
+    },
+    {
+      "id": "8eb07d75-3d76-4ae5-81f7-efd4dc4132c4",
+      "patient": {
+        "id": "ef243288-3f21-4808-838d-65878b21f6bb",
+        "nom": "Souris",
+        "prenom": "Stuart"
+      },
+      "date": "2026-08-21",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Organisation",
+      "montantCentimes": 5800,
+      "statut": "facture",
+      "factureLe": "2026-08-31",
+      "versements": [
+        {
+          "id": "2300511f-e938-4d6f-81f0-2faade3eae66",
+          "montantCentimes": 5800,
+          "date": "2026-09-08",
+          "mode": "carte"
+        }
+      ],
+      "creeLe": "2026-08-21T16:00:00.000Z",
+      "modifieLe": "2026-08-21T16:00:00.000Z"
+    },
+    {
+      "id": "88b07403-af7a-4113-817c-bef69e5b4bfa",
+      "patient": {
+        "id": "f024341b-0175-49ab-800f-a9cec01d9d32",
+        "nom": "Hérisson",
+        "prenom": "Sonic"
+      },
+      "date": "2026-08-22",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Coordination",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-08-31",
+      "versements": [
+        {
+          "id": "781192e9-b0a5-4419-8797-ee307d0f81a8",
+          "montantCentimes": 4200,
+          "date": "2026-09-06",
+          "mode": "cheque"
+        }
+      ],
+      "creeLe": "2026-08-22T16:00:00.000Z",
+      "modifieLe": "2026-08-22T16:00:00.000Z"
+    },
+    {
+      "id": "8cb07a4f-b8cc-479f-8f73-adda7249e5d6",
+      "patient": {
+        "id": "f6243d8d-8f71-437d-803b-bf2cfe0383fc",
+        "nom": "Renard",
+        "prenom": "Goupil"
+      },
+      "date": "2026-08-22",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Écriture",
+      "montantCentimes": 4200,
+      "statut": "facture",
+      "factureLe": "2026-08-31",
+      "versements": [
+        {
+          "id": "dc9e6c4d-3544-463d-8de0-4f6cf19863bc",
+          "montantCentimes": 4200,
+          "date": "2026-09-08",
+          "mode": "cheque"
+        }
+      ],
+      "creeLe": "2026-08-22T16:00:00.000Z",
+      "modifieLe": "2026-08-22T16:00:00.000Z"
+    },
+    {
+      "id": "87b07270-ed26-4f70-8549-962f695fa583",
+      "patient": {
+        "id": "f32438d4-4873-4e94-8184-546b5f109097",
+        "nom": "Lapin",
+        "prenom": "Pierre"
+      },
+      "date": "2026-09-04",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Graphisme",
+      "montantCentimes": 5800,
+      "statut": "a_facturer",
+      "factureLe": null,
+      "versements": [
+        {
+          "id": "7c9f3eaa-d13e-4d8a-8e04-ff15f0892075",
+          "montantCentimes": 5800,
+          "date": "2026-09-04",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2026-09-04T16:00:00.000Z",
+      "modifieLe": "2026-09-04T16:00:00.000Z"
+    },
+    {
+      "id": "89b07596-71cf-42b6-8788-a019d356f271",
+      "patient": {
+        "id": "f4243a67-0ac8-4037-8e06-98b2940c370e",
+        "nom": "Ours",
+        "prenom": "Baloo"
+      },
+      "date": "2026-09-05",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Motricité fine",
+      "montantCentimes": 4200,
+      "statut": "a_facturer",
+      "factureLe": null,
+      "versements": [],
+      "creeLe": "2026-09-05T16:00:00.000Z",
+      "modifieLe": "2026-09-05T16:00:00.000Z"
+    },
+    {
+      "id": "87ae33d9-3792-4a09-8bd6-3aa067934dd8",
+      "patient": {
+        "id": "f6243d8d-8f71-437d-803b-bf2cfe0383fc",
+        "nom": "Renard",
+        "prenom": "Goupil"
+      },
+      "date": "2026-09-07",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Écriture",
+      "montantCentimes": 4200,
+      "statut": "a_facturer",
+      "factureLe": null,
+      "versements": [],
+      "creeLe": "2026-09-07T16:00:00.000Z",
+      "modifieLe": "2026-09-07T16:00:00.000Z"
+    },
+    {
+      "id": "93b08554-091c-4314-8651-9cebe52b7317",
+      "patient": {
+        "id": "f5243bfa-cd1c-41da-8408-9665c907dd85",
+        "nom": "Tortue",
+        "prenom": "Franklin"
+      },
+      "date": "2026-09-07",
+      "prestationId": "seance-domicile-45",
+      "libelle": "Séance à domicile 45 min",
+      "categorie": "seance",
+      "motif": "Autonomie",
+      "montantCentimes": 6800,
+      "statut": "a_facturer",
+      "factureLe": null,
+      "versements": [],
+      "creeLe": "2026-09-07T16:00:00.000Z",
+      "modifieLe": "2026-09-07T16:00:00.000Z"
+    },
+    {
+      "id": "85ae30b3-b2e9-46c3-8902-dd26fd9c00ea",
+      "patient": {
+        "id": "ef243288-3f21-4808-838d-65878b21f6bb",
+        "nom": "Souris",
+        "prenom": "Stuart"
+      },
+      "date": "2026-09-08",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Organisation",
+      "montantCentimes": 5800,
+      "statut": "a_facturer",
+      "factureLe": null,
+      "versements": [],
+      "creeLe": "2026-09-08T16:00:00.000Z",
+      "modifieLe": "2026-09-08T16:00:00.000Z"
+    },
+    {
+      "id": "8bae3a25-40e4-4095-8ba7-ce843b81e7b4",
+      "patient": {
+        "id": "f024341b-0175-49ab-800f-a9cec01d9d32",
+        "nom": "Hérisson",
+        "prenom": "Sonic"
+      },
+      "date": "2026-09-10",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Coordination",
+      "montantCentimes": 4200,
+      "statut": "a_facturer",
+      "factureLe": null,
+      "versements": [],
+      "creeLe": "2026-09-10T16:00:00.000Z",
+      "modifieLe": "2026-09-10T16:00:00.000Z"
+    },
+    {
+      "id": "17ab44f2-7cff-4d52-8e65-751d37ae221d",
+      "patient": {
+        "id": "ef243288-3f21-4808-838d-65878b21f6bb",
+        "nom": "Souris",
+        "prenom": "Stuart"
+      },
+      "date": "2026-09-14",
+      "prestationId": "bilan-initial",
+      "libelle": "Bilan initial",
+      "categorie": "bilan",
+      "motif": "Bilan",
+      "montantCentimes": 17000,
+      "statut": "facture",
+      "factureLe": "2026-09-30",
+      "versements": [
+        {
+          "id": "578e08bc-93b8-45fc-8a98-5e13eeee8f5f",
+          "montantCentimes": 10000,
+          "date": "2026-09-30",
+          "mode": "cheque"
+        },
+        {
+          "id": "5a8e0d75-dab6-4ae5-89ed-ffd48de182c4",
+          "montantCentimes": 5000,
+          "date": "2026-10-01",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2026-09-14T16:00:00.000Z",
+      "modifieLe": "2026-09-14T16:00:00.000Z"
+    },
+    {
+      "id": "8ab07729-3423-4459-8401-00f0085298e8",
+      "patient": {
+        "id": "f32438d4-4873-4e94-8184-546b5f109097",
+        "nom": "Lapin",
+        "prenom": "Pierre"
+      },
+      "date": "2026-09-17",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Graphisme",
+      "montantCentimes": 5800,
+      "statut": "a_facturer",
+      "factureLe": null,
+      "versements": [],
+      "creeLe": "2026-09-17T16:00:00.000Z",
+      "modifieLe": "2026-09-17T16:00:00.000Z"
+    },
+    {
+      "id": "86ae3246-753d-4866-85d6-b5c93297a761",
+      "patient": {
+        "id": "f5243bfa-cd1c-41da-8408-9665c907dd85",
+        "nom": "Tortue",
+        "prenom": "Franklin"
+      },
+      "date": "2026-09-19",
+      "prestationId": "seance-domicile-45",
+      "libelle": "Séance à domicile 45 min",
+      "categorie": "seance",
+      "motif": "Autonomie",
+      "montantCentimes": 6800,
+      "statut": "a_facturer",
+      "factureLe": null,
+      "versements": [],
+      "creeLe": "2026-09-19T16:00:00.000Z",
+      "modifieLe": "2026-09-19T16:00:00.000Z"
+    },
+    {
+      "id": "94b086e7-cb71-44b7-82d3-e1321a27198e",
+      "patient": {
+        "id": "f4243a67-0ac8-4037-8e06-98b2940c370e",
+        "nom": "Ours",
+        "prenom": "Baloo"
+      },
+      "date": "2026-09-19",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Motricité fine",
+      "montantCentimes": 4200,
+      "statut": "a_facturer",
+      "factureLe": null,
+      "versements": [
+        {
+          "id": "b35d12f5-49f2-4865-8015-f5541615ca44",
+          "montantCentimes": 4200,
+          "date": "2026-09-19",
+          "mode": "virement"
+        }
+      ],
+      "creeLe": "2026-09-19T16:00:00.000Z",
+      "modifieLe": "2026-09-19T16:00:00.000Z"
+    },
+    {
+      "id": "8aae3892-7e90-4ef2-8325-8a3d0686413d",
+      "patient": {
+        "id": "ef243288-3f21-4808-838d-65878b21f6bb",
+        "nom": "Souris",
+        "prenom": "Stuart"
+      },
+      "date": "2026-09-21",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Organisation",
+      "montantCentimes": 5800,
+      "statut": "a_facturer",
+      "factureLe": null,
+      "versements": [
+        {
+          "id": "a93ff144-0bda-4404-8761-945bace58e47",
+          "montantCentimes": 5800,
+          "date": "2026-09-21",
+          "mode": "cheque"
+        }
+      ],
+      "creeLe": "2026-09-21T16:00:00.000Z",
+      "modifieLe": "2026-09-21T16:00:00.000Z"
+    },
+    {
+      "id": "84ae2f20-f094-4520-8a64-08dfc8a05a73",
+      "patient": {
+        "id": "f6243d8d-8f71-437d-803b-bf2cfe0383fc",
+        "nom": "Renard",
+        "prenom": "Goupil"
+      },
+      "date": "2026-09-22",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Écriture",
+      "montantCentimes": 4200,
+      "statut": "a_facturer",
+      "factureLe": null,
+      "versements": [],
+      "creeLe": "2026-09-22T16:00:00.000Z",
+      "modifieLe": "2026-09-22T16:00:00.000Z"
+    },
+    {
+      "id": "88ae356c-f9e6-4bac-885a-f7c39c8ef44f",
+      "patient": {
+        "id": "f024341b-0175-49ab-800f-a9cec01d9d32",
+        "nom": "Hérisson",
+        "prenom": "Sonic"
+      },
+      "date": "2026-09-22",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Coordination",
+      "montantCentimes": 4200,
+      "statut": "a_facturer",
+      "factureLe": null,
+      "versements": [],
+      "creeLe": "2026-09-22T16:00:00.000Z",
+      "modifieLe": "2026-09-22T16:00:00.000Z"
+    },
+    {
+      "id": "1ca90e3a-9312-401a-8dce-87253ecc0ac5",
+      "patient": {
+        "id": "f32438d4-4873-4e94-8184-546b5f109097",
+        "nom": "Lapin",
+        "prenom": "Pierre"
+      },
+      "date": "2026-09-28",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Graphisme",
+      "montantCentimes": 4200,
+      "statut": "a_facturer",
+      "factureLe": null,
+      "versements": [],
+      "creeLe": "2026-09-28T16:00:00.000Z",
+      "modifieLe": "2026-09-28T16:00:00.000Z"
+    },
+    {
+      "id": "1da90fcd-5566-41bd-8427-0aec73c7b13c",
+      "patient": {
+        "id": "f32438d4-4873-4e94-8184-546b5f109097",
+        "nom": "Lapin",
+        "prenom": "Pierre"
+      },
+      "date": "2026-09-28",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Graphisme",
+      "montantCentimes": 4200,
+      "statut": "a_facturer",
+      "factureLe": null,
+      "versements": [],
+      "creeLe": "2026-09-28T16:00:00.000Z",
+      "modifieLe": "2026-09-28T16:00:00.000Z"
+    },
+    {
+      "id": "8eae3ede-87e2-457e-8aff-e921da74db19",
+      "patient": {
+        "id": "f4243a67-0ac8-4037-8e06-98b2940c370e",
+        "nom": "Ours",
+        "prenom": "Baloo"
+      },
+      "date": "2026-10-04",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Motricité fine",
+      "montantCentimes": 4200,
+      "statut": "a_facturer",
+      "factureLe": null,
+      "versements": [],
+      "creeLe": "2026-10-04T16:00:00.000Z",
+      "modifieLe": "2026-10-04T16:00:00.000Z"
+    },
+    {
+      "id": "89ae36ff-bc3b-4d4f-80dd-3c0ad18a9ac6",
+      "patient": {
+        "id": "f32438d4-4873-4e94-8184-546b5f109097",
+        "nom": "Lapin",
+        "prenom": "Pierre"
+      },
+      "date": "2026-10-05",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Graphisme",
+      "montantCentimes": 5800,
+      "statut": "a_facturer",
+      "factureLe": null,
+      "versements": [],
+      "creeLe": "2026-10-05T16:00:00.000Z",
+      "modifieLe": "2026-10-05T16:00:00.000Z"
+    },
+    {
+      "id": "8fae4071-4a36-4721-8994-d9f80f708190",
+      "patient": {
+        "id": "f5243bfa-cd1c-41da-8408-9665c907dd85",
+        "nom": "Tortue",
+        "prenom": "Franklin"
+      },
+      "date": "2026-10-05",
+      "prestationId": "seance-domicile-45",
+      "libelle": "Séance à domicile 45 min",
+      "categorie": "seance",
+      "motif": "Autonomie",
+      "montantCentimes": 6800,
+      "statut": "a_facturer",
+      "factureLe": null,
+      "versements": [],
+      "creeLe": "2026-10-05T16:00:00.000Z",
+      "modifieLe": "2026-10-05T16:00:00.000Z"
+    },
+    {
+      "id": "20ab531d-51f8-4c0d-85de-613c1486fc4c",
+      "patient": {
+        "id": "f6243d8d-8f71-437d-803b-bf2cfe0383fc",
+        "nom": "Renard",
+        "prenom": "Goupil"
+      },
+      "date": "2026-10-06",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Écriture",
+      "montantCentimes": 4200,
+      "statut": "a_facturer",
+      "factureLe": null,
+      "versements": [],
+      "creeLe": "2026-10-06T16:00:00.000Z",
+      "modifieLe": "2026-10-06T16:00:00.000Z"
+    },
+    {
+      "id": "1fab518a-8fa3-4a6a-895c-1cf5df8b55d5",
+      "patient": {
+        "id": "ef243288-3f21-4808-838d-65878b21f6bb",
+        "nom": "Souris",
+        "prenom": "Stuart"
+      },
+      "date": "2026-10-08",
+      "prestationId": "seance-45",
+      "libelle": "Séance individuelle 45 min",
+      "categorie": "seance",
+      "motif": "Organisation",
+      "montantCentimes": 5800,
+      "statut": "a_facturer",
+      "factureLe": null,
+      "versements": [],
+      "creeLe": "2026-10-08T16:00:00.000Z",
+      "modifieLe": "2026-10-08T16:00:00.000Z"
+    },
+    {
+      "id": "1eab4ff7-cd4f-48c7-8b13-cec2aa8faf5e",
+      "patient": {
+        "id": "f024341b-0175-49ab-800f-a9cec01d9d32",
+        "nom": "Hérisson",
+        "prenom": "Sonic"
+      },
+      "date": "2026-10-09",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Coordination",
+      "montantCentimes": 4200,
+      "statut": "a_facturer",
+      "factureLe": null,
+      "versements": [],
+      "creeLe": "2026-10-09T16:00:00.000Z",
+      "modifieLe": "2026-10-09T16:00:00.000Z"
+    },
+    {
+      "id": "1ba90ca7-d0bd-4e77-8153-ad7209d0644e",
+      "patient": {
+        "id": "f4243a67-0ac8-4037-8e06-98b2940c370e",
+        "nom": "Ours",
+        "prenom": "Baloo"
+      },
+      "date": "2026-10-20",
+      "prestationId": "seance-30",
+      "libelle": "Séance individuelle 30 min",
+      "categorie": "seance",
+      "motif": "Motricité fine",
+      "montantCentimes": 4200,
+      "statut": "a_facturer",
+      "factureLe": null,
+      "versements": [],
+      "creeLe": "2026-10-20T16:00:00.000Z",
+      "modifieLe": "2026-10-20T16:00:00.000Z"
+    }
+  ]
+}

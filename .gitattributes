@@ -1,0 +1,29 @@
+# Fins de ligne et fichiers binaires de suivi-facturation.
+# Par défaut, git détecte le texte et le stocke en LF dans le dépôt.
+* text=auto
+
+# Windows : les lanceurs doivent garder des fins de ligne Windows (CRLF),
+# sinon wscript (.vbs) et cmd (.bat) peuvent mal les lire.
+*.vbs text eol=crlf
+*.bat text eol=crlf
+
+# Scripts POSIX, code et documentation : fins de ligne Unix (LF) partout,
+# y compris dans une copie de travail Windows.
+*.sh   text eol=lf
+*.mjs  text eol=lf
+*.js   text eol=lf
+*.json text eol=lf
+*.md   text eol=lf
+*.css  text eol=lf
+*.html text eol=lf
+*.svg  text eol=lf
+
+# Images : binaires (aucune conversion, aucun diff texte).
+*.ico binary
+*.png binary
+
+# Rappel : le bit exécutable des scripts .sh ne se règle pas ici.
+# Après le premier « git add », lancer une fois :
+#   git update-index --chmod=+x "scripts/Suivi-facturation.sh" "scripts/Arreter suivi-facturation.sh" "scripts/lib-boites.sh"
+# Plusieurs fichiers existants sont aujourd'hui en CRLF (src/, public/, tests/, scripts/demo.mjs) :
+# ils seront normalisés en LF dans le dépôt au premier « git add » (vérifier avec « git add --renormalize . » puis « git status »).

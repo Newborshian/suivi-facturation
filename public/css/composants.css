@@ -1,0 +1,866 @@
+/* ==========================================================================
+   suivi-facturation : composants (composants.css)
+   Boutons, champs, tableaux, badges, alertes, dialogues, toasts, état vide…
+   Contrat de classes : docs/design-system.md §7.
+   Règle : aucune information portée par la seule couleur (texte, symbole ou forme en plus).
+   ========================================================================== */
+
+/* ======================== Boutons ======================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e-2);
+  min-height: var(--cible);
+  padding: 0 var(--e-4);
+  border: 2px solid transparent;
+  border-radius: var(--r-m);
+  font: inherit;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  background: var(--c-surface);
+  color: var(--c-texte);
+  transition: background-color var(--duree) ease, border-color var(--duree) ease;
+}
+.btn:hover { text-decoration: none; }
+
+.btn--primaire {
+  background: var(--c-primaire);
+  color: var(--c-sur-primaire);
+}
+.btn--primaire:hover { background: var(--c-primaire-survol); }
+
+.btn--secondaire {
+  background: var(--c-surface);
+  color: var(--c-texte);
+  border-color: var(--c-bordure-champ);
+}
+.btn--secondaire:hover { background: var(--c-surface-alt); }
+
+.btn--discret {
+  background: transparent;
+  color: var(--c-lien);
+  padding: 0 var(--e-3);
+}
+.btn--discret:hover { background: var(--c-surface-alt); text-decoration: underline; }
+
+.btn--danger {
+  background: var(--c-danger-bouton);
+  color: var(--c-sur-danger-bouton);
+}
+.btn--danger:hover { background: var(--c-danger-bouton-survol); }
+
+.btn--danger-discret {
+  background: transparent;
+  color: var(--c-dan-texte);
+  border-color: var(--c-dan-bord);
+}
+.btn--danger-discret:hover { background: var(--c-dan-fond); }
+
+.btn--petit {
+  min-height: var(--cible-s);
+  padding: 0 var(--e-3);
+  font-size: var(--t-s);
+}
+.btn--bloc { width: 100%; }
+
+.btn[disabled],
+.btn[aria-disabled="true"] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.btn[aria-busy="true"] { cursor: progress; }
+
+/* Bouton « Payé en totalité » : action fréquente, visible mais pas dominante. */
+.btn-payer {
+  border-color: var(--c-ok-bord);
+  background: var(--c-ok-fond);
+  color: var(--c-ok-texte);
+}
+.btn-payer:hover { background: var(--c-surface); }
+.btn-payer::before { content: "✓"; font-weight: 700; }
+
+/* Icône inline éventuelle (SVG créé par le JS, taille calée sur le texte). */
+.icone {
+  width: 1.15em;
+  height: 1.15em;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Bouton de dépliage d'une ligne (chevron en CSS, pas d'image). */
+.btn-deplier {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-2);
+  min-height: var(--cible-s);
+  padding: 0 var(--e-2);
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  border-radius: var(--r-s);
+}
+.btn-deplier::before {
+  content: "";
+  flex: none;
+  width: 0.55em;
+  height: 0.55em;
+  border-right: 2.5px solid currentColor;
+  border-bottom: 2.5px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform var(--duree) ease;
+}
+.btn-deplier[aria-expanded="true"]::before { transform: rotate(45deg); }
+
+/* ======================== Champs de formulaire ======================== */
+.champ {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-1);
+  min-width: 0;
+}
+.champ__label {
+  font-weight: 600;
+  font-size: var(--t-s);
+}
+.champ__requis {
+  font-weight: 400;
+  color: var(--c-texte-doux);
+}
+.champ__aide {
+  margin: 0;
+  font-size: var(--t-s);
+  color: var(--c-texte-doux);
+}
+.champ__erreur {
+  margin: 0;
+  font-size: var(--t-s);
+  font-weight: 600;
+  color: var(--c-dan-texte);
+}
+.champ__erreur::before { content: "! "; font-weight: 800; }
+
+.input {
+  width: 100%;
+  min-height: var(--cible);
+  padding: var(--e-2) var(--e-3);
+  border: 1.5px solid var(--c-bordure-champ);
+  border-radius: var(--r-m);
+  background: var(--c-surface);
+  color: var(--c-texte);
+  font: inherit;
+  line-height: 1.3;
+}
+textarea.input { min-height: 5rem; resize: vertical; }
+select.input { padding-right: var(--e-2); }
+.input::placeholder { color: var(--c-texte-doux); opacity: 1; }
+.input:hover { border-color: var(--c-texte-doux); }
+.input[readonly] { background: var(--c-surface-alt); }
+.input[disabled] { opacity: 0.6; cursor: not-allowed; }
+
+/* Un champ en erreur : bordure plus épaisse + message textuel (voir .champ__erreur). */
+.champ--erreur .input,
+.input[aria-invalid="true"] {
+  border-color: var(--c-dan-bord);
+  border-width: 3px;
+  padding: calc(var(--e-2) - 1.5px) calc(var(--e-3) - 1.5px);
+}
+
+/* Montant : aligné à droite, chiffres tabulaires, unité € collée au champ. */
+.champ-montant {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.champ-montant .input {
+  text-align: right;
+  padding-right: 2.25rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.champ-montant__unite {
+  position: absolute;
+  right: var(--e-3);
+  color: var(--c-texte-doux);
+  pointer-events: none;
+}
+
+.input--recherche { min-width: 12rem; }
+
+/* Case à cocher / bouton radio avec libellé. */
+.case {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-2);
+  min-height: var(--cible-s);
+  cursor: pointer;
+}
+.case input {
+  width: 1.25rem;
+  height: 1.25rem;
+  accent-color: var(--c-primaire);
+  flex: none;
+}
+
+fieldset.groupe {
+  border: 1px solid var(--c-bordure);
+  border-radius: var(--r-m);
+  padding: var(--e-3) var(--e-4) var(--e-4);
+  margin: 0;
+  min-width: 0;
+}
+fieldset.groupe > legend {
+  padding: 0 var(--e-2);
+  font-weight: 650;
+}
+
+/* Grille de champs de formulaire (adaptative, sans media query). */
+.formulaire-grille {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: var(--e-3) var(--e-4);
+  align-items: end;
+}
+.formulaire-grille .champ--large { grid-column: span 2; }
+@media (max-width: 40em) {
+  .formulaire-grille .champ--large { grid-column: auto; }
+}
+
+/* Suggestions (saisie assistée du patient). */
+.champ--combo { position: relative; }
+.suggestions {
+  position: absolute;
+  z-index: 30;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin: var(--e-1) 0 0;
+  padding: var(--e-1);
+  list-style: none;
+  max-height: 15rem;
+  overflow-y: auto;
+  background: var(--c-surface);
+  border: 1.5px solid var(--c-bordure-champ);
+  border-radius: var(--r-m);
+  box-shadow: var(--ombre-2);
+}
+.suggestions [role="option"] {
+  padding: var(--e-2) var(--e-3);
+  border-radius: var(--r-s);
+  cursor: pointer;
+}
+.suggestions [role="option"]:hover { background: var(--c-survol-ligne); }
+/* Option active au clavier : fond + bordure gauche épaisse. */
+.suggestions [role="option"][aria-selected="true"] {
+  background: var(--c-selection);
+  box-shadow: inset 4px 0 0 var(--c-primaire);
+  font-weight: 600;
+}
+
+/* Barre de filtres. */
+.filtres {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--e-3) var(--e-4);
+}
+.filtres .champ { min-width: 10rem; }
+
+/* Sélecteur de mois : précédent / liste / suivant / mois en cours. */
+.selecteur-mois {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-2);
+}
+.selecteur-mois .input { width: auto; min-width: 11rem; font-weight: 600; }
+
+/* Commutateur de vue (2 ou 3 options) : boutons avec aria-pressed. */
+.segment {
+  display: inline-flex;
+  border: 1.5px solid var(--c-bordure-champ);
+  border-radius: var(--r-m);
+  overflow: hidden;
+  background: var(--c-surface);
+}
+.segment__bouton {
+  min-height: var(--cible-s);
+  padding: 0 var(--e-4);
+  border: 0;
+  background: transparent;
+  color: var(--c-texte);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+.segment__bouton + .segment__bouton { border-left: 1.5px solid var(--c-bordure-champ); }
+.segment__bouton:hover { background: var(--c-surface-alt); }
+.segment__bouton[aria-pressed="true"] {
+  background: var(--c-primaire);
+  color: var(--c-sur-primaire);
+  font-weight: 700;
+}
+.segment__bouton[aria-pressed="true"]::before { content: "✓ "; }
+/* Focus clavier : l'anneau reste à l'intérieur du bouton (le conteneur rogne tout débordement), donc
+   il touche la bordure du segment d'un côté et le fond du bouton de l'autre. Anneau à deux couleurs :
+   bande extérieure de 2 px en --c-surface (contre la bordure : 4,26:1 clair, 5,16:1 sombre), puis bande
+   intérieure de 2 px en --c-focus (contre le fond du bouton : 5,74 à 6,62:1 clair, 7,82 à 8,98:1 sombre).
+   Option active (fond primaire, où --c-focus se confondrait avec le fond) : une seule bande de 4 px en
+   --c-surface (contre le fond primaire : 6,46:1 clair, 7,34:1 sombre). Détail et contrastes : design-system §9 et §3.6. */
+.segment__bouton:focus-visible {
+  outline: 2px solid var(--c-surface);
+  outline-offset: -2px;
+  box-shadow: inset 0 0 0 4px var(--c-focus);
+  border-radius: 0;
+}
+.segment__bouton:first-child:focus-visible { border-radius: calc(var(--r-m) - 1.5px) 0 0 calc(var(--r-m) - 1.5px); }
+.segment__bouton:last-child:focus-visible { border-radius: 0 calc(var(--r-m) - 1.5px) calc(var(--r-m) - 1.5px) 0; }
+.segment__bouton:first-child:last-child:focus-visible { border-radius: calc(var(--r-m) - 1.5px); }
+.segment__bouton[aria-pressed="true"]:focus-visible {
+  outline-width: 4px;
+  outline-offset: -4px;
+  box-shadow: none;
+}
+
+/* ======================== Cartes et indicateurs ======================== */
+.carte {
+  background: var(--c-surface);
+  border: 1px solid var(--c-bordure);
+  border-radius: var(--r-l);
+  box-shadow: var(--ombre-1);
+  padding: var(--e-4) var(--e-5);
+  min-width: 0;
+}
+.carte__entete {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-2) var(--e-4);
+  margin-bottom: var(--e-3);
+}
+.carte__titre { font-size: var(--t-l); }
+.carte__note { margin: var(--e-3) 0 0; color: var(--c-texte-doux); font-size: var(--t-s); }
+
+.grille-cartes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: var(--e-4);
+}
+
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-1);
+  padding: var(--e-4) var(--e-5);
+  background: var(--c-surface);
+  border: 1px solid var(--c-bordure);
+  border-left-width: 6px;
+  border-radius: var(--r-l);
+  box-shadow: var(--ombre-1);
+}
+.kpi__libelle { font-size: var(--t-s); font-weight: 600; color: var(--c-texte-doux); }
+.kpi__valeur {
+  font-size: var(--t-montant-kpi);
+  font-weight: 700;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.kpi__detail { font-size: var(--t-s); color: var(--c-texte-doux); }
+/* Le trait de gauche reprend la couleur de la série ; le libellé textuel reste l'information. */
+.kpi[data-serie="paye"] { border-left-color: var(--serie-paye); }
+.kpi[data-serie="attente"] { border-left-color: var(--serie-attente); }
+.kpi[data-serie="a-facturer"] { border-left-color: var(--serie-a-facturer); }
+.kpi[data-serie="prevu"] { border-left-color: var(--serie-prevu); border-left-style: dashed; }
+.kpi[data-serie="a-facturer"] { border-left-style: double; }
+
+/* ======================== Tableaux ======================== */
+.table-wrap {
+  overflow-x: auto;
+  background: var(--c-surface);
+  border: 1px solid var(--c-bordure);
+  border-radius: var(--r-l);
+}
+.table-wrap--haut { max-height: 70vh; overflow-y: auto; }
+
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--t-m);
+}
+.table caption {
+  text-align: left;
+  padding: var(--e-3) var(--e-4);
+  font-weight: 650;
+  color: var(--c-texte);
+}
+.table th,
+.table td {
+  padding: var(--e-3) var(--e-3);
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--c-bordure);
+}
+.table th:first-child,
+.table td:first-child { padding-left: var(--e-4); }
+.table th:last-child,
+.table td:last-child { padding-right: var(--e-4); }
+
+.table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--c-surface-alt);
+  font-size: var(--t-s);
+  font-weight: 700;
+  color: var(--c-texte);
+  white-space: nowrap;
+  border-bottom: 2px solid var(--c-bordure-champ);
+}
+.table tbody tr:hover > td,
+.table tbody tr:hover > th { background: var(--c-survol-ligne); }
+.table tbody tr:last-child > td { border-bottom: 0; }
+
+.table--dense th,
+.table--dense td { padding-top: var(--e-2); padding-bottom: var(--e-2); }
+
+/* Colonnes numériques : alignées à droite, chiffres tabulaires. */
+.table .col-nombre,
+.table .col-montant {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.table .col-montant { font-weight: 600; }
+.table .col-centre { text-align: center; }
+.table .col-action { text-align: right; white-space: nowrap; }
+.table .col-case { width: 2.75rem; }
+
+/* Cellule composée : ligne principale + ligne secondaire (ex. prestation + motif). */
+.cellule-double__secondaire {
+  display: block;
+  font-size: var(--t-s);
+  color: var(--c-texte-doux);
+}
+
+/* Message long dans une cellule numérique (ex. sauvegarde illisible) : il revient à la ligne, le tableau ne défile pas. */
+.table .col-nombre .cellule-double__secondaire {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: left;
+  min-width: 9rem;
+  max-width: 16rem;
+  margin-left: auto;
+}
+
+/* États de ligne. */
+.table tr.ligne--selectionnee > td { background: var(--c-selection); }
+.table tr.ligne--a-venir > td:first-child { box-shadow: inset 4px 0 0 var(--c-neu-bord); }
+.table tr.ligne--a-venir > td { font-style: italic; }
+/* L'italique marque le texte de la ligne, jamais les contrôles (boutons, badges, champs) ni les montants. */
+.table tr.ligne--a-venir > td .badge,
+.table tr.ligne--a-venir > td .montant,
+.table tr.ligne--a-venir > td :is(button, .btn, input, select, textarea) { font-style: normal; }
+
+/* Ligne inactive (tarif désactivé, sauvegarde non restaurable) : texte atténué partout, pas seulement dans Paramètres.
+   Les champs et listes de la ligne sont atténués aussi (ils ont leur propre couleur) ; le mot « Désactivée » / « Illisible » reste le signal. */
+.table tr.ligne--inactive > td,
+.table tr.ligne--inactive > th { color: var(--c-texte-doux); }
+.table tr.ligne--inactive .input { color: var(--c-texte-doux); }
+.table tr.ligne--inactive .nom-prestation { text-decoration: line-through; }
+.table tr.ligne--modifiee-recemment > td { animation: surbrillance 1.6s ease-out 1; }
+@keyframes surbrillance {
+  from { background: var(--c-selection); }
+  to { background: transparent; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .table tr.ligne--modifiee-recemment > td { animation: none; }
+}
+
+/* Ligne de totaux : texte gras + double filet, pas seulement un fond. */
+.table tfoot td,
+.table tfoot th,
+.table tr.ligne--total > td,
+.table tr.ligne--total > th {
+  font-weight: 700;
+  background: var(--c-surface-alt);
+  border-top: 3px double var(--c-bordure-champ);
+  border-bottom: 0;
+}
+
+/* Ligne de détail (sous une ligne patient). */
+.table tr.ligne-detail > td {
+  padding: 0;
+  background: var(--c-surface-alt);
+}
+.ligne-detail__contenu {
+  margin: var(--e-3) var(--e-4) var(--e-4) var(--e-6);
+  padding: var(--e-3);
+  background: var(--c-surface);
+  border: 1px solid var(--c-bordure);
+  border-radius: var(--r-m);
+}
+
+/* Montants : à utiliser sur tout élément affichant un montant en euros. */
+.montant {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  font-weight: 600;
+}
+.montant--zero { color: var(--c-texte-doux); font-weight: 400; }
+.montant--reste { font-weight: 800; }
+.montant--fort { font-size: var(--t-l); font-weight: 700; }
+
+/* Colonnes secondaires masquées sur petit écran (le détail reste dans le dialogue de modification). */
+@media (max-width: 48em) {
+  .table .col-secondaire { display: none; }
+}
+
+/* ======================== Badges ======================== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.1rem 0.65rem;
+  border: 1.5px solid var(--c-neu-bord);
+  border-radius: var(--r-pill);
+  background: var(--c-neu-fond);
+  color: var(--c-neu-texte);
+  font-size: var(--t-s);
+  font-weight: 650;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.badge::before { font-weight: 800; }
+
+/* État de paiement (calculé) : texte + symbole + forme de bordure, en plus de la couleur. */
+.badge[data-etat="paye"] {
+  background: var(--c-ok-fond); color: var(--c-ok-texte); border-color: var(--c-ok-bord);
+}
+.badge[data-etat="paye"]::before { content: "✓"; content: "✓" / ""; }
+.badge[data-etat="partiel"] {
+  background: var(--c-att-fond); color: var(--c-att-texte); border-color: var(--c-att-bord);
+}
+.badge[data-etat="partiel"]::before { content: "◐"; content: "◐" / ""; }
+.badge[data-etat="non_paye"] {
+  background: var(--c-dan-fond); color: var(--c-dan-texte); border-color: var(--c-dan-bord);
+}
+.badge[data-etat="non_paye"]::before { content: "○"; content: "○" / ""; }
+
+/* Statut de facturation : forme de bordure (pointillée = à faire) + losange vide / plein. */
+.badge[data-statut="a_facturer"] {
+  background: var(--c-surface); color: var(--c-texte); border-color: var(--c-bordure-champ);
+  border-style: dashed;
+}
+.badge[data-statut="a_facturer"]::before { content: "◇"; content: "◇" / ""; }
+.badge[data-statut="facture"] {
+  background: var(--c-inf-fond); color: var(--c-inf-texte); border-color: var(--c-inf-bord);
+}
+.badge[data-statut="facture"]::before { content: "◆"; content: "◆" / ""; }
+
+/* Prestation à venir (date future) : bordure pointillée + symbole. */
+.badge--a-venir {
+  background: var(--c-neu-fond); color: var(--c-neu-texte); border-color: var(--c-neu-bord);
+  border-style: dotted;
+}
+.badge--a-venir::before { content: "»"; content: "»" / ""; }
+
+/* Trop-perçu et autres informations neutres. */
+.badge--info { background: var(--c-inf-fond); color: var(--c-inf-texte); border-color: var(--c-inf-bord); }
+.badge--attention { background: var(--c-att-fond); color: var(--c-att-texte); border-color: var(--c-att-bord); }
+.badge--attention::before { content: "!"; content: "!" / ""; }
+
+/* Bouton de statut : un clic bascule « à facturer » ⇄ « facturé ». Même rendu qu'un badge. */
+.btn-statut {
+  cursor: pointer;
+  font-family: inherit;
+  min-height: var(--cible-s);
+  padding: 0.1rem 0.85rem;
+}
+.btn-statut:hover { text-decoration: underline; text-decoration-thickness: 2px; }
+.btn-statut::after { content: "↻"; font-weight: 700; opacity: 0.8; }
+
+/* ======================== Alertes, bandeaux, avertissements ======================== */
+.alerte {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--e-2) var(--e-3);
+  padding: var(--e-3) var(--e-4);
+  border: 1.5px solid var(--c-inf-bord);
+  border-left-width: 8px;
+  border-radius: var(--r-m);
+  background: var(--c-inf-fond);
+  color: var(--c-inf-texte);
+}
+.alerte::before {
+  content: "i";
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-top: 0.05rem;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  font-weight: 800;
+  font-size: var(--t-s);
+  line-height: 1;
+}
+.alerte__corps { flex: 1 1 16rem; min-width: 0; }
+.alerte__titre { display: block; font-weight: 700; }
+.alerte__texte { margin: 0; }
+.alerte__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-2);
+  margin-left: auto;
+  align-items: center;
+}
+/* Boutons placés dans le corps de l'alerte (cas du JS actuel) : sous le texte, alignés à gauche, avec de l'air. */
+.alerte__corps > .alerte__actions {
+  margin-left: 0;
+  margin-top: var(--e-3);
+}
+.alerte__titre + .alerte__texte { margin-top: 0.15rem; }
+.alerte a { color: inherit; font-weight: 600; }
+
+.alerte--succes { background: var(--c-ok-fond); color: var(--c-ok-texte); border-color: var(--c-ok-bord); }
+.alerte--succes::before { content: "✓"; }
+.alerte--attention { background: var(--c-att-fond); color: var(--c-att-texte); border-color: var(--c-att-bord); }
+.alerte--attention::before { content: "!"; border-radius: var(--r-s); }
+.alerte--danger { background: var(--c-dan-fond); color: var(--c-dan-texte); border-color: var(--c-dan-bord); }
+.alerte--danger::before { content: "✕"; border-radius: var(--r-s); transform: rotate(0); }
+
+/* Bandeau « Données d'exemple » : visible en permanence, bordure en tirets. */
+.alerte--exemple {
+  border-style: dashed;
+  border-left-style: solid;
+  padding-block: var(--e-2);
+}
+
+/* Liste d'avertissements non bloquants dans un formulaire. */
+.avertissements { display: flex; flex-direction: column; gap: var(--e-2); }
+
+/* ======================== Dialogues (élément <dialog> natif) ======================== */
+dialog.dialogue {
+  width: min(34rem, calc(100vw - 1.5rem));
+  max-height: calc(100vh - 2rem);
+  padding: 0;
+  border: 1px solid var(--c-bordure-champ);
+  border-radius: var(--r-l);
+  background: var(--c-surface);
+  color: var(--c-texte);
+  box-shadow: var(--ombre-2);
+  overflow: hidden;
+}
+dialog.dialogue[open] {
+  display: flex;
+  flex-direction: column;
+}
+dialog.dialogue--large { width: min(50rem, calc(100vw - 1.5rem)); }
+dialog.dialogue::backdrop {
+  background: rgba(10, 18, 28, 0.5);
+  background: var(--c-voile);
+}
+.dialogue__entete {
+  padding: var(--e-4) var(--e-5);
+  border-bottom: 1px solid var(--c-bordure);
+}
+.dialogue__titre { font-size: var(--t-xl); }
+.dialogue__corps {
+  padding: var(--e-4) var(--e-5);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-4);
+}
+.dialogue__pied {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--e-2) var(--e-3);
+  padding: var(--e-3) var(--e-5) var(--e-4);
+  border-top: 1px solid var(--c-bordure);
+  background: var(--c-surface-alt);
+}
+@media (max-width: 40em) {
+  dialog.dialogue { width: 100vw; max-height: 100vh; margin: auto 0 0; border-radius: var(--r-l) var(--r-l) 0 0; }
+  .dialogue__pied .btn { flex: 1 1 100%; }
+}
+
+/* ======================== Toasts (messages éphémères) ======================== */
+.toasts {
+  position: fixed;
+  left: var(--e-3);
+  right: var(--e-3);
+  bottom: var(--e-4);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--e-2);
+  pointer-events: none;
+}
+.toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--e-3);
+  max-width: 36rem;
+  width: 100%;
+  padding: var(--e-3) var(--e-4);
+  background: var(--c-surface);
+  color: var(--c-texte);
+  border: 1.5px solid var(--c-bordure-champ);
+  border-left: 8px solid var(--c-ok-bord);
+  border-radius: var(--r-m);
+  box-shadow: var(--ombre-2);
+}
+.toast::before { content: "✓"; font-weight: 800; color: var(--c-ok-texte); }
+.toast__texte { flex: 1; margin: 0; }
+.toast__action {
+  flex: none;
+  min-height: var(--cible-s);
+  padding: 0 var(--e-3);
+  border: 1.5px solid var(--c-bordure-champ);
+  border-radius: var(--r-m);
+  background: var(--c-surface-alt);
+  color: var(--c-texte);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.toast__fermer {
+  flex: none;
+  width: var(--cible-s);
+  min-height: var(--cible-s);
+  border: 0;
+  background: transparent;
+  color: var(--c-texte-doux);
+  font-size: var(--t-xl);
+  line-height: 1;
+  cursor: pointer;
+  border-radius: var(--r-s);
+}
+.toast--erreur { border-left-color: var(--c-dan-bord); }
+.toast--erreur::before { content: "✕"; color: var(--c-dan-texte); }
+.toast--attention { border-left-color: var(--c-att-bord); }
+.toast--attention::before { content: "!"; color: var(--c-att-texte); }
+
+/* ======================== État vide, chargement ======================== */
+.etat-vide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--e-2);
+  padding: var(--e-6) var(--e-4);
+  text-align: center;
+  background: var(--c-surface);
+  border: 2px dashed var(--c-bordure-champ);
+  border-radius: var(--r-l);
+}
+.etat-vide__titre { font-size: var(--t-l); font-weight: 650; }
+.etat-vide__texte { margin: 0; max-width: var(--largeur-texte); color: var(--c-texte-doux); }
+.etat-vide__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--e-2); margin-top: var(--e-2); }
+.etat-vide--positif { border-color: var(--c-ok-bord); background: var(--c-ok-fond); }
+.etat-vide--positif .etat-vide__titre { color: var(--c-ok-texte); }
+.etat-vide--positif .etat-vide__texte { color: var(--c-ok-texte); }
+
+.chargement {
+  padding: var(--e-5);
+  text-align: center;
+  color: var(--c-texte-doux);
+}
+
+/* ======================== Dépliant (« Voir les chiffres ») ======================== */
+details.depliant {
+  border: 1px solid var(--c-bordure);
+  border-radius: var(--r-m);
+  background: var(--c-surface);
+}
+details.depliant > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--e-2);
+  min-height: var(--cible);
+  padding: 0 var(--e-4);
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+details.depliant > summary::-webkit-details-marker { display: none; }
+details.depliant > summary::before {
+  content: "";
+  width: 0.55em;
+  height: 0.55em;
+  border-right: 2.5px solid currentColor;
+  border-bottom: 2.5px solid currentColor;
+  transform: rotate(-45deg);
+}
+details.depliant[open] > summary::before { transform: rotate(45deg); }
+.depliant__contenu { padding: 0 var(--e-4) var(--e-4); }
+
+/* ======================== Barre de sélection multiple ======================== */
+.barre-selection {
+  position: sticky;
+  bottom: var(--e-3);
+  z-index: 15;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-2) var(--e-4);
+  padding: var(--e-3) var(--e-4);
+  background: var(--c-surface);
+  border: 2px solid var(--c-primaire);
+  border-radius: var(--r-l);
+  box-shadow: var(--ombre-2);
+}
+.barre-selection__texte { font-weight: 700; margin-right: auto; }
+
+/* ======================== Liste de définitions (informations clé / valeur) ======================== */
+.infos {
+  display: grid;
+  grid-template-columns: minmax(10rem, max-content) 1fr;
+  gap: var(--e-2) var(--e-5);
+  margin: 0;
+}
+.infos dt { font-weight: 600; color: var(--c-texte-doux); }
+.infos dd { margin: 0; overflow-wrap: anywhere; }
+@media (max-width: 40em) {
+  .infos { grid-template-columns: 1fr; gap: 0; }
+  .infos dd { margin-bottom: var(--e-3); }
+}
+
+/* ======================== Contraste renforcé (Windows) ======================== */
+@media (forced-colors: active) {
+  .btn, .input, .badge, .alerte, .toast, .kpi, .carte {
+    border: 2px solid ButtonText;
+  }
+  .btn--primaire, .segment__bouton[aria-pressed="true"] {
+    background: Highlight;
+    color: HighlightText;
+  }
+  /* Focus d'un bouton de segment : couleurs système (les ombres sont ignorées dans ce mode). */
+  .segment__bouton:focus-visible {
+    outline: 3px solid Highlight;
+    outline-offset: -3px;
+    box-shadow: none;
+  }
+  .segment__bouton[aria-pressed="true"]:focus-visible {
+    outline-color: HighlightText;
+  }
+}

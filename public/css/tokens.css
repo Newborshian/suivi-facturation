@@ -1,0 +1,177 @@
+/* ==========================================================================
+   suivi-facturation : jetons de design (tokens.css)
+   Source de vérité : docs/design-system.md §3.
+   Aucune ressource externe, aucun @import, compatible CSP style-src 'self'.
+   Ordre de chargement : tokens → base → composants → ecrans → impression.
+   Les ratios de contraste (WCAG AA) sont documentés et calculés dans le design system.
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* --- Surfaces et texte (clair) --- */
+  --c-fond: #f4f6f8;
+  --c-surface: #ffffff;
+  --c-surface-alt: #eceff3;
+  --c-texte: #17212b;
+  --c-texte-doux: #4a5764;
+  --c-bordure: #c5ced8;            /* séparateurs décoratifs uniquement */
+  --c-bordure-champ: #6f7c8a;      /* bordure de champ : >= 3:1 sur surface et fond */
+  --c-survol-ligne: #eef3f9;
+  --c-selection: #dbe8f8;
+  --c-voile: rgba(10, 18, 28, 0.5);
+
+  /* --- Action principale --- */
+  --c-primaire: #1b5fa8;
+  --c-primaire-survol: #154a85;
+  --c-sur-primaire: #ffffff;
+  --c-lien: #1b5fa8;
+  --c-focus: #1a56c4;
+
+  /* --- Bouton danger --- */
+  --c-danger-bouton: #b3261e;
+  --c-danger-bouton-survol: #8f1d17;
+  --c-sur-danger-bouton: #ffffff;
+
+  /* --- Couleurs sémantiques (fond / texte / bordure) --- */
+  --c-ok-fond: #e2f3ea;   --c-ok-texte: #0b5a37;   --c-ok-bord: #2e8b5e;
+  --c-att-fond: #fff0d1;  --c-att-texte: #6e4200;  --c-att-bord: #b36b00;
+  --c-dan-fond: #fce6e4;  --c-dan-texte: #911a1a;  --c-dan-bord: #c0392b;
+  --c-inf-fond: #e5eefa;  --c-inf-texte: #17467f;  --c-inf-bord: #2f6fb8;
+  --c-neu-fond: #eceff3;  --c-neu-texte: #3b4753;  --c-neu-bord: #6f7c8a;
+
+  /* --- Palette des graphiques (jamais seule : motifs + légende + tableau) --- */
+  --serie-paye: #1f8a5b;
+  --serie-attente: #b86e00;
+  --serie-a-facturer: #2f6fb8;
+  --serie-prevu: #6f7c8a;
+
+  /* --- Ombres --- */
+  --ombre-1: 0 1px 2px rgba(23, 33, 43, 0.08), 0 1px 1px rgba(23, 33, 43, 0.06);
+  --ombre-2: 0 8px 24px rgba(23, 33, 43, 0.18), 0 2px 6px rgba(23, 33, 43, 0.1);
+
+  /* --- Typographie (polices système uniquement, aucune police externe) --- */
+  --police: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --police-mono: ui-monospace, "Cascadia Mono", "Segoe UI Mono", Consolas, "Courier New", monospace;
+  --t-s: 0.875rem;
+  --t-m: 1rem;
+  --t-l: 1.125rem;
+  --t-xl: 1.375rem;
+  --t-xxl: 1.75rem;
+  --t-montant-kpi: 1.75rem;
+  --interligne: 1.5;
+  --interligne-serre: 1.25;
+
+  /* --- Espacements (base 4 px) --- */
+  --e-1: 0.25rem;
+  --e-2: 0.5rem;
+  --e-3: 0.75rem;
+  --e-4: 1rem;
+  --e-5: 1.5rem;
+  --e-6: 2rem;
+  --e-7: 3rem;
+
+  /* --- Rayons --- */
+  --r-s: 4px;
+  --r-m: 8px;
+  --r-l: 12px;
+  --r-pill: 999px;
+
+  /* --- Dimensions --- */
+  --cible: 2.75rem;               /* hauteur des boutons et champs (44 px) */
+  --cible-s: 2.25rem;             /* actions de ligne compactes (36 px) */
+  --largeur-page: 76rem;
+  --largeur-texte: 42rem;
+  --focus-largeur: 3px;
+  --focus-decalage: 2px;
+  --duree: 120ms;
+}
+
+/* Mode sombre automatique (préférence du système), sauf si le thème clair est forcé. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --c-fond: #12171d;
+    --c-surface: #1a212a;
+    --c-surface-alt: #232c37;
+    --c-texte: #e8edf2;
+    --c-texte-doux: #aab6c3;
+    --c-bordure: #3a4654;
+    --c-bordure-champ: #8593a1;
+    --c-survol-ligne: #212a35;
+    --c-selection: #23364d;
+    --c-voile: rgba(0, 0, 0, 0.6);
+
+    --c-primaire: #7db2f0;
+    --c-primaire-survol: #9cc4f5;
+    --c-sur-primaire: #0b1a2b;
+    --c-lien: #8fbcf3;
+    --c-focus: #9cc4f5;
+
+    --c-danger-bouton: #f2b8b5;
+    --c-danger-bouton-survol: #f7cfcc;
+    --c-sur-danger-bouton: #601410;
+
+    --c-ok-fond: #12301f;   --c-ok-texte: #8fe0b4;   --c-ok-bord: #3fae78;
+    --c-att-fond: #3a2a08;  --c-att-texte: #f5c76a;  --c-att-bord: #d19a2e;
+    --c-dan-fond: #3d1717;  --c-dan-texte: #ffaaa3;  --c-dan-bord: #e0675c;
+    --c-inf-fond: #14263f;  --c-inf-texte: #a9cdf7;  --c-inf-bord: #5b9be0;
+    --c-neu-fond: #232c37;  --c-neu-texte: #c3ccd6;  --c-neu-bord: #8593a1;
+
+    --serie-paye: #3fb883;
+    --serie-attente: #e0a032;
+    --serie-a-facturer: #6aa5ee;
+    --serie-prevu: #98a5b3;
+
+    --ombre-1: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --ombre-2: 0 8px 24px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.4);
+  }
+}
+
+/* Mode sombre forcé (réglage de l'interface : attribut data-theme="dark" sur <html>). */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --c-fond: #12171d;
+  --c-surface: #1a212a;
+  --c-surface-alt: #232c37;
+  --c-texte: #e8edf2;
+  --c-texte-doux: #aab6c3;
+  --c-bordure: #3a4654;
+  --c-bordure-champ: #8593a1;
+  --c-survol-ligne: #212a35;
+  --c-selection: #23364d;
+  --c-voile: rgba(0, 0, 0, 0.6);
+
+  --c-primaire: #7db2f0;
+  --c-primaire-survol: #9cc4f5;
+  --c-sur-primaire: #0b1a2b;
+  --c-lien: #8fbcf3;
+  --c-focus: #9cc4f5;
+
+  --c-danger-bouton: #f2b8b5;
+  --c-danger-bouton-survol: #f7cfcc;
+  --c-sur-danger-bouton: #601410;
+
+  --c-ok-fond: #12301f;   --c-ok-texte: #8fe0b4;   --c-ok-bord: #3fae78;
+  --c-att-fond: #3a2a08;  --c-att-texte: #f5c76a;  --c-att-bord: #d19a2e;
+  --c-dan-fond: #3d1717;  --c-dan-texte: #ffaaa3;  --c-dan-bord: #e0675c;
+  --c-inf-fond: #14263f;  --c-inf-texte: #a9cdf7;  --c-inf-bord: #5b9be0;
+  --c-neu-fond: #232c37;  --c-neu-texte: #c3ccd6;  --c-neu-bord: #8593a1;
+
+  --serie-paye: #3fb883;
+  --serie-attente: #e0a032;
+  --serie-a-facturer: #6aa5ee;
+  --serie-prevu: #98a5b3;
+
+  --ombre-1: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --ombre-2: 0 8px 24px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* Mouvement réduit : toute transition est supprimée. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duree: 0ms;
+  }
+}

@@ -1,0 +1,66 @@
+# Tests automatiques de suivi-facturation sur Linux, macOS et Windows.
+#
+# - Aucune dépendance : pas de « npm install » ni de cache npm (il n'y a ni dependencies ni fichier de verrou).
+#   Un test vérifie d'ailleurs qu'aucun dossier node_modules n'existe.
+# - Aucun secret n'est utilisé ; droits du jeton réduits à la lecture du dépôt.
+# - La suite lance de vrais processus (serveurs sur 127.0.0.1, verrous d'instance, arrêt automatique) :
+#   elle est plus lente qu'une suite purement unitaire.
+# - Windows : un arrêt brutal intermittent d'un processus de test est connu (environ 1 exécution complète sur 400,
+#   cause non démontrée ; voir tests/aides/garde-processus.js). Relancer le job avant de conclure à une régression.
+# - Windows : les tests de signaux (SIGINT, SIGTERM…) sont ignorés (« skip ») ; ils ne s'exécutent que sous Linux et macOS.
+# - Linux et macOS n'ont jamais été testés sur un système réel avant ce workflow : un échec propre à ces systèmes
+#   est une information nouvelle, pas forcément une régression.
+
+name: Tests
+
+# Déclencheurs : `push` seulement sur la branche principale + toute demande de fusion (`pull_request`), pour ne pas exécuter
+# deux fois chaque branche de demande de fusion (une fois au push, une fois à la demande).
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Actions tierces (actions/checkout, actions/setup-node, actions/upload-artifact) référencées par ÉTIQUETTE de version (v5, v4), pas par
+# empreinte de commit : acceptable pour un dépôt privé. À ÉPINGLER par empreinte (SHA complet) AVANT la publication du dépôt.
+jobs:
+  tests:
+    name: npm test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Installer Node.js 24
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+
+      - name: Version de Node
+        run: node --version
+
+      - name: Lancer les tests
+        run: npm test
+
+      # En cas d'échec, garder la sortie complète des tests et les traces de diagnostic
+      # (données fictives uniquement : les tests n'utilisent jamais data/).
+      - name: Conserver la sortie des tests (échec)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sortie-tests-${{ matrix.os }}
+          path: |
+            derniers-tests.log
+            .tmp/diagnostic-tests/
+          if-no-files-found: ignore
+          retention-days: 7

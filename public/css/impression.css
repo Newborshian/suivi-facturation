@@ -1,0 +1,204 @@
+/* ==========================================================================
+   suivi-facturation : impression (impression.css)
+   Cible principale : le récapitulatif « Facturation du mois » (écran .ecran-facturation).
+   Les autres écrans reçoivent une impression simple (sans navigation ni boutons).
+   À lier avec media="print" ou tel quel : tout est dans @media print.
+   Noir sur blanc, tout en tableau, aucune information portée par la couleur seule.
+   ========================================================================== */
+
+@page {
+  size: A4 portrait;
+  margin: 15mm 12mm;
+}
+
+@media print {
+  :root {
+    color-scheme: light;
+    /* Les jetons sont forcés en clair, quel que soit le thème de l'écran. */
+    --c-fond: #ffffff;
+    --c-surface: #ffffff;
+    --c-surface-alt: #f0f0f0;
+    --c-texte: #000000;
+    --c-texte-doux: #333333;
+    --c-bordure: #999999;
+    --c-bordure-champ: #555555;
+    --c-survol-ligne: transparent;
+    --c-selection: transparent;
+    --c-lien: #000000;
+    --c-ok-fond: #ffffff;   --c-ok-texte: #000000;   --c-ok-bord: #000000;
+    --c-att-fond: #ffffff;  --c-att-texte: #000000;  --c-att-bord: #000000;
+    --c-dan-fond: #ffffff;  --c-dan-texte: #000000;  --c-dan-bord: #000000;
+    --c-inf-fond: #ffffff;  --c-inf-texte: #000000;  --c-inf-bord: #000000;
+    --c-neu-fond: #ffffff;  --c-neu-texte: #000000;  --c-neu-bord: #555555;
+    --serie-paye: #1f8a5b;
+    --serie-attente: #b86e00;
+    --serie-a-facturer: #2f6fb8;
+    --serie-prevu: #555555;
+  }
+
+  html, body {
+    background: #ffffff;
+    color: #000000;
+    font-size: 10.5pt;
+    line-height: 1.35;
+  }
+
+  /* --- Éléments d'interface masqués --- */
+  .entete-site,
+  .skip-link,
+  .bandeaux,
+  .toasts,
+  .pied-page,
+  .page-actions,
+  .recap__outils,
+  .recap__actions,
+  .barre-selection,
+  .btn,
+  .btn-deplier::before,
+  .btn-statut::after,
+  .col-action,
+  .col-case,
+  .filtres,
+  .selecteur-mois,
+  .segment,
+  .no-print,
+  dialog {
+    display: none !important;
+  }
+
+  /* Le nom du patient reste lisible quand le bouton de dépliage est un <button>. */
+  .btn-deplier {
+    display: inline !important;
+    padding: 0;
+    border: 0;
+    background: none;
+    font-weight: 700;
+  }
+
+  /* Sur la Facturation du mois, le titre d'impression remplace le h1 et ses outils. */
+  .ecran-facturation .page-titre { display: none !important; }
+
+  .print-only { display: block !important; }
+  .page { max-width: none; padding: 0; margin: 0; }
+  .page > * + * { margin-top: 6mm; }
+
+  /* --- Titre et pied du récapitulatif --- */
+  .recap__titre-impression {
+    display: block;
+    margin-bottom: 4mm;
+  }
+  .recap__titre-impression h1 { font-size: 16pt; }
+  .recap__titre-impression p { margin: 1mm 0 0; font-size: 10pt; color: #333333; }
+  .recap__pied-impression {
+    display: block;
+    margin-top: 6mm;
+    font-size: 9pt;
+    color: #333333;
+  }
+
+  /* --- Cartes et tableaux : à plat --- */
+  .carte, .table-wrap, .kpi {
+    border: 0;
+    box-shadow: none;
+    background: none;
+    padding: 0;
+    overflow: visible;
+    max-height: none;
+  }
+
+  .table {
+    font-size: 10pt;
+    border-collapse: collapse;
+  }
+  .table thead { display: table-header-group; }   /* en-tête répété à chaque page */
+  .table tfoot { display: table-footer-group; }
+  .table th,
+  .table td {
+    padding: 1.6mm 2mm;
+    border: 0;
+    border-bottom: 0.4pt solid #777777;
+  }
+  .table thead th {
+    position: static;
+    background: #e8e8e8 !important;
+    color: #000000;
+    border-bottom: 1pt solid #000000;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .table tr,
+  .table tbody.patient { break-inside: avoid; page-break-inside: avoid; }
+  .table tfoot td,
+  .table tfoot th,
+  .table tr.ligne--total > td,
+  .table tr.ligne--total > th {
+    border-top: 1.5pt solid #000000;
+    background: none;
+    font-weight: 700;
+  }
+  .table tbody tr:hover > td { background: none; }
+  .table tr.ligne--a-venir > td:first-child { box-shadow: none; }
+  .table .col-secondaire { display: table-cell !important; }
+  .montant, .table .col-montant { color: #000000; }
+
+  /* --- Détail des prestations : masqué par défaut, affiché si data-impression-detail="oui" --- */
+  .recap .ligne-detail { display: none !important; }
+  .recap[data-impression-detail="oui"] .ligne-detail,
+  .recap[data-impression-detail="oui"] .ligne-detail[hidden] {
+    display: table-row !important;
+  }
+  .ligne-detail__contenu {
+    margin: 1mm 0 2mm 6mm;
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+
+  /* --- Badges : texte + bordure noire, symbole conservé --- */
+  .badge {
+    border: 0.8pt solid #000000;
+    background: #ffffff !important;
+    color: #000000 !important;
+    padding: 0 2mm;
+    font-size: 9pt;
+  }
+  .badge[data-statut="a_facturer"] { border-style: dashed; }
+  .badge--a-venir { border-style: dotted; }
+
+  /* --- Icônes des modes de paiement : noir, et le nom du mode (attribut title, invisible sur papier) est écrit à côté --- */
+  .icone-mode { color: #000000; stroke: #000000; width: 4.2mm; height: 4.2mm; }
+  .modes-paiement:has(.icone-mode) .mode-paiement::after {
+    content: " " attr(title);
+    font-size: 9pt;
+    color: #000000;
+  }
+  .modes-paiement:has(.icone-mode) .mode-paiement { margin-inline-end: 2mm; }
+
+  /* --- Alertes (si une alerte reste affichée, elle s'imprime en noir et blanc) --- */
+  .alerte {
+    border: 0.8pt solid #000000;
+    border-left-width: 3pt;
+    background: #ffffff;
+    color: #000000;
+  }
+
+  /* --- Liens : pas d'URL entre parenthèses, pas de soulignement décoratif --- */
+  a { color: #000000; text-decoration: none; }
+  a[href]::after { content: none !important; }
+
+  /* --- Graphiques (tableau de bord) : couleurs et motifs conservés, une carte par page --- */
+  .graphe { break-inside: avoid; page-break-inside: avoid; }
+  .graphe__svg { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .graphe__bulle { display: none !important; }
+  .legende__pastille {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .graphe__tableau,
+  .graphe__tableau[open] { display: block; }
+  details.depliant { border: 0; }
+  details.depliant > summary { display: none; }
+  .tdb-grille > * { grid-column: 1 / -1 !important; }
+
+  h1, h2, h3 { break-after: avoid; page-break-after: avoid; }
+}

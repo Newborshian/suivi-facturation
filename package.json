@@ -1,0 +1,19 @@
+{
+  "name": "suivi-facturation",
+  "version": "0.1.0",
+  "description": "Suivi d'activité et de facturation pour une ergothérapeute libérale (application web locale).",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test --test-reporter=spec --test-reporter-destination=stdout --test-reporter=spec --test-reporter-destination=derniers-tests.log",
+    "lancer": "node scripts/suivi.mjs lancer",
+    "arreter": "node scripts/suivi.mjs arreter",
+    "raccourci": "node scripts/suivi.mjs raccourci",
+    "demo": "node scripts/suivi.mjs demo"
+  }
+}

@@ -1,0 +1,33 @@
+node_modules/
+data/
+*.bak
+*.local.json
+.env
+.tmp/
+derniers-tests.log
+logs/
+
+# Éditeurs et fichiers système
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+.DS_Store
+*.swp
+*~
+
+# Variantes de .env (le modèle scripts/env.exemple n'est pas concerné)
+.env.*
+!.env.exemple
+
+# Divers
+*.log
+package-lock.json
+.claude/settings.local.json
+*.verrou
+*.reprise
+
+# Exports téléchargés (données de santé en clair) : jamais dans le dépôt
+suivi-facturation-export-*.json
+suivi-facturation-prestations-*.csv
+suivi-facturation-versements-*.csv

@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Paramètres — suivi-facturation</title>
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/composants.css">
+  <link rel="stylesheet" href="/css/ecrans.css">
+  <link rel="stylesheet" href="/css/impression.css" media="print">
+  <script src="/js/theme-init.js"></script>
+  <script type="module" src="/js/pages/parametres.js"></script>
+  <script type="module" src="/js/presence.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#contenu">Aller au contenu</a>
+  <header class="entete-site">
+    <div class="entete-site__interieur">
+      <a class="marque" href="/">suivi-facturation</a>
+      <nav class="nav-principale" aria-label="Navigation principale">
+        <ul>
+          <li><a href="/">Facturation du mois</a></li>
+          <li><a href="/prestations.html">Prestations</a></li>
+          <li><a href="/tableau-de-bord.html">Tableau de bord</a></li>
+          <li><a href="/parametres.html" aria-current="page">Paramètres</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  <main id="contenu" class="page ecran-parametres" tabindex="-1">
+    <div class="bandeaux" id="bandeaux" aria-live="polite"></div>
+    <div class="page-titre">
+      <h1>Paramètres</h1>
+    </div>
+    <noscript>
+      <div class="alerte alerte--danger" role="alert">
+        <div class="alerte__corps"><strong class="alerte__titre">Erreur</strong><p class="alerte__texte">Cette application nécessite JavaScript.</p></div>
+      </div>
+    </noscript>
+    <div id="zone">
+      <p class="chargement" role="status">Chargement…</p>
+    </div>
+  </main>
+  <div class="toasts" role="status" aria-live="polite"></div>
+</body>
+</html>

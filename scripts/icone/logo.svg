@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="Suivi de facturation : trois barres ascendantes et une coche">
+  <rect x="0" y="0" width="256" height="256" rx="56" fill="#1b5fa8"/>
+  <rect x="2.5" y="2.5" width="251" height="251" rx="53.5" fill="none" stroke="#ffffff" stroke-opacity="0.6" stroke-width="5"/>
+  <rect x="40" y="168" width="50" height="50" rx="9" fill="#ffffff"/>
+    <rect x="103" y="138" width="50" height="80" rx="9" fill="#ffffff"/>
+    <rect x="166" y="108" width="50" height="110" rx="9" fill="#ffffff"/>
+  <path d="M170 66 L187 83 L214 48" fill="none" stroke="#8fe0b4" stroke-width="17" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

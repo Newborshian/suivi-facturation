@@ -1,0 +1,538 @@
+/* ==========================================================================
+   suivi-facturation : écrans (ecrans.css)
+   Mises en page propres à chaque écran + graphiques SVG.
+   Écrans : Facturation du mois (.ecran-facturation), Prestations (.ecran-prestations),
+   Tableau de bord (.ecran-tdb), Paramètres (.ecran-parametres), Archives (.ecran-archives),
+   conflit de synchro (.conflit), fichier illisible (.ecran-bloquant).
+   Chaque <main> porte la classe de son écran : <main id="contenu" class="page ecran-xxx">.
+   ========================================================================== */
+
+/* ======================== Facturation du mois ======================== */
+.ecran-facturation .recap__outils {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-3) var(--e-5);
+}
+.ecran-facturation .recap__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-2);
+}
+/* Ligne patient : le nom est le bouton de dépliage. */
+.recap .patient-nom { font-weight: 650; }
+.recap tbody.patient > tr:first-child > td { border-bottom-color: var(--c-bordure); }
+.recap tbody.patient + tbody.patient > tr:first-child > td { border-top: 0; }
+/* Reste à payer > 0 : chiffre en gras + libellé de colonne ; le badge de la colonne État porte le mot. */
+.recap .col-reste .montant { font-weight: 800; }
+.recap__note-vue {
+  margin: 0;
+  font-size: var(--t-s);
+  color: var(--c-texte-doux);
+}
+/* Détail déplié d'un patient (tableau dans la cellule colspan du récapitulatif) :
+   - le contenu ne doit pas élargir le tableau parent (sinon toute la page défile) : contain: inline-size, le
+     tableau du détail défile dans son propre cadre ;
+   - la colonne « Prestation » garde une largeur de lecture (≥ 13 rem) au lieu de se couper sur 3 lignes.
+   `.col-prestation` (facultatif, sur le <th> et les <td> de la colonne) équivaut au :nth-child(2) ci-dessous. */
+.ligne-detail__contenu { contain: inline-size; }
+.ligne-detail__contenu .table:not(.versements-liste) :is(th, td):nth-child(2),
+.ligne-detail__contenu .table .col-prestation { min-width: 13rem; }
+.ligne-detail__contenu .table-wrap { max-width: 100%; }
+/* Titre et pied visibles uniquement à l'impression (voir impression.css). */
+.recap__titre-impression,
+.recap__pied-impression { display: none; }
+
+/* ======================== Saisie / liste des prestations ======================== */
+.ecran-prestations .ajout-rapide {
+  border: 2px solid var(--c-primaire);
+}
+.ecran-prestations .ajout-rapide__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-2) var(--e-4);
+  margin-top: var(--e-4);
+}
+.ecran-prestations .ajout-rapide__astuce {
+  margin: 0;
+  font-size: var(--t-s);
+  color: var(--c-texte-doux);
+}
+.ecran-prestations .resume-liste {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-2) var(--e-5);
+  padding: var(--e-3) var(--e-4);
+  background: var(--c-surface);
+  border: 1px solid var(--c-bordure);
+  border-radius: var(--r-m);
+  font-variant-numeric: tabular-nums;
+}
+.ecran-prestations .resume-liste strong { font-weight: 700; }
+.ecran-prestations .actions-ligne {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--e-1) var(--e-2);
+}
+.ecran-prestations .col-etat-paiement { min-width: 9.5rem; }
+.ecran-prestations .col-etat-paiement .cellule-double__secondaire { margin-top: 0.15rem; }
+/* Mode de paiement en ligne avec le badge d'état : « Payé · Virement + Chèque ».
+   Structure : <span class="cellule-double__secondaire modes-paiement"> avec un <span class="mode-paiement">
+   par mode, séparés par un espace (aucun « + » ni « · » dans le DOM). Chaque mode ne se coupe jamais
+   (nowrap) ; « · » / « + » sont des ::before du mode qu'ils précèdent : le retour à la ligne se fait
+   donc entre deux modes, jamais entre le séparateur et son mode. */
+.ecran-prestations .col-etat-paiement [role="group"] .modes-paiement {
+  display: inline;
+  margin-top: 0;
+}
+.modes-paiement .mode-paiement { white-space: nowrap; }
+.modes-paiement .mode-paiement:first-child::before {
+  content: "· ";
+  margin-inline-start: 0.3em;
+}
+.modes-paiement .mode-paiement + .mode-paiement::before { content: "+ "; }
+/* (Règle de transition « :not(.modes-paiement) » retirée : plus aucun code de public/js ne produit de texte
+   direct dans le groupe de paiement ; voir docs/design-system.md §5.13.) */
+
+/* --- Icônes des modes de paiement (design-system §5.13) -----------------------------------------
+   Contrat : <span class="cellule-double__secondaire modes-paiement"> › <span class="mode-paiement" title="Virement">
+   › <svg class="icone-mode icone-mode--virement" viewBox="0 0 24 24" aria-hidden="true" focusable="false">.
+   Ces règles ne s'appliquent que lorsque le mode contient une icône : le rendu textuel ci-dessus reste intact. */
+.icone-mode {
+  display: inline-block;
+  flex: none;
+  width: 1.25rem;                 /* 20 px à la taille de texte par défaut : suit le zoom du navigateur */
+  height: 1.25rem;
+  vertical-align: middle;         /* centrée sur la hauteur de x du badge voisin */
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  overflow: visible;
+}
+.modes-paiement:has(.icone-mode) {
+  color: var(--c-texte-doux);     /* 5,96:1 au pire (fond « sélection », clair) et 5,97:1 (sombre), voir §5.13 */
+  line-height: 1;
+}
+.modes-paiement .mode-paiement:has(> .icone-mode) {
+  margin-inline-end: 0.3rem;      /* + l'espace du DOM (≈ 4 px) : ≈ 9 px entre deux icônes */
+  cursor: help;
+}
+.modes-paiement:has(.icone-mode) .mode-paiement:first-child::before {
+  content: "·";                   /* séparateur badge · icônes : en CSS, jamais dans le DOM */
+  margin-inline: 0.3em 0.55em;
+  vertical-align: middle;
+}
+.modes-paiement:has(.icone-mode) .mode-paiement + .mode-paiement::before { content: none; }  /* pas de « + » entre icônes */
+.mode-paiement:hover > .icone-mode { color: var(--c-texte); }
+@media (forced-colors: active) {
+  .icone-mode { stroke: CanvasText; }
+}
+
+/* Liste des versements dans le dialogue de modification. */
+.versements-liste { margin: 0; }
+
+/* Zone de prestations : espace entre le formulaire d'ajout et le bloc filtres / bandeau d'impayés / liste. */
+.ecran-prestations .ajout-rapide + .pile { margin-top: var(--e-5); }
+
+/* ======================== Graphiques SVG (voir design-system §6) ======================== */
+.graphe {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-3);
+}
+.graphe__titre { font-size: var(--t-l); font-weight: 650; }
+.graphe__sous-titre { margin: 0; font-size: var(--t-s); color: var(--c-texte-doux); }
+.graphe__indicatif {
+  display: inline-block;
+  padding: 0.1rem 0.6rem;
+  border: 1.5px dashed var(--c-att-bord);
+  border-radius: var(--r-s);
+  background: var(--c-att-fond);
+  color: var(--c-att-texte);
+  font-size: var(--t-s);
+  font-weight: 700;
+  line-height: 1.4;
+}
+/* Le badge fonctionne à deux endroits : dans le titre (<h3 class="graphe__titre">Titre <span class="graphe__indicatif">…)
+   ou seul dans un <p> sous le titre (cas actuel du JS). */
+.graphe__titre .graphe__indicatif {
+  margin-inline-start: var(--e-2);
+  vertical-align: middle;
+}
+.graphe figcaption > p:has(> .graphe__indicatif:only-child) { margin: 0; }
+
+/* Légende : pastille reproduisant le motif de la série + libellé texte. */
+.graphe__legende {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-2) var(--e-5);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: var(--t-s);
+}
+/* Légende : s'adapte à 3 ou 4 entrées et aux libellés longs (retour à la ligne dans l'entrée, pastille alignée sur la 1re ligne). */
+.legende__item {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: var(--e-2);
+  min-width: 0;
+  max-width: 100%;
+  line-height: 1.35;
+}
+.legende__pastille {
+  flex: none;
+  width: 1.5rem;
+  height: 1rem;
+  margin-top: 0.1rem;
+  border: 1.5px solid var(--c-texte-doux);
+  border-radius: 3px;
+}
+/* Série « neutre » (séances réalisées) : couleur primaire, comme les barres correspondantes. */
+.legende__pastille[data-serie="neutre"] {
+  background: var(--c-primaire);
+  border-color: var(--c-primaire);
+}
+.legende__pastille[data-serie="paye"] {
+  background: var(--serie-paye);
+  border-color: var(--serie-paye);
+}
+.legende__pastille[data-serie="attente"] {
+  background-color: var(--serie-attente);
+  background-image: radial-gradient(circle at 50% 50%, var(--c-surface) 0 1.4px, transparent 1.7px);
+  background-size: 6px 6px;
+  border-color: var(--serie-attente);
+}
+.legende__pastille[data-serie="a-facturer"] {
+  background-image: repeating-linear-gradient(45deg, var(--serie-a-facturer) 0 3px, var(--c-surface) 3px 5px);
+  border-color: var(--serie-a-facturer);
+}
+.legende__pastille[data-serie="prevu"] {
+  background: var(--c-surface);
+  border: 2px dashed var(--serie-prevu);
+}
+
+.graphe__zone {
+  position: relative;
+  width: 100%;
+}
+/* Le SVG est redessiné à la largeur réelle du conteneur : 1 unité du viewBox = 1 pixel CSS,
+   donc les textes gardent leur taille (voir design-system §6.4). */
+.graphe__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.graphe__svg text {
+  font-family: var(--police);
+  font-size: var(--t-s);
+  fill: var(--c-texte-doux);
+}
+.graphe__grille line {
+  stroke: var(--c-bordure);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+.graphe__axe line,
+.graphe__axe path {
+  stroke: var(--c-bordure-champ);
+  stroke-width: 1.5;
+  fill: none;
+}
+.graphe__valeur {
+  fill: var(--c-texte) !important;
+  font-weight: 650;
+}
+.graphe__etiquette--forte { fill: var(--c-texte) !important; font-weight: 650; }
+/* Lignes secondaires de l'axe (sous le nom du mois) : « (estimé) », « (en partie) » et l'année.
+   Italique, graisse normale, gris doux (7,40:1 sur la surface en clair, 7,87:1 en sombre) : lisibles, mais
+   distinctes du mois, y compris sous le mois courant en gras. `.graphe__annee` (facultatif) remet l'année en droit. */
+.graphe__axe text tspan {
+  font-style: italic;
+  font-weight: 400;
+  fill: var(--c-texte-doux);
+}
+.graphe__axe text tspan.graphe__annee { font-style: normal; }
+
+/* Segments : séparés par un liseré de la couleur de surface ; motif posé par l'attribut fill du SVG. */
+.graphe__segment {
+  stroke: var(--c-surface);
+  stroke-width: 1.5;
+}
+.graphe__segment[data-serie="paye"] { fill: var(--serie-paye); }
+.graphe__segment[data-serie="neutre"] { fill: var(--c-primaire); }
+.graphe__segment[data-serie="attente"] { stroke: var(--serie-attente); }
+.graphe__segment[data-serie="a-facturer"] { stroke: var(--serie-a-facturer); }
+.graphe__segment[data-serie="prevu"] {
+  fill: var(--c-surface);
+  stroke: var(--serie-prevu);
+  stroke-width: 2;
+  stroke-dasharray: 5 3;
+}
+/* Contenu des <pattern> définis dans le <defs> du SVG. */
+.motif__fond[data-serie="attente"] { fill: var(--serie-attente); }
+.motif__fond[data-serie="a-facturer"] { fill: var(--serie-a-facturer); }
+.motif__trait { fill: var(--c-surface); }
+
+/* Colonne interactive : survol et focus clavier. Le rectangle .graphe__focus est invisible
+   tant que la colonne n'est pas survolée ou focalisée. */
+.graphe__colonne { cursor: default; outline: none; }
+.graphe__focus { fill: transparent; stroke: none; }
+.graphe__colonne:hover .graphe__focus { fill: var(--c-survol-ligne); }
+.graphe__colonne:focus-visible .graphe__focus {
+  fill: var(--c-survol-ligne);
+  stroke: var(--c-focus);
+  stroke-width: 3;
+}
+.graphe__colonne:hover .graphe__segment,
+.graphe__colonne:focus-visible .graphe__segment { stroke-width: 2.5; }
+.graphe__colonne--courante text { font-weight: 700; fill: var(--c-texte); }
+
+/* Info-bulle HTML positionnée par le JS via element.style.left/top (CSSOM, compatible CSP). */
+.graphe__bulle {
+  position: absolute;
+  z-index: 10;
+  min-width: 11rem;
+  padding: var(--e-2) var(--e-3);
+  background: var(--c-surface);
+  color: var(--c-texte);
+  border: 1.5px solid var(--c-bordure-champ);
+  border-radius: var(--r-m);
+  box-shadow: var(--ombre-2);
+  font-size: var(--t-s);
+  pointer-events: none;
+}
+.graphe__bulle-titre { display: block; font-weight: 700; margin-bottom: var(--e-1); }
+.graphe__bulle dl { display: grid; grid-template-columns: 1fr auto; gap: 2px var(--e-3); margin: 0; }
+.graphe__bulle dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+
+.graphe__tableau .table { font-size: var(--t-s); }
+/* Tableau de valeurs large (prévision, 5 à 6 colonnes) : défilement horizontal dans son cadre ; la 1re colonne
+   (mois / semaine) reste visible ; les en-têtes longs passent à la ligne au lieu d'élargir tout le tableau. */
+.graphe__tableau .table-wrap { max-width: 100%; }
+.graphe__tableau .table thead th {
+  white-space: normal;
+  vertical-align: bottom;
+  min-width: 6.5rem;
+}
+.graphe__tableau .table thead th:first-child { min-width: 8rem; }
+.graphe__tableau .table tbody th[scope="row"] {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--c-surface);
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 1px 0 0 var(--c-bordure);
+}
+.graphe__tableau .table thead th:first-child { position: sticky; left: 0; z-index: 3; box-shadow: 1px 0 0 var(--c-bordure); }
+.graphe__tableau .table tfoot th { position: sticky; left: 0; z-index: 1; white-space: nowrap; }
+
+/* Barres horizontales en HTML/CSS (répartition par type, impayés par ancienneté).
+   La largeur vient de la variable --part (ex. "37.5%") posée par element.style.setProperty. */
+/* Les colonnes sont définies UNE fois sur la liste et partagées (subgrid) par chaque ligne : toutes les pistes ont la même longueur. */
+.barres-h {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(8rem, 14rem) minmax(4rem, 1fr) max-content;
+  gap: var(--e-3) var(--e-3);
+}
+.barres-h > li { display: grid; grid-template-columns: subgrid; grid-column: 1 / -1; }
+.barre-h {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
+  align-items: center;
+  gap: var(--e-1) var(--e-3);
+  color: inherit;
+  text-decoration: none;
+  border-radius: var(--r-s);
+}
+a.barre-h:hover { background: var(--c-survol-ligne); }
+a.barre-h:hover .barre-h__libelle { text-decoration: underline; }
+.barre-h__libelle { font-weight: 600; overflow-wrap: anywhere; }
+.barre-h__piste {
+  height: 1.25rem;
+  background: var(--c-surface-alt);
+  border: 1px solid var(--c-bordure);
+  border-radius: var(--r-s);
+  overflow: hidden;
+}
+.barre-h__rempli {
+  display: block;
+  width: var(--part, 0%);
+  height: 100%;
+  background: var(--c-primaire);
+}
+.barre-h__rempli[data-serie="attente"] { background: var(--serie-attente); }
+.barre-h__rempli[data-serie="a-facturer"] {
+  background: repeating-linear-gradient(45deg, var(--serie-a-facturer) 0 6px, var(--c-surface) 6px 8px);
+}
+.barre-h__valeur {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  white-space: nowrap;
+}
+.barre-h__valeur small { display: block; font-weight: 400; color: var(--c-texte-doux); }
+@media (max-width: 40em) {
+  .barres-h { grid-template-columns: 1fr auto; }
+  .barre-h__piste { grid-column: 1 / -1; grid-row: 2; }
+}
+
+/* ======================== Tableau de bord ======================== */
+.tdb-grille {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--e-4);
+}
+.tdb-grille > * { grid-column: 1 / -1; }
+@media (min-width: 62em) {
+  .tdb-grille > .tdb-moitie { grid-column: span 6; }
+}
+.ecran-tdb .tdb-outils {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-3) var(--e-5);
+}
+/* Commutateur Par mois / Par semaine dans une carte (sous le titre et le sous-titre du graphique). */
+.graphe .tdb-outils { margin-top: var(--e-1); justify-content: flex-start; }
+@media (max-width: 40em) {
+  /* Un commutateur à libellés longs ne dépasse jamais l'écran : les options s'empilent. */
+  .ecran-tdb .tdb-outils .segment { display: flex; flex-direction: column; width: 100%; }
+  .ecran-tdb .tdb-outils .segment__bouton + .segment__bouton {
+    border-left: 0;
+    border-top: 1.5px solid var(--c-bordure-champ);
+  }
+  .ecran-tdb .tdb-outils .segment__bouton { white-space: normal; text-align: left; padding-block: var(--e-2); }
+}
+/* Carte « Reste à encaisser par ancienneté » : deux groupes (facturées / à facturer) séparés et titrés plus petit que le h2. */
+.carte > .pile--s + .pile--s {
+  margin-top: var(--e-5);
+  padding-top: var(--e-4);
+  border-top: 1px solid var(--c-bordure);
+}
+.carte > p + .pile--s { margin-top: var(--e-4); }
+.carte h3.carte__titre { font-size: var(--t-m); font-weight: 700; }
+.ecran-tdb .tdb-section-erreur { border-style: dashed; }
+.ecran-tdb .patients-liste { list-style: none; margin: 0; padding: 0; }
+
+/* ======================== Paramètres ======================== */
+.ecran-parametres .parametres-mise-en-page {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--e-5);
+}
+@media (min-width: 62em) {
+  .ecran-parametres .parametres-mise-en-page { grid-template-columns: 14rem minmax(0, 1fr); align-items: start; }
+  .ecran-parametres .sommaire { position: sticky; top: 5rem; }
+}
+.sommaire ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-1);
+}
+@media (min-width: 62em) {
+  .sommaire ul { flex-direction: column; flex-wrap: nowrap; }
+}
+.sommaire a {
+  display: flex;
+  align-items: center;
+  min-height: var(--cible);
+  padding: 0 var(--e-3);
+  border-radius: var(--r-m);
+  color: var(--c-texte);
+  text-decoration: none;
+  font-weight: 500;
+}
+.sommaire a:hover { background: var(--c-surface-alt); text-decoration: underline; }
+.section-param { scroll-margin-top: 5rem; }
+.section-param > .carte__entete + * { margin-top: 0; }
+.section-param .pile { margin-top: var(--e-3); }
+.ecran-parametres .table .input { min-width: 6rem; }
+.ecran-parametres .col-tarif { width: 9rem; }
+/* Colonne du libellé du tableau des tarifs : classe `.col-libelle-tarif` à poser sur le <th> et les <td> de la
+   colonne « Prestation » (remplace le `style.minWidth = '16rem'` forcé par le JS). Le champ prend toute la
+   largeur de la cellule ; la colonne reçoit l'espace que les colonnes Catégorie / Tarif / Active / Action
+   n'utilisent pas, avec un minimum de 16 rem (le tableau défile alors dans son cadre sur petit écran). */
+.table .col-libelle-tarif { min-width: 16rem; width: 40%; }
+.col-libelle-tarif > .input { width: 100%; min-width: 0; }
+.col-libelle-tarif > .badge { margin-top: var(--e-1); }
+/* Ligne désactivée (tarifs) ou non restaurable (sauvegardes, écran de restauration en mode dégradé) :
+   texte atténué (gris doux, ≥ 5,9:1 sur toutes les surfaces). Hors .ecran-parametres : valable partout.
+   Règles dans composants.css (`.table tr.ligne--inactive`). */
+
+/* ======================== Conflit de synchronisation ======================== */
+.conflit { display: flex; flex-direction: column; gap: var(--e-4); }
+.conflit__versions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--e-4);
+}
+@media (max-width: 40em) {
+  .conflit__versions { grid-template-columns: 1fr; }
+}
+/* Les deux versions ont le même poids visuel : aucune n'est présentée comme « la bonne ». */
+.conflit__version {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-3);
+  padding: var(--e-4);
+  border: 2px solid var(--c-bordure-champ);
+  border-radius: var(--r-l);
+  background: var(--c-surface);
+}
+.conflit__version-titre { font-size: var(--t-l); font-weight: 700; }
+.conflit__chiffre {
+  font-size: var(--t-xl);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.conflit__choix {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--e-3);
+}
+@media (max-width: 40em) {
+  .conflit__choix { grid-template-columns: 1fr; }
+}
+.conflit__choix .btn { min-height: 3.5rem; flex-direction: column; gap: 0.1rem; }
+.conflit__choix .btn small { font-weight: 400; }
+.conflit__copies { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--e-2); }
+
+/* ======================== Fichier illisible / écran bloquant ======================== */
+.ecran-bloquant {
+  max-width: var(--largeur-texte);
+  margin: var(--e-6) auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-4);
+}
+
+/* ======================== Rappel d'archivage ======================== */
+.apercu-archivage .table { font-size: var(--t-s); }
+
+/* ======================== Archives (lecture seule) ======================== */
+.ecran-archives .table tbody td { color: var(--c-texte); }
+.ecran-archives .lecture-seule-marque {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  font-weight: 650;
+}
+.ecran-archives .lecture-seule-marque::before { content: "▪"; }
