@@ -3,7 +3,6 @@
 import { randomUUID } from 'node:crypto';
 import { ErreurApp } from '../../erreurs.js';
 import { enrichir, etatPaiement } from '../../domain/paiement.js';
-import { listerPatients } from '../../domain/patients.js';
 import {
   ajouterVersement,
   creerPrestation,
@@ -25,8 +24,6 @@ export function routesPrestations(routeur, { store, horloge }) {
   /** Réponse d'une mutation : { donnees, avertissements, annulation }. `versLigne` met en forme la ligne renvoyée. */
   const reponseMutation = (r, donnees, status = 200) => ({ status, corps: { donnees, avertissements: r.avertissements, annulation: r.annulation } });
   const ligneEnrichie = (r) => enrichir(r.resultat, horloge.aujourdHui());
-
-  routeur.ajouter('GET', '/api/patients', async () => ({ corps: { patients: listerPatients(store.lire()) } }));
 
   routeur.ajouter('GET', '/api/prestations', async (req, res, { requete }) => {
     const filtres = validerFiltres(requete.query);

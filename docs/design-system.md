@@ -69,6 +69,7 @@ Aucun `@import`, aucune `url()` dans les feuilles, aucun attribut `style="…"` 
 |---|---|---|---|
 | Facturation du mois (accueil) | `index.html` | `ecran-facturation` | `js/pages/facturation.js` |
 | Prestations | `prestations.html` | `ecran-prestations` | `js/pages/prestations.js` |
+| Patients | `patients.html` | `ecran-patients` | `js/pages/patients.js` (spécifié §8.11 ; page à écrire) |
 | Tableau de bord | `tableau-de-bord.html` | `ecran-tdb` | `js/pages/tableau-de-bord.js` |
 | Paramètres | `parametres.html` | `ecran-parametres` | `js/pages/parametres.js` |
 
@@ -91,6 +92,7 @@ Aucun `@import`, aucune `url()` dans les feuilles, aucun attribut `style="…"` 
         <ul>
           <li><a href="/" aria-current="page">Facturation du mois</a></li>
           <li><a href="/prestations.html">Prestations</a></li>
+          <li><a href="/patients.html">Patients</a></li>            <!-- page spécifiée §8.11, à ajouter dans les cinq pages -->
           <li><a href="/tableau-de-bord.html">Tableau de bord</a></li>
           <li><a href="/parametres.html">Paramètres</a></li>
         </ul>
@@ -305,6 +307,7 @@ Structure (label toujours visible, jamais remplacé par un placeholder) :
 - Grille adaptative : `.formulaire-grille` (colonnes `auto-fit` de 11 rem min, sans media query ; `.champ--large` occupe 2 colonnes, une seule sous 40 em).
 - Filtres : `.filtres` (flex, retour à la ligne), regroupés dans un `role="group"` nommé. Sélecteur de mois : `.selecteur-mois`. Commutateur de vue : `.segment` + `.segment__bouton[aria-pressed]` (l'option active affiche aussi un ✓).
 - Les champs nominatifs (nom, prénom, motif, filtre patient) portent `autocomplete="off"` : le navigateur ne mémorise pas de noms de patients.
+- Nom et Prénom de la saisie d'une prestation sont des **combobox** avec liste de patients enregistrés (`.champ--combo`, `.suggestions`) : §8.10.
 
 ### 5.3 Tableaux — `.table`
 - `<div class="table-wrap" role="region" aria-label="…" tabindex="0"> <table class="table">…` : conteneur défilant au clavier sur petit écran.
@@ -331,14 +334,14 @@ Structure (label toujours visible, jamais remplacé par un placeholder) :
 Voir §4.1. Un badge est un `<span>` (information) ou un `<button class="badge btn-statut">` (action). Jamais de badge sans texte. `.badge--info` (bleu) est défini mais non utilisé par les pages actuelles.
 
 ### 5.6 Barre de navigation — `.entete-site` / `.nav-principale`
-Barre horizontale collante en haut ; 4 entrées (Facturation du mois, Prestations, Tableau de bord, Paramètres) ; la marque « suivi-facturation » (texte, lien vers l'accueil) est à gauche. Entrée courante : `aria-current="page"` → **fond bleu pâle + texte gras + trait de 3 px en dessous** (pas la couleur seule). Sous 40 em, les liens se répartissent sur toute la largeur et passent à la ligne (pas de menu « hamburger », donc aucun JS). Lien d'évitement `.skip-link` (« Aller au contenu ») en premier.
+Barre horizontale collante en haut ; 5 entrées une fois la page Patients livrée (Facturation du mois, Prestations, Patients, Tableau de bord, Paramètres ; 4 aujourd'hui, sans Patients) ; la marque « suivi-facturation » (texte, lien vers l'accueil) est à gauche. Entrée courante : `aria-current="page"` → **fond bleu pâle + texte gras + trait de 3 px en dessous** (pas la couleur seule). Sous 40 em, les liens se répartissent sur toute la largeur et passent à la ligne (pas de menu « hamburger », donc aucun JS). Lien d'évitement `.skip-link` (« Aller au contenu ») en premier.
 
 ### 5.7 Boîtes de dialogue — `dialog.dialogue`
 - Élément **`<dialog>` natif** ouvert avec `showModal()` : piège à focus, Échap et inertie du reste de la page fournis par le navigateur. `.dialogue--large` pour les écrans riches (modification de prestation, conflit, copie manuelle).
 - Structure : `.dialogue__entete` (`h2.dialogue__titre`, référencé par `aria-labelledby`), `.dialogue__corps`, `.dialogue__pied` (boutons, alignés à droite ; pleine largeur sous 40 em, la feuille se colle en bas de l'écran). Le dialogue est retiré du DOM à sa fermeture.
 - **Focus initial** : sur le premier champ pour un formulaire ; sur **le bouton « Annuler »** pour une confirmation (une frappe accidentelle sur Entrée ne détruit rien) ; sur le titre pour le dialogue de conflit. À la fermeture, le focus retourne à l'élément déclencheur.
 - Confirmation : titre = la question (« Supprimer cette prestation ? »), corps = la conséquence, pied = [Annuler] [verbe de l'action]. Le bouton de confirmation est `.btn--danger` pour une action destructive, `.btn--primaire` sinon, et reprend le verbe (« Supprimer la prestation », « Marquer facturé »).
-- Dialogues présents : confirmations (suppression d'une prestation ou d'un versement, marquer facturé, restauration, quitter l'application, nombre de sauvegardes réduit, renommage d'une prestation du catalogue, repartir d'un fichier vide), ajout / modification d'un versement, choix du mode de paiement, choix d'un homonyme, renommage d'un patient, modification d'une prestation, copie manuelle, choix de version en cas de conflit.
+- Dialogues présents : confirmations (suppression d'une prestation ou d'un versement, marquer facturé, restauration, quitter l'application, nombre de sauvegardes réduit, renommage d'une prestation du catalogue, repartir d'un fichier vide), ajout / modification d'un versement, choix du mode de paiement, choix d'un homonyme, renommage d'un patient, modification d'une prestation, copie manuelle, choix de version en cas de conflit ; page Patients (§8.11) : renommer, « Un patient porte déjà ce nom », supprimer un patient.
 - Pas de bouton de fermeture « × » : « Annuler » et Échap suffisent.
 
 ### 5.8 Messages éphémères (toasts) — `.toasts` / `.toast`
@@ -550,10 +553,10 @@ Récapitulatif des classes définies dans `public/css/`. Les classes absentes de
 | Famille | Classes |
 |---|---|
 | Boutons | `.btn` + `.btn--primaire / --secondaire / --discret / --danger / --danger-discret`, `.btn--petit`, `.btn-payer`, `.btn-statut`, `.btn-deplier` ; définis, non utilisés : `.btn--bloc`, `.icone` (icône SVG en ligne, calée sur le texte) |
-| Champs | `.champ`, `.champ__label`, `.champ__requis`, `.champ__aide`, `.champ__erreur`, `.champ--erreur`, `.champ--large`, `.input`, `.input--recherche`, `.champ-montant`, `.champ-montant__unite`, `.case`, `fieldset.groupe`, `.formulaire-grille`, `.filtres`, `.selecteur-mois`, `.segment`, `.segment__bouton` ; définis, non utilisés : `.champ--combo`, `.suggestions` |
+| Champs | `.champ`, `.champ__label`, `.champ__requis`, `.champ__aide`, `.champ__erreur`, `.champ--erreur`, `.champ--large`, `.input`, `.input--recherche`, `.champ-montant`, `.champ-montant__unite`, `.case`, `fieldset.groupe`, `.formulaire-grille`, `.filtres`, `.selecteur-mois`, `.segment`, `.segment__bouton` ; combobox de patient (§8.10, spécifiée, pas encore branchée par le JS) : `.champ--combo`, `.combo`, `.suggestions`, `.suggestion` (+ `--archive`, `--creer`), `.suggestion__nom`, `.suggestion__detail`, `.suggestion__marque`, `.suggestions__vide`, `.indication-patient` |
 | Cartes | `.carte`, `.carte__entete`, `.carte__titre`, `.carte__note`, `.grille-cartes`, `.kpi`, `.kpi__libelle`, `.kpi__valeur`, `.kpi__detail`, `.kpi[data-serie]` |
 | Tableaux | `.table-wrap`, `.table-wrap--haut`, `.table`, `.table--dense`, `.col-nombre / -montant / -action / -case / -reste / -etat-paiement / -tarif`, `.col-libelle-tarif`, `.cellule-double__secondaire`, `.modes-paiement`, `.mode-paiement`, `.icone-mode` (+ `--carte / --cheque / --especes / --virement / --autre`, §5.13), `.ligne--selectionnee / --a-venir / --modifiee-recemment / --total / --inactive`, `.ligne-detail`, `.ligne-detail__contenu`, `tbody.patient`, `.montant`, `.montant--zero / --reste`, `.nom-prestation` (libellé barré d'une prestation désactivée) ; définis, non utilisés : `.col-centre`, `.col-secondaire`, `.col-prestation`, `.montant--fort` |
-| Badges | `.badge`, `[data-etat]` (`paye`, `partiel`, `non_paye`), `[data-statut]` (`a_facturer`, `facture`), `.badge--a-venir`, `.badge--attention` ; défini, non utilisé : `.badge--info` |
+| Badges | `.badge`, `[data-etat]` (`paye`, `partiel`, `non_paye`), `[data-statut]` (`a_facturer`, `facture`), `.badge--a-venir`, `.badge--attention`, `.badge--actif`, `.badge--archive`, `.badge--homonyme` (patients, §8.11) ; défini, non utilisé : `.badge--info` |
 | Messages | `.alerte` (+ `--succes / --attention / --danger`), `.alerte__corps`, `.alerte__titre`, `.alerte__texte`, `.alerte__actions`, `.avertissements`, `.toasts`, `.toast` (+ `--attention / --erreur`), `.toast__texte`, `.toast__action`, `.toast__fermer`  ; `.alerte--exemple` (bandeau de démonstration) |
 | Dialogues | `dialog.dialogue` (+ `.dialogue--large`), `.dialogue__entete`, `.dialogue__titre`, `.dialogue__corps`, `.dialogue__pied` |
 | Divers | `.etat-vide` (+ `--positif`), `.etat-vide__titre / __texte / __actions`, `.chargement`, `details.depliant`, `.depliant__contenu`, `.barre-selection`, `.barre-selection__texte`, `dl.infos`, `.code` |
@@ -564,6 +567,7 @@ Récapitulatif des classes définies dans `public/css/`. Les classes absentes de
 |---|---|
 | Facturation du mois | `.recap` (table), `.recap__outils`, `.recap__actions`, `.recap__note-vue`, `.recap__titre-impression`, `.recap__pied-impression`, `.patient-nom`, attribut `data-impression-detail="oui"` (sur `.recap`) |
 | Prestations | `.ajout-rapide` (+ `__actions`, `__astuce`), `.resume-liste`, `.actions-ligne`, `.versements-liste`, `.patient-nom` |
+| Patients (§8.11, spécifiés, pas encore branchés par le JS) | `main.ecran-patients`, `.aide-patients`, `.aide-patients__titre`, `.table-patients`, `.patient__nom`, `.patient__prenom`, `.patient__badges`, `.patient-meta`, `.col-detail-patient`, `.ligne--archivee`, `.patients-existants` ; réutilisés : `.ajout-rapide` (+ `__actions`, `__astuce`), `.resume-liste`, `.actions-ligne`, `dl.infos`, `.filtres`, `.segment` |
 | Tableau de bord | `.tdb-grille`, `.tdb-moitie`, `.tdb-outils`, `.tdb-section-erreur` ; défini, non utilisé : `.patients-liste` |
 | Paramètres | `.parametres-mise-en-page`, `.sommaire`, `.section-param`, `.col-libelle-tarif`, `.col-tarif` |
 | Conflit | `.conflit`, `.conflit__versions`, `.conflit__version`, `.conflit__version-titre`, `.conflit__chiffre` ; définis, non utilisés : `.conflit__choix`, `.conflit__copies` |
@@ -576,6 +580,7 @@ Récapitulatif des classes définies dans `public/css/`. Les classes absentes de
 | `data-etat` | `paye`, `partiel`, `non_paye` | champ `etat` de l'API |
 | `data-statut` | `a_facturer`, `facture` | champ `statut` de l'API |
 | `data-serie` | `paye`, `attente`, `a-facturer`, `prevu`, `neutre` | séries des graphiques et indicateurs (tiret, pas de soulignement) ; `neutre` = barres hors état de paiement (séances), couleur primaire |
+| `data-patient` | `enregistre`, `nouveau`, `reactive` | sur `.indication-patient` : patient choisi dans la liste, nouveau patient, patient archivé qui sera réactivé (§8.10) |
 | `data-theme` | `light`, `dark` (absent = automatique) | sur `<html>` |
 | `data-impression-detail` | `oui` | sur `.recap` : inclure le détail à l'impression |
 | `data-accueil-vide`, `data-catalogue` | `oui` ; `vide`, `inactif` | accueil de premier démarrage (§8.7), repères pour les tests ; sans règle CSS |
@@ -739,7 +744,7 @@ But : saisir en quelques secondes ; retrouver, contrôler, corriger. Exemple : l
 - **Ordre de tabulation = ordre visuel** : Nom → Prénom → Date → Prestation → Montant → Motif → [Ajouter]. Le patient et la prestation, qui changent le plus souvent, viennent d'abord ; le motif, facultatif, est en dernier (`.champ--large`, deux colonnes).
 - Choix d'une prestation : le **montant se préremplit** (tarif du catalogue) et reste modifiable ; Tab y arrive avec le texte sélectionné pour le remplacer d'une frappe. Seules les prestations actives du catalogue sont proposées. Dans le dialogue de modification, le montant n'est jamais écrasé ; le tarif de la prestation choisie est rappelé en aide (« Tarif : 42,00 € »).
 - **Date** : aujourd'hui par défaut (relue auprès du serveur si la page reste ouverte après minuit). Une date future est acceptée ; la ligne affiche alors « À venir ».
-- Le patient est saisi par **deux champs texte libres** (Nom, Prénom) : il n'y a pas de liste de suggestions.
+- Le patient est saisi par **deux champs** (Nom, Prénom) qui sont des combobox de recherche dans les patients enregistrés (§8.10). Tant qu'aucune suggestion n'est choisie, la saisie reste libre et Entrée valide le formulaire. *(Description de la cible : le code actuel a encore deux champs texte libres, sans liste.)*
 - **Après un ajout réussi** : message « Prestation ajoutée pour Basile Renard. », nom / prénom / motif vidés, **date et prestation conservées**, montant remis au tarif de la prestation, **focus renvoyé au champ Nom** ; la nouvelle ligne apparaît dans la liste avec `.ligne--modifiee-recemment`. Si le mois de la prestation n'est pas celui du filtre, le message l'indique.
 - **Erreurs** (422) : résumé `.alerte--danger` « 2 champs à corriger » avec liens vers « Nom », « Montant » ; message sous chaque champ ; focus sur le premier champ en erreur. Exemples : « Indiquez le nom du patient. », « Le montant doit être un nombre positif, par exemple 45 ou 45,50. ».
 - **Homonyme** (409 `PATIENTS_HOMONYMES`) : dialogue « Plusieurs patients portent ce nom » avec une liste de boutons radio (« Basile Renard — dernière prestation le 17/10/2026 », « Nouveau patient (même nom) »), puis [Annuler] [Continuer].
@@ -987,6 +992,189 @@ Quand le fichier de données est illisible, absent ou occupé, le contenu de la 
 - Arrêt demandé depuis Paramètres › Application : voir §8.4, point 6.
 - Arrêt constaté par la page (le serveur ne répond plus à deux signaux de présence consécutifs, `js/presence.js`) : la page cesse tout envoi et affiche, en tête de `<main>`, un bandeau `.alerte--attention` `role="alert"` « L'application est arrêtée. » — « Pour la relancer, utilisez le raccourci Suivi Facturation du Bureau, puis rechargez cette page. ». Le nom « Suivi Facturation » est celui du raccourci créé sur le Bureau.
 
+### 8.10 Combobox de recherche de patient (saisie d'une prestation)
+
+But : retrouver un patient déjà enregistré pendant qu'on tape son nom, sans quitter le clavier, et savoir avant de valider si la prestation ira à un patient existant ou à un nouveau. La liste **propose**, elle ne décide pas : Entrée valide le formulaire tant qu'aucune suggestion n'a été choisie.
+
+**Où.** Les champs Nom et Prénom du formulaire d'ajout rapide (§8.2) et du dialogue « Modifier la prestation ». Chaque champ est une combobox ; les deux cherchent dans le même registre (nom, prénom, « nom prénom » ou « prénom nom », sans tenir compte des accents, de la casse ni des espaces de bord). Le choix d'une suggestion remplit **les deux** champs.
+
+**Structure DOM** (à construire par `el()` / `textContent`, jamais `innerHTML`) :
+
+```html
+<div class="champ champ--combo">
+  <label class="champ__label" for="p-nom">Nom <span class="champ__requis"> (obligatoire)</span></label>
+  <div class="combo">
+    <input class="input" id="p-nom" name="nom" type="text" autocomplete="off"
+           role="combobox" aria-autocomplete="list" aria-haspopup="listbox"
+           aria-expanded="false" aria-controls="p-nom-liste"
+           aria-describedby="p-nom-aide p-nom-annonce">          <!-- + id de l'erreur, + id de l'indication (voir plus bas) -->
+    <ul class="suggestions" id="p-nom-liste" role="listbox" aria-label="Patients enregistrés" hidden>
+      <li class="suggestion" role="option" id="p-nom-opt-0" aria-selected="false">
+        <span class="suggestion__nom">Lapin Pierre</span>
+        <span class="suggestion__detail">dernière prestation le 17/10/2026</span>      <!-- homonymes seulement -->
+      </li>
+      <li class="suggestion suggestion--archive" role="option" id="p-nom-opt-1" aria-selected="false">
+        <span class="suggestion__nom">Ours Baloo</span>
+        <span class="suggestion__marque">archivé</span>
+      </li>
+      <li class="suggestion suggestion--creer" role="option" id="p-nom-opt-2" aria-selected="false">
+        Créer le patient « Lapin Pierre »
+      </li>
+    </ul>
+    <p class="suggestions__vide" id="p-nom-vide" hidden>Aucun patient enregistré ne correspond.</p>
+  </div>
+  <p class="champ__aide" id="p-nom-aide">Tapez pour chercher un patient enregistré.</p>
+  <p class="champ__erreur" id="p-nom-erreur" hidden>…</p>
+  <div class="sr-only" id="p-nom-annonce" role="status" aria-live="polite"></div>   <!-- nombre de résultats -->
+</div>
+```
+
+L'indication du patient (« Patient enregistré », « Nouveau patient »…) est **un seul** élément pour les deux champs :
+
+```html
+<p class="indication-patient" id="indication-patient" role="status" data-patient="enregistre">Patient enregistré</p>
+```
+
+- `data-patient` : `enregistre` (✓, vert), `nouveau` (+, bleu, bordure en tirets), `reactive` (!, ambre : « Patient archivé : il sera réactivé avec cette prestation »). Pas de valeur = pas d'indication : l'élément reste dans le DOM, **vide** (le CSS le rend invisible mais le garde dans l'arbre d'accessibilité, ce qui permet l'annonce).
+- Emplacement : dans le formulaire d'ajout rapide, dans `.ajout-rapide__actions`, avant l'astuce (aucun décalage des champs) ; dans le dialogue de modification, sous la grille de champs. Son `id` est ajouté à `aria-describedby` des deux champs.
+- Aucune indication tant que Nom et Prénom sont vides.
+
+**Règles de contenu de la liste**
+- 8 suggestions au plus. Ordre : patients actifs d'abord, puis archivés. L'option « Créer… » est **toujours la dernière**.
+- Une suggestion montre `Nom Prénom` (graisse 650). Un **homonyme** ajoute `.suggestion__detail` « dernière prestation le jj/mm/aaaa » (« aucune prestation » le cas échéant). Un patient archivé ajoute `.suggestion__marque` « archivé » ; l'option porte `.suggestion--archive`, et un filet sépare le premier archivé du dernier actif.
+- « Créer le patient « Nom Prénom » » : présente quand le texte tapé ne correspond exactement (même clé) à aucun patient. Si un seul champ est rempli, l'option affiche ce qui est tapé suivi de « … » (« Créer le patient « Lapin … » »). La choisir **ne crée rien** : elle ferme la liste, laisse le texte tel quel et affiche l'indication « Nouveau patient » ; le patient est créé avec la prestation.
+- Aucune suggestion et rien à créer (champ vide, registre vide) : `p.suggestions__vide` à la place de la liste (« Aucun patient enregistré pour le moment. Tapez un nom pour en créer un. » ou « Aucun patient enregistré ne correspond. »). Le `<ul>` reste `hidden` : un `listbox` ne contient que des options.
+
+**Clavier** (motif ARIA « combobox avec liste » ; le focus ne quitte jamais le champ) :
+
+| Touche | Effet |
+|---|---|
+| Frappe | filtre et ouvre la liste ; **aucune option n'est active par défaut** (`aria-activedescendant` vidé) |
+| ↓ | liste fermée : l'ouvre ; sinon passe à l'option suivante (la dernière ramène à la première) |
+| ↑ | option précédente (la première ramène à la dernière) |
+| Entrée | option active : la choisit (et n'envoie pas le formulaire) ; sinon : comportement normal du formulaire |
+| Échap | liste ouverte : la ferme (et n'agit pas sur un dialogue parent) ; liste fermée : comportement normal |
+| Tab | ferme la liste **sans rien choisir** et passe au champ suivant |
+| Clic ou toucher sur une option | la choisit ; le focus revient dans le champ |
+
+Une option choisie remplit Nom et Prénom, ferme la liste (`aria-expanded="false"`), place le focus sur le champ suivant du formulaire (Date) et pose l'indication. Modifier ensuite Nom ou Prénom à la main abandonne le choix (retour à « Nouveau patient » ou à l'absence d'indication).
+
+**Attributs ARIA tenus à jour**
+- `aria-expanded` : `true` quand la liste est visible. `aria-activedescendant` : `id` de l'option active ; l'option active porte `aria-selected="true"`, les autres `aria-selected="false"`.
+- `aria-controls` pointe vers le `listbox` même quand il est caché.
+- **Annonce** (`role="status"`, `.sr-only`, texte remplacé après une courte attente de frappe pour ne pas lire chaque lettre) : « 3 patients proposés », « 1 patient proposé », « Aucun patient enregistré ne correspond », avec « ; vous pouvez aussi créer un nouveau patient » si l'option est présente, et « (8 au plus : précisez la recherche) » quand la liste est tronquée. La navigation aux flèches est annoncée par le lecteur d'écran lui-même (nom de l'option active) : ne rien ajouter.
+- Le nom accessible d'une option est son texte : « Ours Baloo archivé » ; « Lapin Pierre dernière prestation le 17/10/2026 ».
+
+**États visuels**
+
+| État | Rendu |
+|---|---|
+| Fermée | champ `.input` ordinaire |
+| Ouverte | cadre `--c-bordure-champ` 1,5 px, ombre `--ombre-2`, ancré sous le champ (pas sous l'aide ni l'erreur), 20 rem de haut au plus (50 % de la hauteur de la fenêtre au plus), défilement interne |
+| Survol | fond `--c-survol-ligne` |
+| Active (clavier) | fond `--c-selection` + **barre gauche de 4 px** `--c-primaire` + nom en gras renforcé : l'état n'est pas porté par la couleur seule |
+| Archivé | mention « archivé » dans une pastille à bordure **en tirets** avec « ▪ » |
+| Créer | « + » en tête, texte `--c-lien`, filet en tirets au-dessus |
+| Vide | cadre identique, texte `--c-texte-doux` |
+| Erreur de champ | inchangé (§5.2) : bordure épaissie à 3 px, message sous le champ |
+| Lecture seule, conflit, mode dégradé | champ `disabled` comme les autres champs de l'écran (§8.2) ; la liste ne s'ouvre pas |
+| Dialogue | la liste n'est plus flottante (`position: static`) : elle pousse le contenu, pour ne pas être rognée par le défilement du dialogue |
+| Contraste forcé | cadre en `ButtonText`, option active en `Highlight` / `HighlightText` |
+
+**Contrastes calculés** (formule WCAG ; non mesurés à l'écran). Clair / sombre :
+- texte `--c-texte` sur option active `--c-selection` : 13,12 / 10,45 ; sur survol `--c-survol-ligne` : 14,60 / 12,32.
+- précisions `--c-texte-doux` sur option active : **5,96 / 5,97** ; sur survol : **6,63 / 7,04** ; sur la liste `--c-surface` : 7,40 / 7,87.
+- « Créer… » (`--c-lien`) sur surface : 6,46 / 8,23 ; sur option active : **5,20 / 6,24** ; sur survol : 5,79 / 7,36.
+- barre de l'option active (`--c-primaire`) sur option active : 5,20 / 5,57 (élément graphique, ≥ 3:1) ; cadre de la liste (`--c-bordure-champ`) sur surface : 4,26 / 5,16.
+- pastille « archivé » et indications : paires `neu`, `ok`, `inf`, `att` du §3 (texte ≥ 7,2:1).
+
+**Cibles et petit écran.** Option : 44 px de haut au moins (`--cible`) ; précisions à la ligne sous le nom à 375 px (pas de coupe, `overflow-wrap`) ; texte à 14 px au minimum. La liste a la largeur du champ. Le clavier virtuel d'un téléphone peut en masquer le bas : non vérifié (§15).
+
+### 8.11 Page Patients (`patients.html`)
+
+But : voir, ajouter, renommer, archiver et supprimer ses patients sans passer par une prestation. La page ne contient que des noms de patients et des compteurs : aucun nom dans l'URL, le titre de la page ni le stockage du navigateur (le filtre Actifs / Archivés / Tous, non nominatif, peut être retenu dans `sessionStorage`).
+
+`<main class="page ecran-patients">`, titre `h1` « Patients », `#zone` de classe `pile`. Entrée « Patients » dans la navigation, entre « Prestations » et « Tableau de bord » (cinq entrées).
+
+```text
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ Patients                                                                                             │
+│                                                                                                      │
+│ ┌ Ajouter un patient ──────────────────────────────────────────────────────────────────────────────┐ │
+│ │ Nom (obligatoire)         Prénom (obligatoire)                                                   │ │
+│ │ [ Cygne      ]            [ Lea         ]                                                        │ │
+│ │ (i) Un patient enregistré ressemble à ce nom : Cygne Léa (aucune prestation)                     │ │
+│ │ [Ajouter le patient]   Entrée pour valider                                                       │ │
+│ └──────────────────────────────────────────────────────────────────────────────────────────────────┘ │
+│                                                                                                      │
+│ ┃ Actif, archivé, archives annuelles : quelle différence ?                                           │
+│ ┃ Patient actif      Proposé en premier quand vous saisissez une prestation.                         │
+│ ┃ Patient archivé    Rangé hors de la saisie ; ses prestations, ses chiffres et ses exports restent. │
+│ ┃ Archives annuelles Anciennes prestations rangées par année, en lecture seule : sans rapport.       │
+│                                                                                                      │
+│ Recherche [ nom ou prénom ]    Afficher ( ) Actifs  ( ) Archivés  (•) Tous                           │
+│ 5 patients affichés                                                                                  │
+│                                                                                                      │
+│ Patient                               État        Prestations   Actions                              │
+│ ─────────────────────────────────────────────────────────────────────────────────────────────────── │
+│ Lapin Pierre                          ● Actif               2   [Renommer] [Archiver]                │
+│   dernière prestation le 07/10/2026                                                                  │
+│ Ours Baloo                            ▪ Archivé             3   [Renommer] [Réactiver]               │
+│   dernière prestation le 16/10/2026                                                                  │
+│ Renard Basile  ≈ Homonyme             ● Actif               2   [Renommer] [Archiver]                │
+│   dernière prestation le 17/10/2026                                                                  │
+│ Renard Basile  ≈ Homonyme             ● Actif               1   [Renommer] [Archiver]                │
+│   dernière prestation le 05/09/2026                                                                  │
+│ Cygne Léa                             ● Actif               0   [Renommer] [Archiver] [Supprimer]    │
+│   aucune prestation                                                                                  │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+(Exemple fictif : second « Renard Basile » et « Cygne Léa » ajoutés au jeu de données ; les compteurs sont ceux de l'exemple, tous mois confondus.)
+
+**Structure DOM de `#zone`** (dans cet ordre) :
+1. **Formulaire d'ajout** : `section.carte.ajout-rapide` (`h2.carte__titre` « Ajouter un patient »), `form > .formulaire-grille` avec deux `.champ` (Nom, Prénom, `autocomplete="off"`, « obligatoire » en toutes lettres, erreurs §5.2), puis `.ajout-rapide__actions` : `button.btn.btn--primaire` « Ajouter le patient » + `.ajout-rapide__astuce`. Sous la grille, `div.pile.pile--s[role="status"][aria-live="polite"]` : quand un patient existant ressemble à ce qui est tapé, un paragraphe d'introduction (« Un patient enregistré ressemble à ce nom : ») suivi de `ul.patients-existants` (§ ci-dessous). Informatif : n'empêche rien. Pas de combobox ici : le focus et Entrée restent à ceux d'un formulaire.
+2. **Aide** : `aside.aide-patients` > `h2.aide-patients__titre` « Actif, archivé, archives annuelles : quelle différence ? » + `dl.infos` à trois paires (dt : « Patient actif », « Patient archivé », « Archives annuelles »). Texte court, toujours visible (pas de dépliant). Libellés proposés :
+   - Patient actif : « Proposé en premier quand vous saisissez une prestation. »
+   - Patient archivé : « N'est plus proposé en premier à la saisie. Ses prestations, ses chiffres, ses exports et ses sauvegardes ne changent pas. Vous pouvez le réactiver à tout moment. »
+   - Archives annuelles : « Anciennes prestations rangées par année, en lecture seule (Paramètres). Archiver un patient n'a aucun rapport avec elles. »
+3. **Filtres** : `.filtres[role="group"][aria-label="Filtres de la liste des patients"]` : `.champ` « Recherche » (`input.input.input--recherche`, `autocomplete="off"`, filtre local sans accents ni casse, **jamais dans l'URL ni dans le stockage**) ; `.champ` « Afficher » avec `.segment[role="group"][aria-label="Patients à afficher"]` de trois `.segment__bouton[aria-pressed]` (Actifs par défaut, Archivés, Tous).
+4. **Résumé** : `.resume-liste[aria-live="polite"]` : « <strong>5</strong> patients affichés ».
+5. **Liste** : `.table-wrap[role="region"][aria-label="Liste des patients"][tabindex="0"] > table.table.table-patients`, `caption.sr-only` « Patients enregistrés », colonnes ci-dessous. Aucun patient / aucun résultat : `.etat-vide` (ci-dessous).
+
+**Colonnes et lignes**
+
+| Colonne | Classes | Contenu |
+|---|---|---|
+| Patient | `th[scope="row"]` | `span.patient__nom` (nom) + `span.patient__prenom` (prénom) ; `span.patient__badges` pour « Homonyme » ; `span.cellule-double__secondaire` « dernière prestation le jj/mm/aaaa » ou « aucune prestation » ; `span.patient-meta` (voir 375 px) |
+| État | `.col-detail-patient` | `span.badge.badge--actif` « Actif » ou `span.badge.badge--archive` « Archivé » |
+| Prestations | `.col-detail-patient.col-nombre` | nombre de prestations du fichier actif (`1`, `0`…) |
+| Actions | `.col-action` | `span.actions-ligne` de boutons `.btn.btn--petit` |
+
+- Tri par nom puis prénom. Ligne d'un patient archivé : `tr.ligne--archivee` (texte adouci ; le mot « Archivé » porte l'information).
+- Badge d'homonyme : `span.badge.badge--homonyme` « Homonyme » (« ≈ » + bordure en pointillés) dans `.patient__badges`, **toujours accompagné** de la date de dernière prestation pour les distinguer.
+- Actions, avec un `aria-label` qui nomme le patient (« Renommer le patient Lapin Pierre ») :
+  - `[Renommer]` : `.btn--secondaire.btn--petit`, ouvre le dialogue de renommage.
+  - `[Archiver]` (patient actif) ou `[Réactiver]` (archivé) : `.btn--secondaire.btn--petit`, **sans confirmation**, message avec « Annuler » (§5.8).
+  - `[Supprimer]` : `.btn--danger-discret.btn--petit`, **rendu uniquement si le patient n'a aucune prestation** (fichier actif et archives annuelles lisibles) ; sinon absent, pas désactivé : « Archiver » est la seule proposition.
+
+**375 px (< 40 em).** Le tableau garde sa structure (`th scope`, en-têtes) mais passe à deux colonnes, **Patient** et **Actions** : les colonnes État et Prestations (`.col-detail-patient`) sont retirées, et `span.patient-meta` apparaît dans la cellule Patient avec la même information (« Archivé · 12 prestations »). À chaque largeur, une seule des deux versions existe pour un lecteur d'écran : `.patient-meta` est en `display: none` au-dessus de 40 em, `.col-detail-patient` en dessous. Le HTML doit donc contenir les deux. Les boutons d'action s'empilent en colonne, 44 px de haut. Les filtres passent à la largeur du champ. Pas de défilement horizontal attendu à 375 px.
+
+**Dialogues** (`dialog.dialogue`, §5.7)
+- **Renommer le patient** : titre « Renommer le patient » ; champs Nom et Prénom préremplis ; aide : « N prestations seront mises à jour. » (« Aucune prestation à mettre à jour. » à 0) ; s'il y a des archives annuelles concernées : `.champ__aide` « Les prestations rangées dans les archives annuelles gardent l'ancien nom. » ; pied [Annuler] [Renommer]. Un simple changement de casse ou d'espaces s'applique sans confirmation supplémentaire. Après renommage : message « Lapin Pierre renommé en Lapin Pierre-Louis. 12 prestations mises à jour. [Annuler] ».
+- **Un patient porte déjà ce nom** (ajout ou renommage vers un nom existant) : `.alerte--attention` en tête du corps (« Rien n'est créé tant que vous n'avez pas choisi. »), puis `ul.patients-existants` : un `li` par patient existant (`span.patient__nom`, `span.patient__prenom`, badges « Archivé » / « Homonyme » le cas échéant, « N prestations », `span.cellule-double__secondaire` « dernière prestation le jj/mm/aaaa »). Pied, focus initial sur **Annuler** : [Annuler] [Créer quand même un homonyme] (`.btn--secondaire`) et, **à l'ajout seulement**, [Utiliser ce patient] (`.btn--primaire`). Au renommage, il n'y a pas de fusion : seuls Annuler et « Renommer quand même (homonyme) » existent.
+- **Supprimer ce patient ?** : confirmation `.btn--danger` « Supprimer le patient », focus sur Annuler ; corps : « Lapin Pierre n'a aucune prestation. Une sauvegarde est faite juste avant. » ; message avec « Annuler » ensuite.
+- **Archiver** n'ouvre pas de dialogue. Si le patient a des prestations à venir ou un reste à payer, le message l'indique (`toast--attention`) : « Cygne Léa archivé. 2 prestations à venir et 38,00 € restent à payer : elles restent visibles. [Annuler] ».
+
+**États**
+- Aucun patient : `.etat-vide` « Aucun patient enregistré », texte « Les patients se créent ici ou directement quand vous saisissez une prestation. », boutons « Ajouter un patient » (remet le focus dans Nom) et « Saisir une prestation » (lien vers `prestations.html`).
+- Filtre sans résultat : `.etat-vide` « Aucun patient » + « Effacer les filtres » ; filtre « Archivés » vide : « Aucun patient archivé ».
+- Chargement (`.chargement`), erreur de chargement (`.alerte--danger` + « Réessayer ») : comme §8.1.
+- **Lecture seule, conflit de synchronisation, mode dégradé** : comme §8.2. Le formulaire d'ajout (`aria-disabled="true"`, champs et bouton `disabled`) et tous les boutons Renommer / Archiver / Réactiver / Supprimer sont désactivés ; l'explication « Modification impossible : … » est dans le `title` et reliée par `aria-describedby` à un paragraphe `.sr-only` ; le bandeau (§8.6) reste en tête ; recherche, filtre et lecture de la liste restent disponibles. En mode dégradé, `#zone` est remplacé par l'écran de restauration (§8.8).
+- Opération en cours : le bouton reçoit `aria-busy="true"` et `disabled` (un double clic ne crée qu'un seul patient).
+
+**Libellés** : « Patient », « Ajouter le patient », « Renommer », « Archiver », « Réactiver », « Supprimer », « Archivé », « Actif », « Homonyme ». Le mot « archivé » ne s'emploie que pour un patient ; les « archives annuelles » ne s'appellent jamais « archives de patients ».
+
 ## 9. Accessibilité (WCAG 2.2 AA visé)
 
 1. **Contrastes** : texte ≥ 4,5:1, éléments d'interface et graphiques ≥ 3:1 dans les deux thèmes (§3). Les paires listées sont calculées ; toute nouvelle paire doit être vérifiée. Voir §15 pour les cas non couverts.
@@ -1007,6 +1195,7 @@ Quand le fichier de données est illisible, absent ou occupé, le contenu de la 
 11. **Mouvement** : transitions ≤ 120 ms ; surbrillance de ligne et transitions désactivées si `prefers-reduced-motion`. Aucune animation automatique.
 12. **Contraste forcé Windows** (`forced-colors`) : bordures des boutons, champs, badges, alertes, toasts, cartes et indicateurs forcées en `ButtonText` ; boutons principaux et option de segment active en `Highlight` (anneau de focus des segments en `Highlight`, ou `HighlightText` sur l'option active) ; page courante cerclée ; trait des icônes de paiement en `CanvasText`.
 13. **Délais** : les toasts avec action restent 12 s et se mettent en pause au survol et au focus ; les erreurs restent jusqu'à fermeture.
+14. **Combobox de patient** (§8.10) : motif ARIA « combobox avec liste » (`role="combobox"`, `aria-expanded`, `aria-controls`, `aria-activedescendant`, `listbox` / `option`) ; le focus reste dans le champ ; nombre de résultats annoncé par une région `role="status"` ; état de l'option active porté par une barre et la graisse, pas par la couleur seule ; options de 44 px.
 
 ## 10. Responsive
 
@@ -1017,7 +1206,7 @@ Application de bureau d'abord ; **utilisable jusqu'à un téléphone**. Points d
 | ≥ 62 em | Tableau de bord : cartes `.tdb-moitie` côte à côte ; Paramètres avec sommaire collant à gauche (14 rem) ; page de 76 rem maximum, centrée |
 | 48 – 62 em | Une colonne ; les tableaux défilent horizontalement dans leur conteneur si besoin |
 | < 48 em | Les colonnes `.col-secondaire` seraient masquées, mais aucun tableau actuel n'en utilise : tous les tableaux gardent leurs colonnes et défilent dans leur cadre |
-| < 40 em | Marges de page réduites, `h1` plus petit ; navigation sur toute la largeur ; dialogues en feuille collée en bas, boutons pleine largeur ; barres horizontales sur 2 lignes (libellé + valeur, puis piste) ; `.champ--large` sur une colonne ; `dl.infos` sur une colonne ; versions du conflit empilées ; commutateurs du tableau de bord à options empilées |
+| < 40 em | Page Patients : tableau à deux colonnes (Patient, Actions), boutons d'action empilés (§8.11) ; combobox : options sur deux lignes si besoin. Marges de page réduites, `h1` plus petit ; navigation sur toute la largeur ; dialogues en feuille collée en bas, boutons pleine largeur ; barres horizontales sur 2 lignes (libellé + valeur, puis piste) ; `.champ--large` sur une colonne ; `dl.infos` sur une colonne ; versions du conflit empilées ; commutateurs du tableau de bord à options empilées |
 
 Le formulaire d'ajout garde le même ordre de champs quelle que soit la largeur (grille `auto-fit`). Aucun `overflow: hidden` sur un contenu porteur d'information (les pistes de barres et les dialogues rognent seulement leurs bords arrondis).
 
@@ -1074,10 +1263,10 @@ Décisions prises pour l'interface livrée, et leurs raisons.
 8. **Colonnes du récapitulatif** : Patient, Séances, Autres, Dû, Payé, Reste à payer, État, Actions. Le texte copié est produit par un module unique (`js/recap-texte.js`) où les colonnes, leurs titres et leur ordre se règlent ; il s'aligne sur le récapitulatif par date de prestation.
 9. **Barres horizontales en HTML/CSS** pour les classements (répartition, impayés) : plus simple et plus accessible que du SVG ; les barres empilées du chiffre d'affaires et des séances sont en SVG.
 10. **Sens de « à facturer » et de « prévu »** : « À facturer » désigne le reste à payer des prestations non facturées (dans les graphiques) ou le montant des lignes à facturer (indicateur de tête, acomptes compris). « Prévu » est une série distincte, réservée à l'estimation indicative et aux séances à venir.
-11. **Homonymes** : la distinction se fait dans un dialogue de choix qui affiche « dernière prestation le jj/mm/aaaa » ; il n'y a pas d'autre marque dans les listes.
+11. **Homonymes** : la distinction se fait dans un dialogue de choix qui affiche « dernière prestation le jj/mm/aaaa ». Avec le registre des patients (§8.10, §8.11), les homonymes portent en plus un badge « Homonyme » dans la liste des patients et la date de dernière prestation dans les suggestions.
 12. **Symboles** : les symboles d'état (✓ ◐ ○ ◇ ◆ » ↻) sont des caractères Unicode, pas des icônes dessinées. Seuls les modes de paiement ont des icônes SVG, dans la liste des prestations.
 13. **Icône « Virement » sans libellé** : l'icône est affichée seule ; le libellé est dans l'`aria-label` du groupe, dans la bulle `title` et à l'impression.
-14. **Navigation** : quatre entrées fixes (Facturation du mois, Prestations, Tableau de bord, Paramètres).
+14. **Navigation** : quatre entrées fixes aujourd'hui (Facturation du mois, Prestations, Tableau de bord, Paramètres) ; une cinquième, « Patients », est spécifiée au §8.11.
 15. **Quitter l'application** : un bouton explicite dans Paramètres, avec confirmation, plutôt qu'un arrêt silencieux ; la page cesse alors toute requête.
 
 ## 15. Limites et points non vérifiés
@@ -1096,6 +1285,7 @@ Décisions prises pour l'interface livrée, et leurs raisons.
 - **Clavier** : l'ordre de tabulation et le retour du focus ont été déduits du code, pas testés manuellement sur toutes les pages.
 - **Zoom 200 % et largeur 320 px** : visés par la conception, non testés.
 - **Bulle `title` des icônes de paiement** : inaccessible au clavier ; l'information équivalente est dans l'`aria-label` du groupe.
+- **Combobox et page Patients** : règles et contrastes (§8.10, §8.11) établis par le calcul et la lecture du CSS, **jamais rendus à l'écran** (ni à 375 px, ni en thème sombre, ni en contraste forcé). Annonce du nombre de résultats, navigation par `aria-activedescendant` et nom accessible des options : aucun lecteur d'écran essayé. Clavier virtuel d'un téléphone masquant le bas de la liste : non vérifié. Annonce répétée de l'indication « Nouveau patient » pendant la frappe : à observer. Symboles « ● ▪ ≈ » : présence dans la police système supposée.
 - **Lisibilité des icônes de paiement à 20 px**, en particulier « Virement » et « Chèque » : non éprouvée auprès de l'utilisatrice.
 
 ### 15.3 Rendu, navigateurs, impression
@@ -1107,7 +1297,7 @@ Décisions prises pour l'interface livrée, et leurs raisons.
 ### 15.4 Ce que l'interface ne propose pas
 Ces éléments n'existent pas dans les pages actuelles ; les feuilles de style en contiennent parfois les classes (§7).
 - Aucun écran d'archivage ni de consultation d'archives, aucun lien « Archives » dans la navigation, aucun rappel d'archivage.
-- Aucune liste de suggestions de patients pendant la frappe (`.champ--combo` et `.suggestions` sont définis, non utilisés) ; aucune détection de doublon à l'ajout.
+- Combobox de patient et page Patients (§8.10, §8.11) : **spécifiées et stylées, pas encore branchées par le JavaScript** ; tant que ce n'est pas fait, la saisie reste en deux champs texte libres, sans liste ni détection de doublon à l'ajout.
 - Le bandeau « Données d'exemple » de la démonstration fait 92 px de haut à 375 px.
 - Aucune comparaison annuelle ni liste de patients actifs dans le tableau de bord.
 - Aucune icône de favicon : le serveur répond 204 à `/favicon.ico`.

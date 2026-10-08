@@ -104,3 +104,25 @@ test('lireArchives : classement direct (lisibles / illisibles) et avertissement 
     await supprimerDossierTemp(dossier);
   }
 });
+
+test('GET /api/patients avec archives abîmées : 200 (jamais 500), aucun patient supprimable, avertissements au journal sans contenu', avecArchives(async (s, journal) => {
+  const cree = await s.requete({ methode: 'POST', chemin: '/api/patients', headers: { ...origine(s), 'Content-Type': 'application/json' }, corps: JSON.stringify({ nom: 'Ours', prenom: 'Baloo' }) });
+  assert.equal(cree.status, 201, cree.texte);
+  const r = await s.requete({ chemin: '/api/patients' });
+  assert.equal(r.status, 200, r.texte);
+  assert.equal(r.json.patients.length, 1);
+  assert.equal(r.json.patients[0].supprimable, false, 'une archive illisible empêche de garantir l\'absence du patient');
+  const avertissements = journal.filter((l) => /Archive ignorée/.test(l));
+  assert.ok(avertissements.some((l) => l.includes('archive-2023.json')));
+  assert.ok(!journal.some((l) => /ERREUR/.test(l)), 'aucune erreur 5xx');
+  for (const l of journal) for (const interdit of ['Lapin', 'Pierre', 'Ours', 'Baloo']) assert.ok(!l.includes(interdit), 'aucun nom dans le journal');
+}));
+
+test('DELETE /api/patients/{id} avec archives abîmées : refus 409 PATIENT_UTILISE, jamais 500 ; le patient reste au registre', avecArchives(async (s) => {
+  const cree = await s.requete({ methode: 'POST', chemin: '/api/patients', headers: { ...origine(s), 'Content-Type': 'application/json' }, corps: JSON.stringify({ nom: 'Ours', prenom: 'Baloo' }) });
+  const { id } = cree.json.donnees;
+  const r = await s.requete({ methode: 'DELETE', chemin: `/api/patients/${id}`, headers: origine(s) });
+  assert.equal(r.status, 409, r.texte);
+  assert.equal(r.json.erreur.code, 'PATIENT_UTILISE');
+  assert.equal((await s.requete({ chemin: '/api/patients' })).json.patients.length, 1);
+}));

@@ -237,9 +237,15 @@ fieldset.groupe > legend {
   .formulaire-grille .champ--large { grid-column: auto; }
 }
 
-/* Suggestions (saisie assistée du patient). */
+/* ======================== Combobox de recherche de patient (design-system §8.10) ========================
+   Structure : .champ.champ--combo > label + .combo (input[role=combobox] + ul.suggestions[role=listbox]
+   + p.suggestions__vide) + .champ__aide + .champ__erreur + .sr-only[role=status] (nombre de résultats).
+   La liste est ancrée sous le champ (.combo), pas sous l'aide ni l'erreur. */
 .champ--combo { position: relative; }
-.suggestions {
+.combo { position: relative; }
+
+.suggestions,
+.suggestions__vide {
   position: absolute;
   z-index: 30;
   top: 100%;
@@ -247,25 +253,131 @@ fieldset.groupe > legend {
   right: 0;
   margin: var(--e-1) 0 0;
   padding: var(--e-1);
-  list-style: none;
-  max-height: 15rem;
-  overflow-y: auto;
   background: var(--c-surface);
+  color: var(--c-texte);
   border: 1.5px solid var(--c-bordure-champ);
   border-radius: var(--r-m);
   box-shadow: var(--ombre-2);
 }
+.suggestions {
+  list-style: none;
+  max-height: min(20rem, 50vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+/* Aucun résultat et rien à créer : message dans le même cadre (hors du listbox, qui ne contient que des options). */
+.suggestions__vide {
+  padding: var(--e-3) var(--e-4);
+  color: var(--c-texte-doux);
+}
+
+/* Option : cible tactile de 44 px, nom en premier, précisions à la suite (retour à la ligne à 375 px). */
 .suggestions [role="option"] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  align-content: center;
+  gap: var(--e-1) var(--e-3);
+  min-height: var(--cible);
   padding: var(--e-2) var(--e-3);
   border-radius: var(--r-s);
   cursor: pointer;
 }
 .suggestions [role="option"]:hover { background: var(--c-survol-ligne); }
-/* Option active au clavier : fond + bordure gauche épaisse. */
+.suggestion__nom { font-weight: 650; overflow-wrap: anywhere; }
+.suggestion__detail { font-size: var(--t-s); color: var(--c-texte-doux); }
+/* Mention « archivé » : texte + symbole + bordure en tirets (jamais la couleur seule). */
+.suggestion__marque {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.05rem 0.55rem;
+  border: 1.5px dashed var(--c-neu-bord);
+  border-radius: var(--r-pill);
+  background: var(--c-neu-fond);
+  color: var(--c-neu-texte);
+  font-size: var(--t-s);
+  font-weight: 650;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.suggestion__marque::before { content: "▪"; content: "▪" / ""; font-weight: 800; }
+/* Les patients archivés viennent après les actifs : un filet les sépare. */
+.suggestions [role="option"]:not(.suggestion--archive) + .suggestion--archive {
+  margin-top: var(--e-1);
+  border-top: 1px solid var(--c-bordure);
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+/* « Créer le patient … » : toujours en fin de liste, séparé par un filet en tirets, « + » en tête. */
+.suggestions [role="option"].suggestion--creer {
+  color: var(--c-lien);
+  font-weight: 650;
+}
+.suggestions [role="option"].suggestion--creer::before { content: "+"; content: "+" / ""; font-weight: 800; }
+.suggestions [role="option"] + .suggestion--creer {
+  margin-top: var(--e-1);
+  border-top: 2px dashed var(--c-bordure-champ);
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+/* Option active au clavier (aria-activedescendant) : fond + barre gauche épaisse + graisse ; le focus reste dans le champ. */
 .suggestions [role="option"][aria-selected="true"] {
   background: var(--c-selection);
   box-shadow: inset 4px 0 0 var(--c-primaire);
-  font-weight: 600;
+}
+.suggestions [role="option"][aria-selected="true"] .suggestion__nom { font-weight: 750; }
+
+/* Dans un dialogue (modification d'une prestation), le corps défile : la liste prend sa place dans le flux
+   au lieu de flotter, pour ne pas être rognée. */
+dialog.dialogue .suggestions,
+dialog.dialogue .suggestions__vide {
+  position: static;
+  box-shadow: none;
+}
+dialog.dialogue .suggestions { max-height: 12rem; }
+
+/* Indication sous les champs patient : « Patient enregistré », « Nouveau patient », « Patient archivé, il sera réactivé ».
+   Région role="status" présente dès le chargement ; vide, elle reste dans l'arbre d'accessibilité sans rien afficher. */
+.indication-patient {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0;
+  padding: 0.1rem 0.65rem;
+  border: 1.5px solid var(--c-neu-bord);
+  border-radius: var(--r-pill);
+  background: var(--c-neu-fond);
+  color: var(--c-neu-texte);
+  font-size: var(--t-s);
+  font-weight: 650;
+  line-height: 1.4;
+}
+.indication-patient::before { font-weight: 800; }
+.indication-patient[data-patient="enregistre"] {
+  background: var(--c-ok-fond); color: var(--c-ok-texte); border-color: var(--c-ok-bord);
+}
+.indication-patient[data-patient="enregistre"]::before { content: "✓"; content: "✓" / ""; }
+.indication-patient[data-patient="nouveau"] {
+  background: var(--c-inf-fond); color: var(--c-inf-texte); border-color: var(--c-inf-bord); border-style: dashed;
+}
+.indication-patient[data-patient="nouveau"]::before { content: "+"; content: "+" / ""; }
+.indication-patient[data-patient="reactive"] {
+  background: var(--c-att-fond); color: var(--c-att-texte); border-color: var(--c-att-bord);
+}
+.indication-patient[data-patient="reactive"]::before { content: "!"; content: "!" / ""; }
+.indication-patient:empty {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 /* Barre de filtres. */
@@ -583,6 +695,21 @@ fieldset.groupe > legend {
 .badge--attention { background: var(--c-att-fond); color: var(--c-att-texte); border-color: var(--c-att-bord); }
 .badge--attention::before { content: "!"; content: "!" / ""; }
 
+/* Registre des patients (design-system §8.11) : actif / archivé / homonyme.
+   Le mot est toujours dans le HTML ; symbole et forme de bordure en renfort. */
+.badge--actif { background: var(--c-ok-fond); color: var(--c-ok-texte); border-color: var(--c-ok-bord); }
+.badge--actif::before { content: "●"; content: "●" / ""; }
+.badge--archive {
+  background: var(--c-neu-fond); color: var(--c-neu-texte); border-color: var(--c-neu-bord);
+  border-style: dashed;
+}
+.badge--archive::before { content: "▪"; content: "▪" / ""; }
+.badge--homonyme {
+  background: var(--c-inf-fond); color: var(--c-inf-texte); border-color: var(--c-inf-bord);
+  border-style: dotted;
+}
+.badge--homonyme::before { content: "≈"; content: "≈" / ""; }
+
 /* Bouton de statut : un clic bascule « à facturer » ⇄ « facturé ». Même rendu qu'un badge. */
 .btn-statut {
   cursor: pointer;
@@ -847,9 +974,17 @@ details.depliant[open] > summary::before { transform: rotate(45deg); }
 
 /* ======================== Contraste renforcé (Windows) ======================== */
 @media (forced-colors: active) {
-  .btn, .input, .badge, .alerte, .toast, .kpi, .carte {
+  .btn, .input, .badge, .alerte, .toast, .kpi, .carte, .indication-patient, .suggestion__marque {
     border: 2px solid ButtonText;
   }
+  /* Combobox : cadre de la liste et option active en couleurs système (les ombres sont ignorées). */
+  .suggestions, .suggestions__vide { border: 2px solid ButtonText; }
+  .suggestions [role="option"][aria-selected="true"] {
+    background: Highlight;
+    color: HighlightText;
+    box-shadow: none;
+  }
+  .suggestions [role="option"][aria-selected="true"] :is(.suggestion__nom, .suggestion__detail) { color: HighlightText; }
   .btn--primaire, .segment__bouton[aria-pressed="true"] {
     background: Highlight;
     color: HighlightText;

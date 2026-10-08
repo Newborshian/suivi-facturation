@@ -45,22 +45,22 @@
 .recap__pied-impression { display: none; }
 
 /* ======================== Saisie / liste des prestations ======================== */
-.ecran-prestations .ajout-rapide {
+:is(.ecran-prestations, .ecran-patients) .ajout-rapide {
   border: 2px solid var(--c-primaire);
 }
-.ecran-prestations .ajout-rapide__actions {
+:is(.ecran-prestations, .ecran-patients) .ajout-rapide__actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--e-2) var(--e-4);
   margin-top: var(--e-4);
 }
-.ecran-prestations .ajout-rapide__astuce {
+:is(.ecran-prestations, .ecran-patients) .ajout-rapide__astuce {
   margin: 0;
   font-size: var(--t-s);
   color: var(--c-texte-doux);
 }
-.ecran-prestations .resume-liste {
+:is(.ecran-prestations, .ecran-patients) .resume-liste {
   display: flex;
   flex-wrap: wrap;
   gap: var(--e-2) var(--e-5);
@@ -70,8 +70,8 @@
   border-radius: var(--r-m);
   font-variant-numeric: tabular-nums;
 }
-.ecran-prestations .resume-liste strong { font-weight: 700; }
-.ecran-prestations .actions-ligne {
+:is(.ecran-prestations, .ecran-patients) .resume-liste strong { font-weight: 700; }
+:is(.ecran-prestations, .ecran-patients) .actions-ligne {
   display: inline-flex;
   flex-wrap: wrap;
   justify-content: flex-end;
@@ -138,6 +138,68 @@
 
 /* Zone de prestations : espace entre le formulaire d'ajout et le bloc filtres / bandeau d'impayés / liste. */
 .ecran-prestations .ajout-rapide + .pile { margin-top: var(--e-5); }
+
+/* ======================== Patients (design-system §8.11) ======================== */
+/* Aide courte : « actif », « archivé », « archives annuelles ». Bande gauche de 6 px en --c-bordure-champ (≥ 3:1). */
+.ecran-patients .aide-patients {
+  padding: var(--e-3) var(--e-4);
+  background: var(--c-surface);
+  border: 1px solid var(--c-bordure);
+  border-left: 6px solid var(--c-bordure-champ);
+  border-radius: var(--r-m);
+}
+.ecran-patients .aide-patients__titre { margin: 0 0 var(--e-2); font-size: var(--t-m); font-weight: 700; }
+.ecran-patients .aide-patients .infos { gap: var(--e-1) var(--e-4); }
+.ecran-patients .aide-patients .infos dd { margin: 0; }
+
+/* Liste : une cellule « Patient » (nom, prénom, badges, précisions), puis État et Prestations, puis Actions. */
+.ecran-patients .table-patients th[scope="row"] { min-width: 9rem; font-weight: 400; }
+.ecran-patients .patient__nom { font-weight: 700; overflow-wrap: anywhere; }
+.ecran-patients .patient__prenom { font-weight: 500; overflow-wrap: anywhere; }
+.ecran-patients .patient__badges {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--e-1) var(--e-2);
+  margin-left: var(--e-2);
+  vertical-align: middle;
+}
+/* Patient archivé : texte adouci (≥ 6,4:1 sur toutes les surfaces) ; le mot « Archivé » porte l'information. */
+.ecran-patients .table tr.ligne--archivee > th,
+.ecran-patients .table tr.ligne--archivee > td { color: var(--c-texte-doux); }
+/* Rappel « N prestations · Archivé » dans la cellule Patient : visible seulement sous 40 em, là où les colonnes
+   État et Prestations sont retirées (une seule version est exposée aux lecteurs d'écran à chaque largeur). */
+.ecran-patients .patient-meta { display: none; }
+.ecran-patients .actions-ligne { gap: var(--e-2); }
+
+/* Patients déjà enregistrés : dialogue d'homonyme et "patients proches" sous le formulaire d'ajout. */
+.patients-existants { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--e-2); }
+.patients-existants > li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--e-1) var(--e-3);
+  padding: var(--e-2) var(--e-3);
+  background: var(--c-surface-alt);
+  border: 1.5px solid var(--c-bordure-champ);
+  border-radius: var(--r-m);
+}
+.patients-existants .patient__nom { font-weight: 700; }
+
+@media (max-width: 40em) {
+  /* 375 px : le tableau garde sa structure (en-têtes, th scope) mais passe à deux colonnes. */
+  .ecran-patients .col-detail-patient { display: none; }
+  .ecran-patients .patient-meta {
+    display: block;
+    font-size: var(--t-s);
+    color: var(--c-texte-doux);
+  }
+  .ecran-patients .patient__badges { display: flex; margin: var(--e-1) 0 0; }
+  .ecran-patients .actions-ligne { flex-direction: column; align-items: stretch; }
+  .ecran-patients .actions-ligne .btn { min-height: var(--cible); }
+  .ecran-patients .filtres .champ,
+  .ecran-patients .filtres .input--recherche { min-width: 0; width: 100%; }
+  .ecran-patients .ajout-rapide__actions .btn { flex: 1 1 100%; }
+}
 
 /* ======================== Graphiques SVG (voir design-system §6) ======================== */
 .graphe {

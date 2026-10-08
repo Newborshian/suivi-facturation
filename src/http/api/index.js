@@ -5,6 +5,7 @@ import { routesIndicateurs } from './indicateurs.js';
 import { routesArret } from './arret.js';
 import { routesPresence } from './presence.js';
 import { routesParametres } from './parametres.js';
+import { routesPatients } from './patients.js';
 import { routesPrestations } from './prestations.js';
 import { routesRecap } from './recap.js';
 import { routesSante } from './sante.js';
@@ -15,6 +16,7 @@ export function enregistrerRoutesApi(routeur, ctx) {
   routesSante(routeur, ctx);
   routesEtat(routeur, ctx);
   routesCatalogue(routeur, ctx);
+  routesPatients(routeur, ctx);
   routesPrestations(routeur, ctx);
   routesRecap(routeur, ctx);
   routesIndicateurs(routeur, ctx);
