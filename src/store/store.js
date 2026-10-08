@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto';
 import fsp from 'node:fs/promises';
 import path from 'node:path';
 import { ErreurApp } from '../erreurs.js';
-import { FORMAT, MIGRATIONS, VERSION_COURANTE, compterIncoherencesStatut, controlerStructure, creerEtatInitial, migrer } from '../domain/schema.js';
+import { FORMAT, MIGRATIONS, VERSION_COURANTE, compterIncoherencesPatients, compterIncoherencesStatut, controlerStructure, creerEtatInitial, migrer } from '../domain/schema.js';
 import { SAUVEGARDES_MAX, SAUVEGARDES_MIN } from '../domain/validation.js';
 import { ecrireAtomique, nettoyerTemporaires } from './fichier-atomique.js';
 import { chercherConflitNonResolu, empreinteDe, resumerVersion, sha256 } from './conflit.js';
@@ -34,13 +34,16 @@ function reglageDans(octets) {
 
 const MESSAGE_STRUCTURE_INCONNUE = "Ce fichier a été créé par une version plus récente de l'application, dont le contenu n'est pas reconnu par cette version : il ne peut pas être affiché ici. Il est conservé tel quel, sans aucune modification. Utilisez la version de l'application qui l'a créé.";
 
-/** Avertissement de lecture sur les statuts incohérents du fichier ; null si le fichier est cohérent. */
+/** Avertissement de lecture sur les statuts et les patients incohérents du fichier ; null si le fichier est cohérent. Rien n'est corrigé en silence. */
 function avertissementIncoherences(etat) {
   const { factureSansDate, aFacturerAvecDate } = compterIncoherencesStatut(etat);
-  if (factureSansDate === 0 && aFacturerAvecDate === 0) return null;
+  const { orphelines, copiesDivergentes } = compterIncoherencesPatients(etat);
+  if (factureSansDate === 0 && aFacturerAvecDate === 0 && orphelines === 0 && copiesDivergentes === 0) return null;
   const phrases = [];
   if (factureSansDate > 0) phrases.push(`${factureSansDate} prestation${factureSansDate > 1 ? 's sont marquées' : ' est marquée'} « facturé${factureSansDate > 1 ? 'es' : 'e'} » sans date de facturation (la date de la prestation sert alors à calculer l'ancienneté des impayés).`);
   if (aFacturerAvecDate > 0) phrases.push(`${aFacturerAvecDate} prestation${aFacturerAvecDate > 1 ? 's sont marquées' : ' est marquée'} « à facturer » alors qu'une date de facturation est enregistrée.`);
+  if (orphelines > 0) phrases.push(`${orphelines} prestation${orphelines > 1 ? 's concernent' : ' concerne'} un patient absent du registre des patients.`);
+  if (copiesDivergentes > 0) phrases.push(`${copiesDivergentes} prestation${copiesDivergentes > 1 ? 's portent' : ' porte'} un nom de patient différent de celui du registre.`);
   return { code: 'DONNEES_INCOHERENTES', message: `${phrases.join(' ')} Le fichier n'a pas été modifié ; vérifiez ces prestations dans la liste.` };
 }
 
@@ -101,7 +104,7 @@ export async function ouvrirStore({ dossier, horloge, fs = fsp, optionsAtomique,
   let avertissementSauvegarde = null; // persistant jusqu'à la prochaine sauvegarde réussie
   let derniereSauvegarde = null;
   let jourSauvegardeQuotidienne = null; // jour civil dont le début est déjà couvert par une sauvegarde
-  let derniereAnnulation = null; // { jeton, revision, avant: Map, parametresAvant }
+  let derniereAnnulation = null; // { jeton, revision, avant: Map, parametresAvant, patientsAvant }
   let reglageCourant = null; // dernier réglage « sauvegardes à conserver » connu (null tant qu'aucun fichier n'a été lu)
   let structureInconnue = false; // fichier d'une version plus récente dont la structure n'est pas celle de cette version : illisible ici, jamais écrit
   let conflitNonResolu = null; // rappel au démarrage, même forme que `conflit`
@@ -394,7 +397,7 @@ export async function ouvrirStore({ dossier, horloge, fs = fsp, optionsAtomique,
     let annulation = null;
     if (suivreAnnulation) {
       annulation = randomUUID();
-      derniereAnnulation = { jeton: annulation, revision: suivant.revision, avant: lignesTouchees(ancien, etat), parametresAvant: ancien.parametres };
+      derniereAnnulation = { jeton: annulation, revision: suivant.revision, avant: lignesTouchees(ancien, etat), parametresAvant: ancien.parametres, patientsAvant: ancien.patients };
     } else {
       derniereAnnulation = null;
     }
@@ -409,7 +412,7 @@ export async function ouvrirStore({ dossier, horloge, fs = fsp, optionsAtomique,
     if (!derniereAnnulation || derniereAnnulation.jeton !== jeton || !etat || etat.revision !== derniereAnnulation.revision) {
       throw new ErreurApp(409, 'ANNULATION_IMPOSSIBLE', "Impossible d'annuler : une autre modification a été faite depuis, ou l'application a été relancée.");
     }
-    const { avant, parametresAvant } = derniereAnnulation;
+    const { avant, parametresAvant, patientsAvant } = derniereAnnulation;
     return executer(
       'annulation',
       (copie) => {
@@ -421,6 +424,7 @@ export async function ouvrirStore({ dossier, horloge, fs = fsp, optionsAtomique,
           else copie.prestations.push(structuredClone(ligne));
         }
         copie.parametres = structuredClone(parametresAvant);
+        copie.patients = structuredClone(patientsAvant); // registre d'avant : un patient créé avec la prestation annulée disparaît avec elle
       },
       // Annuler une création supprime la ligne : sauvegarde préalable comme pour toute suppression (échec = opération annulée).
       { suivreAnnulation: false, sauvegardeAvant: [...avant.values()].some((ligne) => ligne === null) ? 'avant-suppression' : null },

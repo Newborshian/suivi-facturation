@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { RACINE, creerDossierTemp, supprimerDossierTemp } from '../aides/temp.js';
 import { horlogeFixe } from '../aides/horloge.js';
-import { controlerStructure } from '../../src/domain/schema.js';
+import { VERSION_COURANTE, compterIncoherencesPatients, controlerStructure } from '../../src/domain/schema.js';
 import { ecartJours, moisDe } from '../../src/domain/dates.js';
 import { genererExemple } from '../../src/exemple.js';
 import { ouvrirStore } from '../../src/store/store.js';
@@ -69,4 +69,17 @@ test('jeu d\'exemple : se charge dans un dossier temporaire et s\'ouvre dans le 
 test('jeu d\'exemple : aucun nom ne ressemble à une donnée réelle (liste fermée de personnages)', () => {
   const noms = new Set(genererExemple().prestations.map((x) => `${x.patient.nom} ${x.patient.prenom}`));
   assert.deepEqual([...noms].sort(), ['Hérisson Sonic', 'Lapin Pierre', 'Ours Baloo', 'Renard Goupil', 'Souris Stuart', 'Tortue Franklin']);
+});
+
+test("jeu d'exemple : registre des patients — les 6 patients fictifs actifs et un patient archivé sans prestation, version courante", () => {
+  const e = genererExemple();
+  assert.equal(e.schemaVersion, VERSION_COURANTE);
+  assert.deepEqual(e.patients.map((p) => `${p.nom} ${p.prenom}:${p.actif}`).sort(), [
+    'Cygne Léa:false', 'Hérisson Sonic:true', 'Lapin Pierre:true', 'Ours Baloo:true', 'Renard Goupil:true', 'Souris Stuart:true', 'Tortue Franklin:true',
+  ]);
+  assert.ok(e.patients.every((p) => Object.keys(p).sort().join() === 'actif,id,nom,prenom'), 'registre minimal : aucun autre champ');
+  const archive = e.patients.find((p) => !p.actif);
+  assert.ok(!e.prestations.some((x) => x.patient.id === archive.id), "le patient archivé n'a aucune prestation");
+  assert.deepEqual(compterIncoherencesPatients(e), { orphelines: 0, copiesDivergentes: 0 });
+  assert.notEqual(e.prestations[0].patient, e.patients.find((p) => p.id === e.prestations[0].patient.id), 'copies indépendantes du registre');
 });

@@ -48,7 +48,7 @@ export function resumerSauvegarde(octets, migrations = MIGRATIONS) {
     raisonRefus: null,
     schemaVersion: verdict.schemaVersion,
     nombrePrestations: etat.prestations.length,
-    nombrePatients: new Set(etat.prestations.map((l) => l.patient.id)).size,
+    nombrePatients: etat.patients.length, // registre ; pour une sauvegarde de version 1, registre reconstruit en mémoire par la migration
     premiereDate: dates[0] ?? null,
     derniereDate: dates[dates.length - 1] ?? null,
     revision: etat.revision,

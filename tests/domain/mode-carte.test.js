@@ -28,8 +28,8 @@ test('« carte » est accepté pour un versement et pour « Payé en totalité �
 });
 
 test('compatibilité : un fichier avec les 4 anciens modes reste valide, sans migration (version de schéma inchangée)', () => {
-  assert.equal(VERSION_COURANTE, 1);
   const e = genererExemple();
+  assert.equal(e.schemaVersion, VERSION_COURANTE, "le jeu d'exemple est à la version courante");
   e.prestations = ['cheque', 'virement', 'especes', 'autre'].map((mode, i) => ligneTest(i + 1, { versements: [{ id: `v${i}`, montantCentimes: 1000, date: '2026-09-30', mode }] }));
   e.parametres.dernierModePaiement = 'autre';
   assert.deepEqual(controlerStructure(e), []);

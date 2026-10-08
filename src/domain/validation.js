@@ -141,9 +141,45 @@ function identitePatient(corps, collecteur, { exiger }) {
   }
   if (!estObjet(patient)) throw new ErreurApp(400, 'REQUETE_INVALIDE', 'Le champ « patient » est invalide.');
   refuserChampsInconnus(patient, ['nom', 'prenom'], 'Le champ « patient »');
-  const nom = texte(patient.nom, { nom: 'nom', libelle: 'nom du patient', max: LONGUEUR_NOM, obligatoire: true, collecteur, sansInvisibles: true });
-  const prenom = texte(patient.prenom, { nom: 'prenom', libelle: 'prénom du patient', max: LONGUEUR_NOM, obligatoire: true, collecteur, sansInvisibles: true });
+  const nom = nomPatient(patient.nom, collecteur);
+  const prenom = prenomPatient(patient.prenom, collecteur);
   return { nom, prenom, nouveau: nouveauPatient === true };
+}
+
+const nomPatient = (valeur, collecteur) => texte(valeur, { nom: 'nom', libelle: 'nom du patient', max: LONGUEUR_NOM, obligatoire: true, collecteur, sansInvisibles: true });
+const prenomPatient = (valeur, collecteur) => texte(valeur, { nom: 'prenom', libelle: 'prénom du patient', max: LONGUEUR_NOM, obligatoire: true, collecteur, sansInvisibles: true });
+
+function homonymeFacultatif(corps) {
+  if (corps.homonyme !== undefined && typeof corps.homonyme !== 'boolean') throw new ErreurApp(400, 'REQUETE_INVALIDE', 'Le champ « homonyme » doit être vrai ou faux.');
+  return corps.homonyme === true;
+}
+
+/** Création d'un patient du registre : { nom, prenom, homonyme? }. Nom et prénom obligatoires, sans caractère invisible ni bidirectionnel. -> { nom, prenom, homonyme } */
+export function validerPatientCreation(corps) {
+  refuserChampsInconnus(corps, ['nom', 'prenom', 'homonyme']);
+  const homonyme = homonymeFacultatif(corps);
+  const c = new Collecteur();
+  const nom = nomPatient(corps.nom, c);
+  const prenom = prenomPatient(corps.prenom, c);
+  c.verifier();
+  return { nom, prenom, homonyme };
+}
+
+/** Modification d'un patient : { nom?, prenom?, actif?, homonyme? }, au moins un de nom, prénom, actif. -> champs présents seulement + homonyme */
+export function validerPatientModification(corps) {
+  refuserChampsInconnus(corps, ['nom', 'prenom', 'actif', 'homonyme']);
+  const homonyme = homonymeFacultatif(corps);
+  if (corps.nom === undefined && corps.prenom === undefined && corps.actif === undefined) {
+    throw new ErreurApp(400, 'REQUETE_INVALIDE', 'Indiquez au moins un champ à modifier : nom, prénom ou actif.');
+  }
+  if (corps.actif !== undefined && typeof corps.actif !== 'boolean') throw new ErreurApp(400, 'REQUETE_INVALIDE', 'Le champ « actif » doit être vrai ou faux.');
+  const c = new Collecteur();
+  const resultat = { homonyme };
+  if (corps.nom !== undefined) resultat.nom = nomPatient(corps.nom, c);
+  if (corps.prenom !== undefined) resultat.prenom = prenomPatient(corps.prenom, c);
+  if (corps.actif !== undefined) resultat.actif = corps.actif;
+  c.verifier();
+  return resultat;
 }
 
 const CHAMPS_LIGNE = ['patientId', 'patient', 'nouveauPatient', 'date', 'prestationId', 'montantCentimes', 'motif'];

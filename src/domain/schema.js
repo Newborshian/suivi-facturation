@@ -1,15 +1,27 @@
 // Schéma JSON versionné : version courante, état initial, migrations, contrôle de structure. Module pur.
 import { estDateCivile } from './dates.js';
 import { estMontantPrestation, estMontantVersement } from './money.js';
+import { reconstruireRegistre } from './patients.js';
 
 export const FORMAT = 'suivi-facturation';
-export const VERSION_COURANTE = 1;
+export const VERSION_COURANTE = 2;
 export const CATEGORIES = ['seance', 'bilan', 'autre'];
 export const STATUTS = ['a_facturer', 'facture'];
 export const MODES_PAIEMENT = ['carte', 'cheque', 'especes', 'virement', 'autre'];
 
-/** Migrations : `MIGRATIONS[n]` transforme un état de version n en version n+1 (fonction pure). Aucune pour l'instant. */
-export const MIGRATIONS = {};
+/**
+ * Migration 1 -> 2 : crée le registre des patients (un patient actif par identifiant de patient des lignes) et aligne les copies
+ * (architecture §5.3). Pure : ni horloge ni E/S ; le champ modifieLe des lignes n'est pas touché. Lève une Error si les prestations manquent.
+ */
+export function migrerV1VersV2(etat) {
+  if (!Array.isArray(etat.prestations)) throw new Error('prestations absentes.');
+  const { prestations: lignes, ...reste } = etat;
+  const { patients, prestations } = reconstruireRegistre(lignes);
+  return { ...reste, patients, prestations };
+}
+
+/** Migrations : MIGRATIONS[n] transforme un état de version n en version n+1 (fonction pure). */
+export const MIGRATIONS = { 1: migrerV1VersV2 };
 
 /** État d'un fichier créé neuf : catalogue VIDE (l'utilisatrice définit ses prestations dans Paramètres → Tarifs). Les fichiers existants gardent le leur. */
 export function creerEtatInitial(maintenant) {
@@ -20,6 +32,7 @@ export function creerEtatInitial(maintenant) {
     majLe: maintenant.toISOString(),
     parametres: { sauvegardesConservees: 30, dernierModePaiement: null },
     catalogue: [],
+    patients: [],
     prestations: [],
   };
 }
@@ -82,6 +95,20 @@ export function controlerStructure(etat) {
     });
   }
 
+  if (!Array.isArray(etat.patients)) pb.push('patients invalide');
+  else {
+    const idsPatients = new Set();
+    etat.patients.forEach((p, i) => {
+      const o = `patients[${i}]`;
+      if (!estObjet(p)) return pb.push(`${o} invalide`);
+      if (!estTexteNonVide(p.id) || idsPatients.has(p.id)) pb.push(`${o}.id invalide ou en double`);
+      idsPatients.add(p.id);
+      if (!estTexteNonVide(p.nom)) pb.push(`${o}.nom invalide`);
+      if (!estTexteNonVide(p.prenom)) pb.push(`${o}.prenom invalide`);
+      if (typeof p.actif !== 'boolean') pb.push(`${o}.actif invalide`);
+    });
+  }
+
   if (!Array.isArray(etat.prestations)) pb.push('prestations invalide');
   else {
     const ids = new Set();
@@ -130,4 +157,20 @@ export function compterIncoherencesStatut(etat) {
     else if (l?.statut === 'a_facturer' && l.factureLe !== null && l.factureLe !== undefined) aFacturerAvecDate += 1;
   }
   return { factureSansDate, aFacturerAvecDate };
+}
+
+/**
+ * Incohérences entre le registre et les copies des lignes (invariants I1 et I2, architecture §5.2) : tolérées, signalées, jamais corrigées en silence.
+ * -> { orphelines (lignes dont le patient n'est pas au registre), copiesDivergentes (lignes dont nom ou prénom diffèrent du registre) }.
+ */
+export function compterIncoherencesPatients(etat) {
+  const registre = new Map((Array.isArray(etat?.patients) ? etat.patients : []).map((p) => [p?.id, p]));
+  let orphelines = 0;
+  let copiesDivergentes = 0;
+  for (const l of Array.isArray(etat?.prestations) ? etat.prestations : []) {
+    const p = registre.get(l?.patient?.id);
+    if (!p) orphelines += 1;
+    else if (l.patient.nom !== p.nom || l.patient.prenom !== p.prenom) copiesDivergentes += 1;
+  }
+  return { orphelines, copiesDivergentes };
 }

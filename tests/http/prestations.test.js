@@ -286,8 +286,9 @@ test('patients et homonymes : rattachement automatique, 409 avec candidats sans 
     const a2 = await a.post('/api/prestations', saisie({ patient: { nom: ' lapin', prenom: 'PIERRE' } }));
     assert.equal(a2.json.donnees.patient.id, a1.patient.id);
     assert.deepEqual(a2.json.avertissements.map((x) => x.code), ['PATIENT_RATTACHE']);
-    const exact = await a.post('/api/prestations', saisie({ patient: { nom: 'lapin', prenom: 'PIERRE' } }));
-    assert.deepEqual(exact.json.avertissements, [], 'même écriture que la dernière ligne : pas de bruit à chaque saisie');
+    assert.equal(a2.json.donnees.patient.nom, 'Lapin', "la ligne porte l'écriture du registre, pas celle tapée");
+    const exact = await a.post('/api/prestations', saisie({ patient: { nom: 'Lapin', prenom: 'Pierre' } }));
+    assert.deepEqual(exact.json.avertissements, [], "même écriture que le registre : pas de bruit à chaque saisie");
 
     const homonyme = await a.post('/api/prestations', saisie({ nouveauPatient: true }));
     assert.equal(homonyme.status, 201);
@@ -305,7 +306,7 @@ test('patients et homonymes : rattachement automatique, 409 avec candidats sans 
 
     const patients = (await a.get('/api/patients')).json.patients;
     assert.equal(patients.length, 2);
-    assert.deepEqual(Object.keys(patients[0]).sort(), ['dernierePrestation', 'id', 'nom', 'prenom']);
+    assert.deepEqual(Object.keys(patients[0]).sort(), ['actif', 'dernierePrestation', 'homonyme', 'id', 'nom', 'nombrePrestations', 'prenom', 'supprimable']);
   }));
 
 test('libellé figé à la saisie : renommer le catalogue ne change pas la ligne existante, la suivante prend le nouveau libellé', () =>

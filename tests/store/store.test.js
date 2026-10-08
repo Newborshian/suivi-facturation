@@ -7,6 +7,7 @@ import { horlogeFixe } from '../aides/horloge.js';
 import { fsAvecRenameRefuse } from '../aides/fs-defaillant.js';
 import { genererExemple } from '../../src/exemple.js';
 import { catalogueTest, etatInitialTest } from '../aides/catalogue-test.js';
+import { MIGRATIONS, VERSION_COURANTE } from '../../src/domain/schema.js';
 import { NOM_FICHIER_ACTIF, ouvrirStore } from '../../src/store/store.js';
 
 const horloge = horlogeFixe('2026-10-02', '09:14:03');
@@ -32,7 +33,8 @@ test('premier lancement : crée le fichier avec un catalogue VIDE (aucun tarif l
     assert.equal(store.etat().modeDegrade, false);
     assert.deepEqual(store.lire().catalogue, []);
     const sur_disque = await lireJson(f);
-    assert.equal(sur_disque.schemaVersion, 1);
+    assert.equal(sur_disque.schemaVersion, VERSION_COURANTE);
+    assert.deepEqual(sur_disque.patients, []);
     assert.deepEqual(sur_disque.catalogue, []);
     assert.deepEqual(sur_disque.prestations, []);
     assert.equal(sur_disque.revision, 0);
@@ -217,13 +219,13 @@ test('schéma plus récent : lecture seule, écriture refusée, fichier intact',
 
 test('schéma plus ancien : sauvegarde « avant-migration » (octets d\'origine) puis migration écrite', () =>
   avecDossier(async (d, f) => {
-    // Version 0 fictive + migration injectée 0 -> 1 (le projet n'a pas encore de vraie migration).
+    // Version 0 fictive + migration injectée 0 -> 1, suivie de la vraie migration 1 -> 2 (registre des patients).
     const ancien = JSON.stringify({ ...genererExemple(), schemaVersion: 0 });
     await fs.writeFile(f, ancien);
-    const store = await ouvrirStore({ dossier: d, horloge, migrations: { 0: (e) => ({ ...e, migreDepuisZero: undefined }) } });
+    const store = await ouvrirStore({ dossier: d, horloge, migrations: { 0: (e) => ({ ...e, migreDepuisZero: undefined }), ...MIGRATIONS } });
     assert.equal(store.etat().modeDegrade, false);
-    assert.equal(store.lire().schemaVersion, 1);
-    assert.equal((await lireJson(f)).schemaVersion, 1);
+    assert.equal(store.lire().schemaVersion, VERSION_COURANTE);
+    assert.equal((await lireJson(f)).schemaVersion, VERSION_COURANTE);
     const noms = (await sauvegardes(d)).filter((n) => n.includes('avant-migration'));
     assert.equal(noms.length, 1);
     assert.match(noms[0], /_avant-migration\.json$/);

@@ -1,6 +1,6 @@
 {
   "format": "suivi-facturation",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "revision": 1,
   "majLe": "2026-10-02T08:00:00.000Z",
   "parametres": {
@@ -55,6 +55,50 @@
       "categorie": "autre",
       "actif": true,
       "ordre": 6
+    }
+  ],
+  "patients": [
+    {
+      "id": "f12435ae-c3ca-4b4e-861b-8af1f51943a9",
+      "nom": "Cygne",
+      "prenom": "Léa",
+      "actif": false
+    },
+    {
+      "id": "f024341b-0175-49ab-800f-a9cec01d9d32",
+      "nom": "Hérisson",
+      "prenom": "Sonic",
+      "actif": true
+    },
+    {
+      "id": "f32438d4-4873-4e94-8184-546b5f109097",
+      "nom": "Lapin",
+      "prenom": "Pierre",
+      "actif": true
+    },
+    {
+      "id": "f4243a67-0ac8-4037-8e06-98b2940c370e",
+      "nom": "Ours",
+      "prenom": "Baloo",
+      "actif": true
+    },
+    {
+      "id": "f6243d8d-8f71-437d-803b-bf2cfe0383fc",
+      "nom": "Renard",
+      "prenom": "Goupil",
+      "actif": true
+    },
+    {
+      "id": "ef243288-3f21-4808-838d-65878b21f6bb",
+      "nom": "Souris",
+      "prenom": "Stuart",
+      "actif": true
+    },
+    {
+      "id": "f5243bfa-cd1c-41da-8408-9665c907dd85",
+      "nom": "Tortue",
+      "prenom": "Franklin",
+      "actif": true
     }
   ],
   "prestations": [

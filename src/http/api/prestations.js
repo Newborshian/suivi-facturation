@@ -26,7 +26,7 @@ export function routesPrestations(routeur, { store, horloge }) {
   const reponseMutation = (r, donnees, status = 200) => ({ status, corps: { donnees, avertissements: r.avertissements, annulation: r.annulation } });
   const ligneEnrichie = (r) => enrichir(r.resultat, horloge.aujourdHui());
 
-  routeur.ajouter('GET', '/api/patients', async () => ({ corps: { patients: listerPatients(store.lire().prestations) } }));
+  routeur.ajouter('GET', '/api/patients', async () => ({ corps: { patients: listerPatients(store.lire()) } }));
 
   routeur.ajouter('GET', '/api/prestations', async (req, res, { requete }) => {
     const filtres = validerFiltres(requete.query);

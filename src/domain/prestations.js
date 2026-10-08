@@ -6,7 +6,7 @@ import { formaterDateFr } from './dates.js';
 import { ancienneteJours, compteDansImpayes, trancheAnciennete } from './indicateurs.js';
 import { formaterCentimes } from './money.js';
 import { etatPaiement } from './paiement.js';
-import { clePatient, normaliserTexte, resoudrePatient } from './patients.js';
+import { assurerAuRegistre, clePatient, renommerPatient, resoudrePatient } from './patients.js';
 import { validerCreation, validerModification, validerPayerTotalite, validerStatut, validerVersement } from './validation.js';
 
 const euros = (centimes) => `${formaterCentimes(centimes)} €`;
@@ -30,7 +30,7 @@ function avertirTropPercu(avant, apres, avertissements, message) {
 /** Crée une prestation (statut à facturer, aucun versement). Libellé et catégorie figés depuis le catalogue. */
 export function creerPrestation(etat, corps, ctx) {
   const v = validerCreation(corps, etat.catalogue);
-  const { patient, avertissements } = resoudrePatient(etat.prestations, v.identite, ctx.nouvelId);
+  const { patient, avertissements } = resoudrePatient(etat, v.identite, ctx);
   const ligne = {
     id: ctx.nouvelId(),
     patient,
@@ -65,28 +65,18 @@ export function modifierPrestation(etat, id, corps, ctx) {
     const parNom = v.identite.nom !== undefined && !v.identite.nouveau;
     const memeNom = parNom && clePatient(v.identite.nom, v.identite.prenom) === clePatient(ligne.patient.nom, ligne.patient.prenom);
     const autresLignes = etat.prestations.filter((l) => l.id !== ligne.id && l.patient.id === ligne.patient.id);
-    if (parNom && v.renommerPatient) {
-      // Renommage du patient sur toutes ses lignes : l'identifiant est conservé.
-      const nom = normaliserTexte(v.identite.nom);
-      const prenom = normaliserTexte(v.identite.prenom);
-      const cle = clePatient(nom, prenom);
-      if (etat.prestations.some((l) => l.patient.id !== ligne.patient.id && clePatient(l.patient.nom, l.patient.prenom) === cle)) {
-        avertissements.push({ code: 'PATIENT_HOMONYME', message: 'Un autre patient porte déjà ce nom et ce prénom : ils seront à distinguer lors des prochaines saisies.' });
-      }
-      for (const l of autresLignes) {
-        l.patient = { id: l.patient.id, nom, prenom };
-        l.modifieLe = ctx.maintenant;
-      }
-      ligne.patient = { id: ligne.patient.id, nom, prenom };
-    } else if (memeNom) {
-      ligne.patient = { id: ligne.patient.id, nom: normaliserTexte(v.identite.nom), prenom: normaliserTexte(v.identite.prenom) }; // simple correction de casse ou d'espaces
+    if ((parNom && v.renommerPatient) || memeNom) {
+      // Renommage du patient dans le registre, propagé à toutes ses lignes (l'identifiant est conservé). Une correction de casse ou
+      // d'espaces sur une ligne d'un patient qui en a d'autres est aussi un renommage : sinon la copie divergerait du registre.
+      assurerAuRegistre(etat, ligne.patient);
+      const r = renommerPatient(etat, ligne.patient.id, v.identite, ctx, { homonyme: true });
+      avertissements.push(...r.avertissements);
     } else {
       if (parNom && autresLignes.length > 0 && !v.detacherLigne) {
         // Jamais de détachement silencieux : le client doit choisir entre renommer toutes les lignes et détacher celle-ci.
-        throw new ErreurApp(409, 'RENOMMAGE_PATIENT', 'Ce patient a d\'autres prestations : choisissez de renommer le patient sur toutes ses lignes ou de modifier seulement celle-ci.', undefined, { autresLignes: autresLignes.length });
+        throw new ErreurApp(409, 'RENOMMAGE_PATIENT', "Ce patient a d'autres prestations : choisissez de renommer le patient sur toutes ses lignes ou de modifier seulement celle-ci.", undefined, { autresLignes: autresLignes.length });
       }
-      const autres = etat.prestations.filter((l) => l.id !== ligne.id);
-      const r = resoudrePatient(autres, v.identite, ctx.nouvelId);
+      const r = resoudrePatient(etat, v.identite, ctx);
       ligne.patient = r.patient;
       avertissements.push(...r.avertissements);
     }

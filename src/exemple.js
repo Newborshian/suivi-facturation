@@ -3,6 +3,7 @@
 // Régénérer config/exemple.json :
 //   node --input-type=module -e "import {genererExemple} from './src/exemple.js'; import fs from 'node:fs'; fs.writeFileSync('config/exemple.json', JSON.stringify(genererExemple(), null, 2) + '\n')"
 import { ajouterJours, ajouterMois, ecartJours, joursDansMois } from './domain/dates.js';
+import { trierRegistre } from './domain/patients.js';
 import { FORMAT, VERSION_COURANTE } from './domain/schema.js';
 
 export const GRAINE_DEFAUT = 20261002;
@@ -45,6 +46,9 @@ const PATIENTS = [
   ['Hérisson', 'Sonic', 'seance-30', 'Coordination'],
 ];
 
+// Patient fictif archivé et sans prestation : montre le registre au-delà des lignes (il n'influe sur aucun chiffre).
+const PATIENT_ARCHIVE = ['Cygne', 'Léa'];
+
 const MODES = ['carte', 'cheque', 'virement', 'especes'];
 const pad = (n) => String(n).padStart(2, '0');
 
@@ -79,7 +83,7 @@ export function genererExemple({ graine = GRAINE_DEFAUT, dateRef = DATE_REFERENC
     compteur += 1;
     prestations.push({
       id: idDeterministe('prestation', compteur),
-      patient: patients[indexPatient],
+      patient: { ...patients[indexPatient] },
       date,
       prestationId,
       libelle: type.libelle,
@@ -140,6 +144,10 @@ export function genererExemple({ graine = GRAINE_DEFAUT, dateRef = DATE_REFERENC
     majLe: `${dateRef}T08:00:00.000Z`,
     parametres: { sauvegardesConservees: 30, dernierModePaiement: 'virement' },
     catalogue,
+    patients: trierRegistre([
+      ...patients.map((p) => ({ ...p, actif: true })),
+      { id: idDeterministe('patient', patients.length), nom: PATIENT_ARCHIVE[0], prenom: PATIENT_ARCHIVE[1], actif: false },
+    ]),
     prestations,
   };
 }

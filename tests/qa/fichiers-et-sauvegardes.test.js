@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { client, etatAvec, lireDisque, ligne, NOM_FICHIER, octetsDisque, prestationsAleatoires, saisie, serveurAvecFichier, texteJson } from './aides-qa.js';
+import { VERSION_COURANTE } from '../../src/domain/schema.js';
 import { demarrerServeurTest } from '../aides/serveur-aide.js';
 import { horlogeReglable } from '../aides/horloge.js';
 import { ecrireFichierTest } from '../aides/temp.js';
@@ -112,7 +113,7 @@ test('fichier absent : dossier vide = premier démarrage propre (catalogue vide,
     const d = await lireDisque(s.dossier);
     assert.deepEqual(d.catalogue, [], 'premier démarrage : catalogue vide');
     assert.equal(d.prestations.length, 0);
-    assert.equal(d.schemaVersion, 1);
+    assert.equal(d.schemaVersion, VERSION_COURANTE);
     assert.equal(d.parametres.sauvegardesConservees, 30);
     assert.equal((await noms(s, 'sauvegardes')).length, 0, 'rien à sauvegarder sur un fichier tout juste créé');
   }, { catalogueVide: true });
@@ -144,7 +145,7 @@ test('fichier absent : dossier vide = premier démarrage propre (catalogue vide,
 // ------------------------------------------------------------------ schéma plus récent
 
 test('schéma plus récent : lecture seule, aucune écriture (503 SCHEMA_PLUS_RECENT), fichier intact octet pour octet, pas de sauvegarde de démarrage ni de migration', async () => {
-  const futur = { ...bonEtat(), schemaVersion: 2, champFutur: { a: 1 } };
+  const futur = { ...bonEtat(), schemaVersion: VERSION_COURANTE + 1, champFutur: { a: 1 } };
   const texte = texteJson(futur);
   await avecFichier(texte, async (s, a) => {
     const avant = await octetsDisque(s.dossier);
@@ -164,7 +165,7 @@ test('schéma plus récent : lecture seule, aucune écriture (503 SCHEMA_PLUS_RE
 });
 
 test('schéma plus récent dont la structure est inconnue (champs renommés) : message clair (503 SCHEMA_PLUS_RECENT), jamais 500, fichier intact, aucune écriture', async () => {
-  const futur = { format: 'suivi-facturation', schemaVersion: 2, revision: 3, majLe: '2026-10-01T00:00:00.000Z', parametres: { sauvegardesConservees: 30, dernierModePaiement: null }, catalogue: [], prestations: [{ identifiant: 'x', quand: '2026-10-01', somme: 12.5 }] };
+  const futur = { format: 'suivi-facturation', schemaVersion: VERSION_COURANTE + 1, revision: 3, majLe: '2026-10-01T00:00:00.000Z', parametres: { sauvegardesConservees: 30, dernierModePaiement: null }, catalogue: [], prestations: [{ identifiant: 'x', quand: '2026-10-01', somme: 12.5 }] };
   await avecFichier(texteJson(futur), async (s, a) => {
     const avant = await octetsDisque(s.dossier);
     for (const chemin of ['/api/etat', '/api/prestations', '/api/recap', '/api/indicateurs/ca-mensuel', '/api/indicateurs/seances', '/api/indicateurs/repartition', '/api/indicateurs/impayes', '/api/indicateurs/prevision', '/api/indicateurs/synthese', '/api/patients', '/api/catalogue']) {
@@ -350,7 +351,7 @@ test('restauration d\'une sauvegarde abîmée, tronquée, d\'un autre format ou 
       'sauvegarde-2026-01-01_08h00m00s_manuelle.json': bon.slice(0, 120),
       'sauvegarde-2026-01-02_08h00m00s_manuelle.json': '',
       'sauvegarde-2026-01-03_08h00m00s_manuelle.json': JSON.stringify({ format: 'autre' }),
-      'sauvegarde-2026-01-04_08h00m00s_manuelle.json': texteJson({ ...bonEtat(), schemaVersion: 2 }),
+      'sauvegarde-2026-01-04_08h00m00s_manuelle.json': texteJson({ ...bonEtat(), schemaVersion: VERSION_COURANTE + 1 }),
       'sauvegarde-2026-01-05_08h00m00s_manuelle.json': texteJson((() => { const e = bonEtat(); e.prestations[0].montantCentimes = 1.5; return e; })()),
     };
     for (const [nom, contenu] of Object.entries(cas)) await ecrireFichierTest(path.join(s.dossier, 'sauvegardes', nom), contenu);

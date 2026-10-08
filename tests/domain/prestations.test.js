@@ -333,3 +333,103 @@ test("catalogue inchangé par les opérations (aucune mutation du catalogue)", (
   creer(etat);
   assert.deepEqual(etat.catalogue, catalogueTest());
 });
+
+// ---- Registre des patients (schéma version 2) ----
+
+const identiteRegistre = (etat) => etat.prestations.every((l) => {
+  const p = etat.patients.find((x) => x.id === l.patient.id);
+  return p && p.nom === l.patient.nom && p.prenom === l.patient.prenom;
+});
+
+test('registre : la création ajoute le patient au registre dans la même mutation ; la copie de la ligne est celle du registre', () => {
+  const etat = etatVide();
+  const a = creer(etat);
+  assert.deepEqual(etat.patients, [{ id: a.patient.id, nom: 'Lapin', prenom: 'Pierre', actif: true }]);
+  const b = creerPrestation(etat, saisie({ patient: { nom: ' lapin', prenom: 'PIERRE' } }), ctx());
+  assert.equal(b.resultat.patient.id, a.patient.id);
+  assert.deepEqual(b.resultat.patient, { id: a.patient.id, nom: 'Lapin', prenom: 'Pierre' }, "l'écriture du registre, pas celle tapée");
+  assert.deepEqual(b.avertissements.map((x) => x.code), ['PATIENT_RATTACHE']);
+  assert.equal(etat.patients.length, 1);
+  assert.ok(identiteRegistre(etat));
+});
+
+test("registre : une saisie refusée (validation) n'ajoute aucun patient", () => {
+  const etat = etatVide();
+  assert.equal(erreur(() => creerPrestation(etat, saisie({ montantCentimes: -1 }), ctx())).status, 422);
+  assert.deepEqual(etat.patients, []);
+});
+
+test('registre : par patientId, un patient archivé ou sans prestation est accepté ; archivé -> réactivé avec avertissement', () => {
+  const etat = etatVide();
+  etat.patients.push({ id: 'p-ours', nom: 'Ours', prenom: 'Baloo', actif: false });
+  const r = creerPrestation(etat, { patientId: 'p-ours', date: '2026-10-02', prestationId: 'seance-45', montantCentimes: 4500 }, ctx());
+  assert.equal(r.resultat.patient.id, 'p-ours');
+  assert.deepEqual(r.avertissements.map((x) => x.code), ['PATIENT_REACTIVE']);
+  assert.equal(etat.patients[0].actif, true);
+  assert.equal(erreur(() => creerPrestation(etat, { patientId: 'absent', date: '2026-10-02', prestationId: 'seance-45', montantCentimes: 4500 }, ctx())).status, 422);
+});
+
+test('registre : un homonyme sans prestation compte parmi les candidats (409) ; nouveauPatient ajoute un second patient', () => {
+  const etat = etatVide();
+  etat.patients.push({ id: 'p-vide', nom: 'Lapin', prenom: 'Pierre', actif: true });
+  creer(etat, { nouveauPatient: true });
+  assert.equal(etat.patients.length, 2);
+  const e = erreur(() => creer(etat));
+  assert.equal(e.code, 'PATIENTS_HOMONYMES');
+  assert.equal(e.details.candidats.length, 2);
+  assert.ok(e.details.candidats.some((c) => c.dernierePrestation === null));
+});
+
+test('registre : renommer le patient depuis une ligne met à jour le registre et toutes ses lignes, identifiant conservé', () => {
+  const etat = etatVide();
+  const a = creer(etat, { patient: { nom: 'Lapen', prenom: 'Pierre' } });
+  creer(etat, { date: '2026-10-01', patient: { nom: 'Lapen', prenom: 'Pierre' } });
+  const autre = creer(etat, { patient: { nom: 'Ours', prenom: 'Baloo' } });
+  const e409 = erreur(() => modifierPrestation(etat, a.id, { modifieLe: a.modifieLe, patient: { nom: 'Lapin', prenom: 'Pierre' } }, ctx()));
+  assert.equal(e409.code, 'RENOMMAGE_PATIENT', 'jamais de détachement silencieux');
+  const r = modifierPrestation(etat, a.id, { modifieLe: a.modifieLe, patient: { nom: 'Lapin', prenom: 'Pierre' }, renommerPatient: true }, ctx());
+  assert.equal(r.resultat.patient.id, a.patient.id);
+  assert.deepEqual(etat.patients.map((p) => p.nom), ['Lapin', 'Ours']);
+  assert.deepEqual(etat.prestations.filter((l) => l.patient.id === a.patient.id).map((l) => l.patient.nom), ['Lapin', 'Lapin']);
+  assert.equal(etat.prestations.find((l) => l.id === autre.id).patient.nom, 'Ours');
+  assert.ok(identiteRegistre(etat));
+});
+
+test("registre : correction de casse sur une ligne d'un patient qui en a d'autres = renommage du patient (la copie ne diverge jamais du registre)", () => {
+  const etat = etatVide();
+  const a = creer(etat);
+  const b = creer(etat, { date: '2026-10-01' });
+  modifierPrestation(etat, a.id, { modifieLe: a.modifieLe, patient: { nom: 'LAPIN', prenom: 'Pierre' } }, ctx());
+  assert.equal(etat.patients[0].nom, 'LAPIN');
+  assert.equal(etat.prestations.find((l) => l.id === b.id).patient.nom, 'LAPIN');
+  assert.ok(identiteRegistre(etat));
+});
+
+test("registre : détacher une ligne crée un patient au registre (ou rattache à l'existant) et laisse l'ancien intact", () => {
+  const etat = etatVide();
+  const a = creer(etat);
+  const idAvant = a.patient.id; // la ligne renvoyée est celle de l'état : elle change avec la modification
+  creer(etat, { date: '2026-10-01' });
+  const r = modifierPrestation(etat, a.id, { modifieLe: a.modifieLe, patient: { nom: 'Ours', prenom: 'Baloo' }, detacherLigne: true }, ctx());
+  assert.notEqual(r.resultat.patient.id, idAvant);
+  assert.deepEqual(etat.patients.map((p) => p.nom), ['Lapin', 'Ours']);
+  assert.equal(etat.prestations.filter((l) => l.patient.nom === 'Lapin').length, 1);
+  assert.ok(identiteRegistre(etat));
+});
+
+test("registre : supprimer la dernière prestation d'un patient ne le retire jamais du registre", () => {
+  const etat = etatVide();
+  const a = creer(etat);
+  supprimerPrestation(etat, a.id);
+  assert.equal(etat.prestations.length, 0);
+  assert.deepEqual(etat.patients.map((p) => p.id), [a.patient.id]);
+});
+
+test('registre : modifier une ligne orpheline (patient absent du registre, état toléré) puis la renommer ajoute le patient au registre', () => {
+  const etat = etatVide();
+  const a = creer(etat);
+  etat.patients.length = 0; // fichier retouché hors de l'application
+  modifierPrestation(etat, a.id, { modifieLe: a.modifieLe, patient: { nom: 'LAPIN', prenom: 'Pierre' } }, ctx());
+  assert.deepEqual(etat.patients, [{ id: a.patient.id, nom: 'LAPIN', prenom: 'Pierre', actif: true }]);
+  assert.ok(identiteRegistre(etat));
+});

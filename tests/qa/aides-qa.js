@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { catalogueTest } from '../aides/catalogue-test.js';
 import { creerEtatInitial } from '../../src/domain/schema.js';
+import { reconstruireRegistre } from '../../src/domain/patients.js';
 import { ajouterJours, joursDansMois } from '../../src/domain/dates.js';
 import { demarrerServeurTest } from '../aides/serveur-aide.js';
 import { ecrireFichierTest } from '../aides/temp.js';
@@ -102,6 +103,7 @@ export function etatAvec(prestations, { revision = 1 } = {}) {
   etat.catalogue = catalogueTest();
   etat.revision = revision;
   etat.prestations = prestations;
+  etat.patients = reconstruireRegistre(prestations).patients;
   return etat;
 }
 

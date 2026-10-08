@@ -9,6 +9,7 @@ import { creerDossierTemp, ecrireFichierTest, supprimerDossierTemp } from '../ai
 import { horlogeFixe } from '../aides/horloge.js';
 import { etatTest, ligneTest, texteEtat } from '../aides/donnees.js';
 import { fsSauvegardesBloquees } from '../aides/fs-defaillant.js';
+import { MIGRATIONS, VERSION_COURANTE } from '../../src/domain/schema.js';
 import { NOM_FICHIER_ACTIF, ouvrirStore } from '../../src/store/store.js';
 import { appliquerRotation } from '../../src/store/sauvegardes.js';
 
@@ -479,7 +480,7 @@ test('fichier vide : copie du fichier abîmé impossible : opération annulée, 
 test('restauration d\'une sauvegarde d\'un schéma plus ancien : migrée en mémoire, fichier écrit en version courante, sauvegarde d\'origine intacte', () => {
   const ancienne = etatTest(3);
   ancienne.schemaVersion = 0;
-  const migrations = { 0: (etat) => ({ ...etat, migreDepuisV0: undefined }) };
+  const migrations = { 0: (etat) => ({ ...etat, migreDepuisV0: undefined }), ...MIGRATIONS };
   return avecStore(
     async ({ actif, sauvegarde }) => {
       await actif(texteEtat(etatTest(1)));
@@ -489,7 +490,7 @@ test('restauration d\'une sauvegarde d\'un schéma plus ancien : migrée en mém
       const octets = await fs.readFile(path.join(dossier, 'sauvegardes', SAUV));
       const r = await store.restaurer(SAUV);
       assert.equal(r.nombrePrestations, 3);
-      assert.equal((await lireJson(chemin)).schemaVersion, 1);
+      assert.equal((await lireJson(chemin)).schemaVersion, VERSION_COURANTE);
       assert.deepEqual(await fs.readFile(path.join(dossier, 'sauvegardes', SAUV)), octets, 'la sauvegarde reste en version 0');
       const liste = await store.sauvegardes();
       assert.equal(liste.find((s) => s.nom === SAUV).restaurable, true);

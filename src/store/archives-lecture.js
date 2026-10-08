@@ -11,7 +11,7 @@ const dejaSignalees = new Set(); // une archive abîmée n'est écrite qu'une fo
 
 /** Les lignes d'une archive ont-elles la structure d'une prestation ? (même contrôle que le fichier actif) */
 function structureValide(prestations) {
-  const etat = { format: FORMAT, schemaVersion: VERSION_COURANTE, revision: 0, majLe: '', parametres: { sauvegardesConservees: 30, dernierModePaiement: null }, catalogue: [], prestations };
+  const etat = { format: FORMAT, schemaVersion: VERSION_COURANTE, revision: 0, majLe: '', parametres: { sauvegardesConservees: 30, dernierModePaiement: null }, catalogue: [], patients: [], prestations };
   return controlerStructure(etat).length === 0;
 }
 

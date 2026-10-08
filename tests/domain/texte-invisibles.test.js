@@ -2,7 +2,7 @@
 // Les caractères sont construits avec String.fromCodePoint : rien d'invisible dans le source.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { validerCatalogueCreation, validerCatalogueModification, validerCreation, validerModification } from '../../src/domain/validation.js';
+import { validerCatalogueCreation, validerCatalogueModification, validerCreation, validerModification, validerPatientCreation, validerPatientModification } from '../../src/domain/validation.js';
 import { catalogueTest } from '../aides/catalogue-test.js';
 
 const car = (...codes) => String.fromCodePoint(...codes);
@@ -90,4 +90,40 @@ test("libellé de tarif : accents, traits d'union, apostrophes acceptés ; un li
     assert.equal(catalogueModifie(nom).libelle, nom);
   }
   attendreRefus(() => catalogueAvecLibelle(car(0x200b)), 'libelle', 'ajout, invisible seul');
+});
+
+// ---- Patients du registre : POST et PATCH /api/patients (mêmes caractères refusés que pour la saisie d'une prestation) ----
+
+test('registre : nom et prénom d\'un patient — caractères invisibles, bidirectionnels et de contrôle refusés (création et modification)', () => {
+  for (const [libelle, c] of INVISIBLES) {
+    for (const champ of ['nom', 'prenom']) {
+      for (const valeur of [`Ma${c}rie`, `${c}Marie`, `Marie${c}`]) {
+        const creation = erreur(() => validerPatientCreation({ nom: 'Lapin', prenom: 'Pierre', [champ]: valeur }));
+        assert.equal(creation.status, 422, `création, ${champ}, ${libelle}`);
+        assert.ok(creation.champs[champ], `création, ${champ}, ${libelle}`);
+        const modification = erreur(() => validerPatientModification({ [champ]: valeur }));
+        assert.equal(modification.status, 422, `modification, ${champ}, ${libelle}`);
+        assert.ok(modification.champs[champ], `modification, ${champ}, ${libelle}`);
+      }
+    }
+  }
+  const e = erreur(() => validerPatientCreation({ nom: `Du${car(0x200b)}pont`, prenom: 'Jean' }));
+  assert.equal(e.champs.nom, 'Le nom du patient contient un caractère invisible ou de contrôle, non autorisé. Retapez-le à la main plutôt que de le copier-coller.');
+});
+
+test('registre : noms accentués, avec trait d\'union ou apostrophe acceptés ; espaces normalisés', () => {
+  assert.deepEqual(validerPatientCreation({ nom: '  Le   Roux-D’Hérisson ', prenom: 'Anne-Marie' }), { nom: 'Le Roux-D’Hérisson', prenom: 'Anne-Marie', homonyme: false });
+  assert.deepEqual(validerPatientModification({ prenom: ' Léa ', actif: false, homonyme: true }), { homonyme: true, prenom: 'Léa', actif: false });
+});
+
+test('registre : champs obligatoires, longueur 100, champs inconnus (400) et types (400)', () => {
+  const vide = erreur(() => validerPatientCreation({}));
+  assert.deepEqual(Object.keys(vide.champs).sort(), ['nom', 'prenom']);
+  assert.equal(erreur(() => validerPatientCreation({ nom: 'x'.repeat(101), prenom: 'y' })).status, 422);
+  assert.equal(validerPatientCreation({ nom: 'x'.repeat(100), prenom: 'y' }).nom.length, 100);
+  assert.equal(erreur(() => validerPatientCreation({ nom: 'a', prenom: 'b', actif: true })).status, 400);
+  assert.equal(erreur(() => validerPatientCreation({ nom: 'a', prenom: 'b', homonyme: 1 })).status, 400);
+  assert.equal(erreur(() => validerPatientModification({ actif: 1 })).status, 400);
+  assert.equal(erreur(() => validerPatientModification({ homonyme: true })).status, 400, 'au moins un de nom, prénom, actif');
+  assert.equal(erreur(() => validerPatientModification({ nom: 'a', id: 'x' })).status, 400);
 });
