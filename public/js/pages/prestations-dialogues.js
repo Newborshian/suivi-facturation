@@ -220,7 +220,7 @@ export function dialogueModification({ ligne: ligneInitiale, ctx }) {
     const resume = creerResume();
     const zoneAlerte = el('div', { attributs: { 'aria-live': 'polite' } });
     const typeActuel = { id: ligne.prestationId, libelle: ligne.libelle, tarifCentimes: ligne.montantCentimes, categorie: ligne.categorie, actif: false, ordre: 9999 };
-    const form = creerFormulairePrestation({ catalogue: ctx.catalogue, aujourdHui: ctx.aujourdHui, typeActuel, indiquerTarif: true });
+    const form = creerFormulairePrestation({ catalogue: ctx.catalogue, aujourdHui: ctx.aujourdHui, typeActuel, indiquerTarif: true, registre: () => ctx.patients ?? [] });
     const idForm = `form-modif-${ligne.id}`;
 
     const remplirDepuisLigne = () => form.remplir({ nom: ligne.patient.nom, prenom: ligne.patient.prenom, date: ligne.date, prestationId: ligne.prestationId, montantCentimes: ligne.montantCentimes, motif: ligne.motif });
@@ -329,10 +329,15 @@ export function dialogueModification({ ligne: ligneInitiale, ctx }) {
       form.effacerErreurs();
       resume.masquer();
       zoneAlerte.replaceChildren();
+      form.fermerSuggestions();
       const v = form.lire();
       const corps = { modifieLe: ligne.modifieLe, ...form.corps(), ...options };
       const patientModifie = v.nom !== ligne.patient.nom || v.prenom !== ligne.patient.prenom;
-      if (!options.patientId && (patientModifie || options.nouveauPatient)) corps.patient = { nom: v.nom, prenom: v.prenom };
+      const choisi = form.patientChoisi();
+      // Patient choisi dans la liste : rattachement par identifiant (la ligne prend l'écriture du registre). Sinon, comme avant :
+      // le nom n'est envoyé que s'il a été modifié à la main.
+      if (choisi && !options.patientId && !options.nouveauPatient) corps.patientId = choisi.id;
+      else if (!options.patientId && (patientModifie || options.nouveauPatient)) corps.patient = { nom: v.nom, prenom: v.prenom };
       boutonEnregistrer.setAttribute('aria-busy', 'true');
       boutonEnregistrer.disabled = true;
       try {
@@ -345,6 +350,7 @@ export function dialogueModification({ ligne: ligneInitiale, ctx }) {
         boutonEnregistrer.removeAttribute('aria-busy');
         boutonEnregistrer.disabled = false;
         if (err instanceof ErreurApi && err.status === 422 && err.champs) {
+          if (err.champs.patientId) form.abandonnerChoix(); // patient devenu introuvable : on revient à la saisie libre
           const liens = form.afficherErreurs(err.champs, v.montant);
           resume.afficher(pluriel(liens.length, 'champ à corriger', 'champs à corriger'), liens);
           liens[0]?.cible.focus();
@@ -382,7 +388,7 @@ export function dialogueModification({ ligne: ligneInitiale, ctx }) {
       }
     }
 
-    const formulaire = el('form', { classe: 'pile', attributs: { novalidate: true, id: idForm } }, resume.racine, form.racine);
+    const formulaire = el('form', { classe: 'pile', attributs: { novalidate: true, id: idForm } }, resume.racine, form.racine, form.indication);
     formulaire.addEventListener('submit', (evenement) => {
       evenement.preventDefault();
       enregistrer();

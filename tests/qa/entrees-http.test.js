@@ -98,7 +98,7 @@ test('tentative XSS dans nom, prénom et motif : stocké comme du texte, renvoy�
     assert.ok(!liste.headers['content-security-policy'].includes('unsafe-inline'));
     assert.equal(liste.json.lignes.length, charges.length);
     // la page HTML servie ne contient aucune de ces chaînes (aucune donnée n'est injectée côté serveur)
-    for (const page of ['/', '/prestations.html', '/tableau-de-bord.html', '/parametres.html']) {
+    for (const page of ['/', '/prestations.html', '/patients.html', '/tableau-de-bord.html', '/parametres.html']) {
       const html = (await s.requete({ chemin: page })).texte;
       assert.ok(!html.includes('alert(1)'), page);
     }

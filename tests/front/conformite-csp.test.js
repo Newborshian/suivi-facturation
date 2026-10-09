@@ -78,7 +78,7 @@ test('les imports des modules du front pointent vers des fichiers qui existent e
         assert.match(r.headers['content-security-policy'], /script-src 'self'/);
       }
     }
-    for (const page of ['/', '/prestations.html', '/parametres.html', '/tableau-de-bord.html']) {
+    for (const page of ['/', '/prestations.html', '/patients.html', '/parametres.html', '/tableau-de-bord.html']) {
       const r = await s.requete({ chemin: page });
       assert.equal(r.status, 200, page);
       assert.match(r.headers['content-type'], /text\/html/);
@@ -92,7 +92,7 @@ test('les imports des modules du front pointent vers des fichiers qui existent e
   }
 });
 
-test('chaque page prévient quand JavaScript est désactivé : bloc <noscript> identique sur les quatre pages', async () => {
+test('chaque page prévient quand JavaScript est désactivé : bloc <noscript> identique sur toutes les pages', async () => {
   const blocs = new Set();
   for (const page of await lister(PUBLIC, ['.html'])) {
     const html = await fs.readFile(page, 'utf8');
@@ -105,7 +105,7 @@ test('chaque page prévient quand JavaScript est désactivé : bloc <noscript> i
   assert.equal(blocs.size, 1, 'même texte et même structure sur toutes les pages');
 });
 
-test("navigation : l'entrée Paramètres et le script de thème sont présents sur toutes les pages", async () => {
+test("navigation : les cinq entrées (Patients entre Prestations et Tableau de bord) et le script de thème sont présents sur toutes les pages", async () => {
   for (const page of await lister(PUBLIC, ['.html'])) {
     const html = await fs.readFile(page, 'utf8');
     const nom = relatif(page);
@@ -113,7 +113,37 @@ test("navigation : l'entrée Paramètres et le script de thème sont présents s
     assert.match(html, /<li><a href="\/tableau-de-bord\.html"[^>]*>Tableau de bord<\/a><\/li>/, `${nom} : entrée de navigation Tableau de bord`);
     assert.match(html, /<script src="\/js\/theme-init\.js"><\/script>/, `${nom} : thème appliqué avant l'affichage`);
     assert.ok(html.indexOf('theme-init.js') < html.indexOf('<body'), `${nom} : script de thème dans le head`);
+    // Cinq entrées, dans cet ordre ; une seule page courante.
+    const entrees = [...html.matchAll(/<li><a href="([^"]+)"[^>]*>([^<]+)<\/a><\/li>/g)].map((m) => [m[1], m[2]]);
+    assert.deepEqual(entrees, [['/', 'Facturation du mois'], ['/prestations.html', 'Prestations'], ['/patients.html', 'Patients'], ['/tableau-de-bord.html', 'Tableau de bord'], ['/parametres.html', 'Paramètres']], `${nom} : navigation`);
+    assert.equal((html.match(/aria-current="page"/g) ?? []).length, 1, `${nom} : une seule page courante`);
   }
+});
+
+test('page Patients : gabarit des autres pages, aucun nom dans le titre, module dédié, aucune dépendance au stockage nominatif', async () => {
+  const html = await fs.readFile(path.join(PUBLIC, 'patients.html'), 'utf8');
+  const feuilles = [...html.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map((m) => m[1]);
+  assert.deepEqual(feuilles, ['/css/tokens.css', '/css/base.css', '/css/composants.css', '/css/ecrans.css', '/css/impression.css']);
+  assert.match(html, /<main id="contenu" class="page ecran-patients" tabindex="-1">/);
+  assert.match(html, /<li><a href="\/patients\.html" aria-current="page">Patients<\/a><\/li>/);
+  assert.match(html, /<script type="module" src="\/js\/pages\/patients\.js"><\/script>/);
+  assert.match(html, /<title>Patients — suivi-facturation<\/title>/);
+  const code = await fs.readFile(path.join(PUBLIC, 'js', 'pages', 'patients.js'), 'utf8');
+  // Seul le filtre Actifs / Archivés / Tous peut être mémorisé (sessionStorage) ; jamais de nom dans le stockage ni dans l'URL.
+  assert.deepEqual([...code.matchAll(/(?:session|local)Storage\.(\w+)\(([^,)]+)/g)].map((m) => [m[1], m[2]]), [['getItem', 'CLE_STOCKAGE'], ['setItem', 'CLE_STOCKAGE']]);
+  assert.doesNotMatch(code, /history\.(push|replace)State|location\.(search|hash)\s*=|URLSearchParams/);
+  assert.match(code, /CLE_STOCKAGE = 'suivi-facturation\.patients\.filtre'/);
+});
+
+test('saisie assistée : combobox ARIA (rôles et attributs), aucun innerHTML, aucune couleur ni style en dur dans les modules patients', async () => {
+  const fichiers = ['js/combobox-patient.js', 'js/recherche-patients.js', 'js/patients-dialogues.js', 'js/pages/patients.js', 'js/pages/prestations-formulaire.js'];
+  for (const f of fichiers) {
+    const code = await fs.readFile(path.join(PUBLIC, f), 'utf8');
+    assert.doesNotMatch(code, /innerHTML|\.style\.|#[0-9a-fA-F]{3,8}\b|rgba?\(/, f);
+  }
+  const combo = await fs.readFile(path.join(PUBLIC, 'js', 'combobox-patient.js'), 'utf8');
+  for (const attribut of ["role: 'combobox'", "'aria-autocomplete': 'list'", "'aria-expanded'", "'aria-controls'", "'aria-activedescendant'", "role: 'listbox'", "role: 'option'", "'aria-selected'", "role: 'status'"]) assert.ok(combo.includes(attribut), attribut);
+  for (const touche of ['ArrowDown', 'ArrowUp', 'Enter', 'Escape']) assert.ok(combo.includes(`'${touche}'`), touche);
 });
 
 test('tableau de bord : feuilles dans l\'ordre du design system, SVG créé par createElementNS, aucun style en ligne ; seul le CSSOM (variable, left, top) pose des dimensions', async () => {

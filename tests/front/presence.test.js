@@ -11,9 +11,9 @@ import { creerMinuteursSimules } from '../aides/minuteurs-simules.js';
 const PUBLIC = path.join(RACINE, 'public');
 const lire = (...p) => fs.readFile(path.join(PUBLIC, ...p), 'utf8');
 
-test('les 4 pages HTML chargent /js/presence.js en module, sans script en ligne', async () => {
+test('les 5 pages HTML chargent /js/presence.js en module, sans script en ligne', async () => {
   const pages = (await fs.readdir(PUBLIC)).filter((n) => n.endsWith('.html'));
-  assert.equal(pages.length, 4);
+  assert.equal(pages.length, 5);
   for (const page of pages) {
     const html = await lire(page);
     assert.equal(html.match(/<script type="module" src="\/js\/presence\.js"><\/script>/g)?.length, 1, page);

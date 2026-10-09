@@ -311,6 +311,7 @@ fieldset.groupe > legend {
 }
 /* « Créer le patient … » : toujours en fin de liste, séparé par un filet en tirets, « + » en tête. */
 .suggestions [role="option"].suggestion--creer {
+  flex-wrap: nowrap;
   color: var(--c-lien);
   font-weight: 650;
 }

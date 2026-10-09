@@ -20,6 +20,7 @@ const CLE_STOCKAGE = 'suivi-facturation.prestations.filtres'; // uniquement mois
 const page = {
   aujourdHui: '',
   catalogue: [],
+  patients: [], // registre (GET /api/patients) : proposé pendant la frappe du nom et du prénom
   dernierMode: { valeur: null },
   lignes: [],
   moisDisponibles: [],
@@ -95,7 +96,7 @@ async function annulerAction(jeton) {
   } catch (err) {
     afficherToast({ texte: err.message, variante: 'erreur' });
   }
-  await charger();
+  await Promise.all([charger(), chargerPatients()]); // l'annulation d'une création peut retirer aussi le patient créé avec elle
 }
 
 /** Une seule action à la fois (évite les doubles clics) ; toute erreur devient un message clair. */
@@ -162,6 +163,16 @@ async function charger() {
   page.moisDisponibles = r.moisDisponibles;
   majOptionsMois();
   rendreListe();
+}
+
+/** Registre des patients pour les suggestions. Sans effet visible en cas d'échec : la saisie libre (nom + prénom) reste possible. */
+async function chargerPatients() {
+  try {
+    page.patients = (await appeler('GET', '/api/patients')).patients;
+    page.formAjout?.actualiserPatients();
+  } catch {
+    // les suggestions gardent la dernière liste connue
+  }
 }
 
 const moisCourant = () => page.aujourdHui.slice(0, 7);
@@ -237,13 +248,16 @@ async function modifier(ligne) {
   const { modifiee } = await dialogueModification({ ligne, ctx });
   if (modifiee) {
     page.recent = ligne.id;
-    await charger();
+    await Promise.all([charger(), chargerPatients()]); // un renommage ou un rattachement change le registre
   }
 }
 
 const ctx = {
   get catalogue() {
     return page.catalogue;
+  },
+  get patients() {
+    return page.patients;
   },
   get aujourdHui() {
     return page.aujourdHui;
@@ -490,7 +504,7 @@ function creerSelect(libelle, options, valeur, auChangement) {
 // ---------------------------------------------------------------- Ajout rapide
 
 function construireAjout() {
-  const form = creerFormulairePrestation({ catalogue: page.catalogue, aujourdHui: page.aujourdHui, prefillMontant: true });
+  const form = creerFormulairePrestation({ catalogue: page.catalogue, aujourdHui: page.aujourdHui, prefillMontant: true, registre: () => page.patients });
   page.formAjout = form;
   const resume = creerResume();
   const idForm = 'form-ajout';
@@ -499,9 +513,18 @@ function construireAjout() {
   async function soumettre(extra = {}) {
     form.effacerErreurs();
     resume.masquer();
+    form.fermerSuggestions();
     const v = form.lire();
     const corps = { ...form.corps(), ...extra };
-    if (!extra.patientId) corps.patient = { nom: v.nom, prenom: v.prenom };
+    const choisi = form.patientChoisi();
+    // Patient choisi dans la liste : on envoie son identifiant ; sinon nom + prénom (le serveur rattache, ou crée le patient avec la prestation).
+    if (extra.patientId) {
+      // choix fait dans le dialogue des homonymes
+    } else if (choisi && extra.nouveauPatient !== true) {
+      corps.patientId = choisi.id;
+    } else {
+      corps.patient = { nom: v.nom, prenom: v.prenom };
+    }
     if (extra.nouveauPatient === true) corps.nouveauPatient = true;
     boutonAjouter.setAttribute('aria-busy', 'true');
     try {
@@ -509,16 +532,22 @@ function construireAjout() {
       const ligne = r.donnees;
       page.recent = ligne.id;
       const horsFiltre = page.filtres.mois !== '' && page.filtres.mois !== ligne.date.slice(0, 7);
+      const nouveau = !page.patients.some((p) => p.id === ligne.patient.id); // créé avec cette prestation
       notifier({
-        texte: `Prestation ajoutée pour ${ligne.patient.prenom} ${ligne.patient.nom}.${horsFiltre ? ` Elle apparaît dans le mois de ${formatMois(ligne.date.slice(0, 7))}.` : ''}`,
+        texte: `Prestation ajoutée${nouveau ? '' : ` pour ${ligne.patient.prenom} ${ligne.patient.nom}`}.${nouveau ? ` Nouveau patient enregistré : ${ligne.patient.prenom} ${ligne.patient.nom}.` : ''}${horsFiltre ? ` Elle apparaît dans le mois de ${formatMois(ligne.date.slice(0, 7))}.` : ''}`,
         avertissements: r.avertissements,
+        annulation: r.annulation, // annuler retire la prestation et le patient créé avec elle
       });
       // La date et la prestation sont conservées pour enchaîner ; le montant revient au tarif de la prestation.
       form.viderPatientEtMotif();
       form.appliquerTarif();
       form.entrees.nom.focus();
-      await charger();
+      await Promise.all([charger(), chargerPatients()]); // le patient créé est proposé à la saisie suivante, sans recharger la page
     } catch (err) {
+      if (err instanceof ErreurApi && err.status === 422 && err.champs?.patientId) {
+        form.abandonnerChoix(); // patient supprimé depuis (autre onglet) : liste rafraîchie, saisie libre
+        await chargerPatients();
+      }
       if (err instanceof ErreurApi && err.status === 422 && err.champs) {
         const liens = form.afficherErreurs(err.champs, v.montant);
         resume.afficher(pluriel(liens.length, 'champ à corriger', 'champs à corriger'), liens);
@@ -543,7 +572,7 @@ function construireAjout() {
     { classe: 'pile', attributs: { novalidate: true, id: idForm } },
     resume.racine,
     form.racine,
-    el('div', { classe: 'ajout-rapide__actions' }, boutonAjouter, el('p', { classe: 'ajout-rapide__astuce', texte: 'Entrée pour valider · Tab pour passer au champ suivant' })),
+    el('div', { classe: 'ajout-rapide__actions' }, boutonAjouter, form.indication, el('p', { classe: 'ajout-rapide__astuce', texte: 'Entrée pour valider · Tab pour passer au champ suivant' })),
   );
   formulaire.addEventListener('submit', (evenement) => {
     evenement.preventDefault();
@@ -658,12 +687,14 @@ async function demarrer() {
     page.tranches = etat.tranchesAnciennete ?? [];
     page.dernierMode.valeur = etat.dernierModePaiement ?? null;
     page.catalogue = (await appeler('GET', '/api/catalogue')).catalogue;
+    await chargerPatients();
     construirePage();
     await charger();
     // Page laissée ouverte (PC jamais éteint) : date du jour relue au retour sur l'onglet et chaque minute.
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') {
         actualiserDate();
+        chargerPatients(); // patients ajoutés, archivés ou renommés depuis la page Patients (autre onglet)
         // Un tarif modifié dans Paramètres (autre onglet) doit être celui de l'ajout rapide (sinon l'ajout rapide utiliserait l'ancien tarif).
         appeler('GET', '/api/catalogue').then((r) => {
           const avant = etatCatalogue(page.catalogue);
