@@ -26,13 +26,14 @@
 ## 1. Objectifs et non-objectifs
 
 **Objectifs**
-- Suivre, sur un seul ordinateur, l'activité d'une ergothérapeute libérale : prestations par patient, statut de facturation (« à facturer » / « facturé »), versements (paiements partiels possibles), reste à encaisser.
+- Suivre, sur un seul ordinateur, l'activité d'une ergothérapeute libérale : registre des patients (nom et prénom seulement), prestations par patient, statut de facturation (« à facturer » / « facturé »), versements (paiements partiels possibles), reste à encaisser.
 - Préparer la facturation du mois : récapitulatif par patient, copiable et imprimable.
 - Piloter l'activité : chiffre d'affaires mensuel, séances, répartition par type de prestation, impayés par ancienneté, estimation indicative des mois à venir.
 - Protéger les données : un fichier JSON lisible, écrit de façon atomique, sauvegardes datées, restauration, détection d'une modification extérieure du fichier (synchronisation cloud).
 
 **Non-objectifs**
 - Ce n'est **pas** un logiciel de facturation ni de comptabilité : il ne produit ni facture, ni numérotation, ni télétransmission.
+- Ce n'est **pas** un dossier patient : le registre ne contient ni date de naissance, ni coordonnées, ni motif, ni note (§5.2).
 - Aucun usage en réseau, aucun compte utilisateur, aucun accès multi-poste simultané. L'application est prévue pour un ordinateur où une seule personne a un compte : il n'y a pas d'authentification locale entre comptes d'une même machine.
 - Aucune intégration à un service cloud : la synchronisation éventuelle est faite par un client de bureau, hors de l'application ; aucun jeton n'est manipulé.
 - Aucune fusion automatique de versions en conflit ; aucune suppression automatique de données (seules les sauvegardes et les temporaires de l'application sont supprimés, selon des règles strictes).
@@ -43,7 +44,7 @@
 - **Zéro dépendance** : aucune entrée `dependencies` / `devDependencies`, pas de `node_modules`. Uniquement les modules natifs (`node:http`, `node:fs`, `node:crypto`, `node:test`…). Les graphiques sont dessinés en SVG par du code maison.
 - **Écoute sur `127.0.0.1` uniquement**, en dur (`src/http/serveur.js`, `ADRESSE_ECOUTE`) : l'adresse n'est pas configurable.
 - **Aucun appel réseau sortant**, aucun CDN. Les seules requêtes émises par le code visent `127.0.0.1` (sonde de l'instance, lanceurs).
-- **Application locale** : le stockage est un fichier JSON dans un dossier de données choisi par l'utilisatrice ; l'interface est servie par le même processus.
+- **Application locale** : le stockage est un fichier JSON dans un dossier de données configurable ; l'interface est servie par le même processus.
 - Interface et messages en français.
 
 ## 3. Vue d'ensemble
@@ -55,8 +56,8 @@
  node src/server.js  ── un seul processus, 127.0.0.1:<port>
  ├─ http/serveur.js      en-têtes de sécurité → controlerRequete (Host, Sec-Fetch-Site, Origin, méthode)
  │                        → /api/* : routeur → http/api/<ressource>.js      → autres GET/HEAD : http/statique.js (public/)
- ├─ domain/*             règles métier PURES (aucune E/S, aucune horloge implicite) : état de paiement, récap,
- │                        indicateurs, prévisions, validation, CSV, schéma
+ ├─ domain/*             règles métier PURES (aucune E/S, aucune horloge implicite) : registre des patients, état de paiement,
+ │                        récap, indicateurs, prévisions, validation, CSV, schéma et migrations
  ├─ store/*              seul accès au fichier de données : état en mémoire, file d'écriture unique,
  │                        écriture atomique, sauvegardes, restauration, empreinte (conflit)
  ├─ verrou.js            verrou d'instance par dossier de données (fichier local, hors dossier synchronisé)
@@ -98,19 +99,22 @@ suivi-facturation/
 │  ├─ store/               store.js (état + file), fichier-atomique.js, sauvegardes.js, restauration.js,
 │  │                        conflit.js (empreinte, conflit non résolu), archives-lecture.js (lecture seule)
 │  └─ http/                serveur.js, securite.js, statique.js, routeur.js, reponses.js,
-│     └─ api/               sante, etat, catalogue, prestations, recap, indicateurs, sauvegardes, export,
+│     └─ api/               sante, etat, catalogue, patients, prestations, recap, indicateurs, sauvegardes, export,
 │                           parametres, arret, presence (+ index.js qui les enregistre)
 ├─ public/
 │  ├─ index.html           Facturation du mois (accueil)
 │  ├─ prestations.html     saisie et liste
+│  ├─ patients.html        registre des patients
 │  ├─ tableau-de-bord.html
 │  ├─ parametres.html
 │  ├─ css/                 tokens, base, composants, ecrans, impression
 │  └─ js/                  api, dom, ui, format, bandeaux, presence, theme(-init), conflit, restauration, ecran-degrade,
 │                           accueil-vide, catalogue-etat, recap-texte, recap-regles, periodes, icones-paiement,
-│                           ecriture, selection, accessibilite,
+│                           ecriture, selection, accessibilite, entree,
+│                           recherche-patients, combobox-patient, patients-dialogues,
 │                           graphiques/ (mise-en-page, barres-svg, barres-h, prevision-ca, svg), pages/ (un module par écran)
-├─ config/exemple.json     instantané du jeu fictif (catalogue de six prestations, six patients fictifs)
+├─ config/exemple.json     instantané du jeu fictif (schéma version 2 : catalogue de six prestations, registre de sept patients
+│                           fictifs dont un archivé sans prestation)
 ├─ scripts/                lanceurs (Windows .vbs/.bat, Linux/macOS .sh), suivi.mjs, lancer-silencieux.mjs, arreter.mjs,
 │                           demo.mjs, creer-raccourci.mjs, choisir-dossier.mjs, lib-lanceur.mjs, outils-lanceur.mjs,
 │                           lib-boites.sh, env.exemple, icone/ (logo, .ico, générateur)
@@ -134,15 +138,15 @@ Fichiers non versionnés (`.gitignore`) : `data/`, `logs/`, `.tmp/`, `.env` et s
 └─ (transitoire) suivi-facturation.json.tmp-<pid>-<n>
 ```
 
-### 5.2 Fichier actif, schéma version 1
+### 5.2 Fichier actif, schéma version 2
 
-Défini par `src/domain/schema.js` (`FORMAT = 'suivi-facturation'`, `VERSION_COURANTE = 1`). Exemple fictif :
+Défini par `src/domain/schema.js` (`FORMAT = 'suivi-facturation'`, `VERSION_COURANTE = 2`). Exemple fictif :
 
 ```json
 {
   "format": "suivi-facturation",
-  "schemaVersion": 1,
-  "revision": 128,
+  "schemaVersion": 2,
+  "revision": 129,
   "majLe": "2026-10-02T07:14:03.120Z",
   "parametres": { "sauvegardesConservees": 30, "dernierModePaiement": "cheque" },
   "catalogue": [
@@ -152,6 +156,10 @@ Défini par `src/domain/schema.js` (`FORMAT = 'suivi-facturation'`, `VERSION_COU
     { "id": "bilan-initial",      "libelle": "Bilan initial",              "tarifCentimes": 17000, "categorie": "bilan",  "actif": true, "ordre": 4 },
     { "id": "compte-rendu",       "libelle": "Compte rendu",               "tarifCentimes": 2800,  "categorie": "autre",  "actif": true, "ordre": 5 },
     { "id": "reunion-synthese",   "libelle": "Réunion de synthèse",        "tarifCentimes": 5200,  "categorie": "autre",  "actif": true, "ordre": 6 }
+  ],
+  "patients": [
+    { "id": "3b9d0000-0000-4000-8000-000000000002", "nom": "Lapin", "prenom": "Pierre", "actif": true },
+    { "id": "3b9d0000-0000-4000-8000-000000000007", "nom": "Cygne", "prenom": "Léa",    "actif": false }
   ],
   "prestations": [
     {
@@ -183,6 +191,8 @@ Défini par `src/domain/schema.js` (`FORMAT = 'suivi-facturation'`, `VERSION_COU
 | `parametres.sauvegardesConservees` | entier ≥ 1 dans le fichier ; nombre de **jours** d'historique de la réserve quotidienne ; l'API n'accepte que 7 à 365 (§7.3) |
 | `parametres.dernierModePaiement` | `null` ou un mode de paiement |
 | `catalogue[]` | `id` unique non vide, `libelle` non vide, `tarifCentimes` 0 à 10 000 000, `categorie`, `actif` booléen, `ordre` entier |
+| `patients` | tableau obligatoire (peut être vide) |
+| `patients[]` | `id` unique non vide, `nom` et `prenom` non vides, `actif` booléen |
 | `prestations[].patient` | `{ id, nom, prenom }` non vides |
 | `prestations[].date`, `factureLe`, `versements[].date` | date civile `AAAA-MM-JJ` réelle, années 2000 à 2100 (`src/domain/dates.js`) ; `factureLe` peut être `null` |
 | `prestations[].montantCentimes` | entier 0 à 10 000 000 (100 000 €) |
@@ -193,29 +203,45 @@ Défini par `src/domain/schema.js` (`FORMAT = 'suivi-facturation'`, `VERSION_COU
 | `id` des prestations et versements | uniques dans le fichier (`crypto.randomUUID()` à la création) |
 
 Règles :
-- **Catalogue vide par défaut** : `creerEtatInitial` crée un fichier sans aucune prestation au catalogue ; l'utilisatrice définit les siennes dans Paramètres › Tarifs. Le catalogue ci-dessus est celui du jeu d'exemple fictif (`src/exemple.js`), jamais injecté dans un fichier réel. Les identifiants créés par l'interface sont des UUID ; les identifiants lisibles ci-dessus sont propres au jeu d'exemple.
-- **Patient intégré à chaque ligne** : il n'existe pas de table de patients ; la liste est dérivée des lignes (`listerPatients`), le nom affiché est celui de la ligne la plus récente.
+- **Catalogue vide par défaut** : `creerEtatInitial` crée un fichier sans aucune prestation au catalogue ; les prestations proposées se définissent dans Paramètres › Tarifs. Le catalogue ci-dessus est celui du jeu d'exemple fictif (`src/exemple.js`), jamais injecté dans un fichier réel. Les identifiants créés par l'interface sont des UUID ; les identifiants lisibles ci-dessus sont propres au jeu d'exemple.
+- **Registre des patients + copie du nom dans chaque prestation** : `patients[]` est la source de vérité de l'identité et de l'écriture du nom ; chaque prestation garde une copie `patient: { id, nom, prenom }` que le domaine tient identique au registre (`src/domain/patients.js`). Grâce à cette copie, le récapitulatif, les indicateurs, les prévisions, l'export CSV, le tri et les archives annuelles lisent les lignes sans consulter le registre. Invariants que les opérations de l'application ne violent jamais (vérifiés par un test qui enchaîne des centaines d'opérations tirées d'une graine fixe) :
+  - **I1** : chaque `prestations[].patient.id` existe dans `patients[]` ;
+  - **I2** : `prestations[].patient.nom` et `prenom` sont exactement ceux du registre ;
+  - **I3** : identifiants du registre uniques ; un patient peut n'avoir aucune prestation.
+  I1 et I2 ne sont **pas** des règles de structure : un fichier qui les viole (retouche à la main, fusion par un client de synchronisation) reste lisible et modifiable ; les écarts sont comptés par `compterIncoherencesPatients` (`orphelines`, `copiesDivergentes`) et signalés par l'avertissement `DONNEES_INCOHERENTES` de `/api/etat`, sans rien corriger (§15).
+- **Contenu du registre** : `id` (UUID créé par l'application), `nom`, `prenom`, `actif` (faux = patient **archivé** : moins mis en avant à la saisie, toujours présent partout ailleurs). Aucun horodatage ni aucune autre donnée. Ordre dans le fichier : nom, prénom (collation `fr`), puis identifiant. Les champs inconnus d'un patient sont tolérés par le contrôle de structure.
+- **Archivé ≠ archives** : le drapeau `actif` du registre n'a aucun rapport avec les archives annuelles de prestations (§5.4) ; aucun calcul (récapitulatif, indicateurs, prévisions, exports) n'en dépend.
 - **Libellé et catégorie figés** dans la ligne au choix du type ; `prestationId` garde le lien avec le catalogue. Modifier un tarif, un libellé ou désactiver un type n'a aucun effet rétroactif.
 - **Catégories** : seule `seance` compte comme « séance » ; `bilan` et `autre` sont comptées à part.
 - **Non stockés** : état de paiement, total versé, reste, trop-perçu, « à venir ».
 - Écriture : JSON indenté (2 espaces) suivi d'un saut de ligne, UTF-8. Un BOM éventuel est toléré à la lecture.
-- **Incohérences tolérées** : une ligne « facturé » sans `factureLe`, ou « à facturer » avec une `factureLe`, ne bloque pas le fichier ; elle est signalée par l'avertissement `DONNEES_INCOHERENTES` de `/api/etat` (`compterIncoherencesStatut`).
+- **Incohérences tolérées** : une ligne « facturé » sans `factureLe`, ou « à facturer » avec une `factureLe` (`compterIncoherencesStatut`), une ligne dont le patient manque au registre ou dont la copie du nom diffère du registre (`compterIncoherencesPatients`) ne bloquent pas le fichier ; elles sont signalées par l'avertissement `DONNEES_INCOHERENTES` de `/api/etat`, qui donne leur nombre.
 
 ### 5.3 Versions de schéma
 
-- `MIGRATIONS` (table `n → n+1`, fonctions pures) est **vide** : il n'existe qu'une version.
-- Fichier de version **inférieure** : sauvegarde `avant-migration`, migration en mémoire, contrôle de structure, écriture atomique ; en cas d'échec, mode dégradé sans écriture (`src/store/store.js`, `charger`). Chemin présent mais jamais exercé en conditions réelles (aucune migration n'existe).
-- Version **supérieure** : **lecture seule** (`SCHEMA_PLUS_RECENT`, 503 sur toute écriture). Si la structure n'est pas reconnue, les écrans de lecture répondent aussi 503 ; seul l'export JSON complet reste possible.
-- Sauvegardes de version inférieure : migrées en mémoire au moment de la restauration.
+| Version | Contenu |
+|---|---|
+| 1 | catalogue, paramètres, prestations ; le patient n'existe que par la copie `patient` de chaque ligne |
+| 2 (courante) | ajoute le registre `patients[]` (§5.2) ; le format des prestations est inchangé |
+
+- `MIGRATIONS` (table `n → n+1`, fonctions pures, `src/domain/schema.js`) contient une étape : `MIGRATIONS[1] = migrerV1VersV2`, qui reconstruit le registre depuis les prestations (`reconstruireRegistre`, détail et cas limites au §7.4). `migrer` applique les étapes sur une copie et pose `schemaVersion` ; une étape manquante ou une version plus récente que la cible lève une erreur.
+- Fichier de version **inférieure** : migré au chargement, avec la sauvegarde `avant-migration` du fichier d'origine ; en cas d'échec, mode dégradé sans aucune écriture (§7.4, §7.5).
+- Version **supérieure** : **lecture seule** (`SCHEMA_PLUS_RECENT`, 503 sur toute écriture), ni migration ni sauvegarde. Si la structure n'est pas reconnue, les écrans de lecture répondent aussi 503 ; seul l'export JSON complet reste possible. Conséquence : une version de l'application antérieure au registre (schéma 1) ouvre un fichier de version 2 en lecture seule ; tous les postes qui partagent un dossier de données doivent être mis à jour.
+- Sauvegardes de version inférieure : migrées en mémoire pour la liste des sauvegardes et au moment de la restauration (§7.4).
 
 ### 5.4 Archives
 
-Le format `archive-AAAA.json` (`{ "format": "suivi-facturation-archive", "prestations": [...] }`) est **lu** s'il est présent (`src/store/archives-lecture.js`, `lireArchives`) : export complet et CSV (dédupliqués par `id`, la version active l'emportant), comptage des utilisations du catalogue, refus de supprimer un type de prestation encore référencé. **L'application ne crée pas d'archive** : l'archivage annuel est prévu (§16). Les indicateurs et prévisions ne lisent que le fichier actif.
+Le format `archive-AAAA.json` (`{ "format": "suivi-facturation-archive", "prestations": [...] }`) est **lu** s'il est présent (`src/store/archives-lecture.js`, `lireArchives`) : export complet et CSV (dédupliqués par `id`, la version active l'emportant), comptage des utilisations du catalogue, refus de supprimer un type de prestation ou un patient encore référencé. **L'application ne crée pas d'archive** : l'archivage annuel est prévu (§16). Les indicateurs et prévisions ne lisent que le fichier actif.
+
+**Archives et registre des patients** : le format d'archive n'a pas de version et **n'est ni migré ni réécrit** ; ses lignes gardent leur propre copie `patient: { id, nom, prenom }`. Pour être contrôlées, elles sont placées dans un état factice de version courante dont le registre est vide (`patients: []`, `structureValide`) : une ligne d'archive n'a donc pas besoin que son patient figure au registre. Conséquences :
+- un patient présent **seulement** dans des archives n'est pas ajouté au registre ;
+- renommer un patient ne modifie pas ses lignes archivées, qui gardent l'ancien nom (l'export CSV peut alors montrer deux écritures pour un même identifiant) ;
+- la présence d'un patient dans une archive lisible, ou l'existence d'une archive illisible, empêche de le supprimer (§6.3).
 
 **Archive abîmée** : une archive illisible, tronquée, d'un autre format ou dont les lignes n'ont pas la structure d'une prestation (même contrôle `controlerStructure` que le fichier actif) est **ignorée**, jamais source d'erreur pour l'appelant. Elle est listée dans `illisibles` (années) et signalée une seule fois par lancement au journal, par son seul nom de fichier (« Archive ignorée »), jamais par son contenu. Conséquences :
 - export JSON : champ `archivesIllisibles` (liste des années) ajouté à l'export s'il y en a ;
 - export CSV et compte des utilisations du catalogue : archives lisibles seulement ;
-- suppression d'un type du catalogue : refusée (409 `CATALOGUE_UTILISE`) tant qu'une archive est illisible, puisqu'on ne peut pas garantir que le type n'y est pas référencé.
+- suppression d'un type du catalogue : refusée (409 `CATALOGUE_UTILISE`) tant qu'une archive est illisible, puisqu'on ne peut pas garantir que le type n'y est pas référencé ; même règle pour la suppression d'un patient (409 `PATIENT_UTILISE`, `supprimable: false` dans `GET /api/patients`).
 
 ## 6. Règles du domaine
 
@@ -235,11 +261,34 @@ aVenir     = date > aujourd'hui
 ```
 Une prestation à 0 € est « payée » d'office. Le trop-perçu reste attaché à sa ligne : il ne compense jamais le reste d'une autre prestation.
 
-### 6.3 Patients et textes saisis (`src/domain/patients.js`, `src/domain/validation.js`)
-- Clé de comparaison des patients : NFC, espaces de bord retirés, espaces internes réduits, minuscules (`fr`). **Sensible aux accents.**
+### 6.3 Registre des patients et textes saisis (`src/domain/patients.js`, `src/domain/validation.js`)
+- **Normalisation** (`normaliserTexte`) : NFC, espaces de bord retirés, espaces internes réduits à un ; casse et accents conservés. C'est l'écriture enregistrée.
+- **Clé de comparaison** (`clePatient`) : nom et prénom normalisés puis en minuscules (`fr`). **Insensible à la casse et aux espaces, sensible aux accents** : « LAPIN  pierre » et « Lapin Pierre » ont la même clé, « Cygne Lea » et « Cygne Léa » non. Le navigateur utilise exactement la même clé (`public/js/recherche-patients.js`, test croisé) ; seules les **suggestions** de saisie ignorent les accents (§11).
+- **Homonymes** : plusieurs patients du registre de même clé. Ils ne sont jamais fusionnés ; la mention « homonyme » est **calculée** à la lecture (`listerPatients`), jamais stockée. Ils se distinguent par la date de leur dernière prestation ; les erreurs qui les concernent ne décrivent les candidats que par `{ id, dernierePrestation }`, sans nom.
 - **Caractères refusés** (422 `VALIDATION`) : les caractères de contrôle sont refusés dans tous les textes ; les caractères **invisibles ou de mise en forme** (`CARACTERES_INVISIBLES` : césure conditionnelle, espaces et liants de largeur nulle, marques et isolats bidirectionnels, séparateurs de ligne et de paragraphe, sélecteurs de variante, caractères de remplissage, BOM, caractères de balisage) sont refusés dans le **nom** et le **prénom** du patient, le **motif** d'une prestation (création et modification) et le **libellé d'un tarif** du catalogue (ajout et modification). Deux textes « identiques à l'écran » ne peuvent donc pas différer par un caractère invisible, et un texte bidirectionnel ne peut pas brouiller l'affichage ni l'export.
-- Création : `patientId` (patient existant) ou `patient: { nom, prenom }` : aucun patient de même clé → nouveau ; un seul → rattachement (avertissement `PATIENT_RATTACHE` si l'écriture diffère) ; plusieurs → 409 `PATIENTS_HOMONYMES` avec les candidats (identifiant et date de dernière prestation, sans nom). `nouveauPatient: true` crée un homonyme assumé.
-- Modification du nom sur une ligne d'un patient qui en a d'autres : 409 `RENOMMAGE_PATIENT` ; le client choisit `renommerPatient: true` (toutes ses lignes, même identifiant ; avertissement `PATIENT_HOMONYME` si un autre patient porte déjà ce nom) ou `detacherLigne: true`. Une simple correction de casse ou d'espaces est appliquée directement.
+- **Nom et prénom** : tous deux obligatoires, 100 caractères au plus après normalisation, mêmes refus de caractères que ci-dessus (422 `VALIDATION` avec `champs`).
+
+**Patient d'une prestation** (`resoudrePatient(etat, identite, ctx)`, appelée par la création et la modification d'une prestation ; elle travaille sur le **registre** et peut l'enrichir dans la même écriture) :
+- `patientId` : le patient doit exister au registre (sinon 422 `VALIDATION` sur `patientId`) ; s'il est archivé, il est **réactivé** (avertissement `PATIENT_REACTIVE`) ;
+- `patient: { nom, prenom }` avec `nouveauPatient: true` : nouveau patient ajouté au registre, même si la clé existe (homonyme assumé) ;
+- `patient: { nom, prenom }` seul : aucun patient de même clé → nouveau patient ajouté au registre ; **un seul** → rattachement (archivé → réactivé avec `PATIENT_REACTIVE` ; avertissement `PATIENT_RATTACHE` si le texte tapé diffère de l'écriture du registre) ; **plusieurs** → 409 `PATIENTS_HOMONYMES` (candidats sans nom). Les patients sans prestation et les patients archivés comptent comme candidats ;
+- la copie posée dans la ligne est **toujours l'écriture du registre**, jamais le texte tapé.
+
+**Opérations sur le registre** (`creerPatient`, `modifierPatient`, `supprimerPatient`, appelées par `/api/patients`, §9.2) :
+- **Création** : patient actif sans prestation. Même clé qu'un patient existant, actif ou archivé → 409 `PATIENT_EXISTANT` avec `details.candidats` (sans nom), sauf `homonyme: true`. Deux requêtes simultanées (double clic) passent l'une après l'autre dans la file d'écriture : la seconde reçoit `PATIENT_EXISTANT`.
+- **Renommage** (`renommerPatient`) : identifiant conservé ; nom et prénom normalisés ; un simple changement de casse ou d'espaces (même clé) est appliqué sans confirmation ; même clé qu'un **autre** patient → 409 `PATIENT_EXISTANT`, sauf `homonyme: true` (alors avertissement `PATIENT_HOMONYME`). Le nouveau nom est propagé à **toutes** les lignes du fichier actif de ce patient dont la copie diffère (leur `modifieLe` est mis à jour : un dialogue ouvert ailleurs sur l'une d'elles reçoit ensuite 409 `MODIFIEE_AILLEURS`) ; résultat `{ patient, lignesModifiees }`. Les archives ne sont pas touchées (§5.4). Aucune fusion de patients n'existe.
+- **Archiver / réactiver** (`actif`) : sans effet si le patient est déjà dans l'état demandé (idempotent). Archiver un patient qui a des prestations à venir ou un reste à payer est autorisé, avec l'avertissement `PATIENT_ARCHIVE_EN_COURS` et ses nombres (`details: { aVenir, impayees }`). Les prestations d'un patient archivé restent partout (listes, récapitulatif, tableau de bord, exports, sauvegardes).
+- **Suppression** : seulement pour un patient sans aucune prestation, ni dans le fichier actif, ni dans une archive lisible, et si aucune archive n'est illisible ; sinon 409 `PATIENT_UTILISE`. Sauvegarde `avant-suppression` préalable. Supprimer une prestation ne supprime jamais son patient, qui reste au registre (éventuellement sans prestation).
+
+**Nom modifié depuis une prestation** (`PATCH /api/prestations/{id}`, `modifierPrestation`) :
+- correction de même clé (casse, espaces) : c'est un **renommage du patient** dans le registre et sur toutes ses lignes, appliqué directement (une ligne ne peut pas garder une écriture différente de celle du registre) ;
+- autre nom, sur une ligne d'un patient qui a d'autres lignes : 409 `RENOMMAGE_PATIENT` ; le client choisit `renommerPatient: true` (renommage du patient, toutes ses lignes ; un homonyme est alors accepté avec l'avertissement `PATIENT_HOMONYME`, sans confirmation) ou `detacherLigne: true` (la ligne seule est rattachée par `resoudrePatient` au patient correspondant au nouveau nom, ou à un nouveau patient) ; l'ancien patient reste au registre ;
+- autre nom sur la seule ligne du patient, ou `patientId` : la ligne est rattachée par `resoudrePatient`.
+- Une ligne dont le patient manque au registre (ligne orpheline) y est ajoutée, avec l'écriture de la ligne, avant un renommage depuis la prestation (`assurerAuRegistre`).
+
+**Annulation** : la création, le renommage, l'archivage, la réactivation et la suppression d'un patient sont annulables comme les écritures de prestations (§6.4) ; annuler la création d'une prestation qui a créé un patient retire aussi ce patient, et annuler une prestation qui a réactivé un patient le rend de nouveau archivé.
+
+**Réparation** : `reparerPatients` (ajout au registre des patients manquants, alignement des copies de même clé, mêmes règles que la migration, rien d'écrit s'il n'y a rien à faire) existe dans le domaine et est testée, mais **n'est exposée ni par l'API ni par l'interface** (§15, §16).
 
 ### 6.4 Opérations sur les prestations (`src/domain/prestations.js`)
 - Création : statut `a_facturer`, aucun versement ; type exigé **actif**. Avertissement `DATE_FUTURE` si la date est postérieure à aujourd'hui.
@@ -247,8 +296,8 @@ Une prestation à 0 € est « payée » d'office. Le trop-perçu reste attaché
 - Statut groupé (`ids` : 1 à 1 000) : `facture` pose `factureLe` (date fournie ou aujourd'hui), `a_facturer` l'efface ; les lignes déjà dans l'état demandé sont ignorées. Avertissements `DATE_FACTURATION_FUTURE`, `DATE_FACTURATION_AVANT_PRESTATION`, `FACTURATION_DATE_FUTURE`.
 - Versement (ajout, modification de sa date, « Payé en totalité ») : avertissements non bloquants `VERSEMENT_AVANT_PRESTATION` (versement daté avant la prestation), **`VERSEMENT_DATE_FUTURE`** (versement daté après aujourd'hui : il serait compté dans un mois à venir par la vue « encaissé ») et `TROP_PERCU` ; le versement est enregistré. Le mode est mémorisé dans `dernierModePaiement`.
 - « Payé en totalité » : un versement égal au reste, daté d'aujourd'hui (ou de la date fournie), mode fourni ou dernier mode utilisé ; 409 `DEJA_PAYEE` si le reste est nul ; 422 `MODE_REQUIS` si aucun mode n'a jamais été utilisé.
-- **Annulation** de la dernière action (`store.annuler`) : le store retient les lignes touchées et les paramètres d'avant ; possible tant qu'aucune autre écriture n'a eu lieu (même `revision`), perdue au redémarrage, sinon 409 `ANNULATION_IMPOSSIBLE`. Les écritures du catalogue et des paramètres ne sont pas annulables et effacent le jeton en cours.
-- Il n'existe **pas** de détection de doublon (prévue, §16).
+- **Annulation** de la dernière action (`store.annuler`) : le store retient les lignes touchées, les paramètres d'avant et le **registre des patients d'avant** (`patientsAvant`, restauré tel quel) ; possible tant qu'aucune autre écriture n'a eu lieu (même `revision`), perdue au redémarrage, sinon 409 `ANNULATION_IMPOSSIBLE`. Annuler une création de prestation est une suppression : sauvegarde `avant-suppression` préalable. Sont annulables les écritures des prestations, des versements et du registre des patients ; celles du catalogue et des paramètres ne le sont pas et effacent le jeton en cours.
+- Il n'existe **pas** de détection de doublon de prestation (même patient, même date, même type ; prévue, §16).
 
 ### 6.5 Récapitulatif du mois et double vue (`src/domain/recap.js`)
 `GET /api/recap?mois=AAAA-MM&vue=prestation|versement` regroupe par `patient.id` (tri nom, prénom, identifiant).
@@ -358,12 +407,14 @@ Le temporaire du **verrou d'instance** suit une autre règle (§8.2).
   Jour courant = jour de l'horloge ; un jour postérieur (horloge reculée) est traité comme le jour courant. Le réglage utilisé est toujours le réglage courant du fichier (7 à 365), jamais celui d'une sauvegarde restaurée ni une valeur par défaut ; tant qu'aucun fichier n'a été lu, la réserve quotidienne n'est pas touchée.
 - **Démarrage** : sauvegarde du fichier, sauf s'il est identique (SHA-256) à la plus récente sauvegarde de la réserve quotidienne ; elle compte comme sauvegarde du jour.
 - **Quotidienne** : avant la première modification de chaque jour civil (jour retenu en mémoire).
-- **Avant opération** : suppression d'une prestation, d'un versement ou d'un type du catalogue, annulation d'une création (`avant-suppression`).
+- **Avant opération** : suppression d'une prestation, d'un versement, d'un type du catalogue ou d'un patient, annulation d'une création de prestation (`avant-suppression`) ; migration d'un fichier de version antérieure (`avant-migration`, §7.4).
 - **Échec** d'une sauvegarde de démarrage ou quotidienne : avertissement persistant `SAUVEGARDE_ECHOUEE` (dans `/api/etat` et dans les réponses de mutation), l'application continue, l'échec est journalisé.
 - **Rotation** après chaque sauvegarde créée : uniquement les fichiers de `sauvegardes/` dont le nom correspond exactement au motif. Aucune rotation en mode dégradé, pendant une restauration ou une remise à zéro. Une suppression impossible (fichier occupé) est retentée à la rotation suivante et journalisée (nombre de fichiers et code d'erreur) ; une rotation en échec ne compromet jamais la sauvegarde qui vient d'être créée.
 
-### 7.4 Restauration (`src/store/restauration.js`, `store.restaurer`)
-- `GET /api/sauvegardes` lit et contrôle chaque fichier : taille, lisibilité, restaurable, raison du refus, version de schéma, nombre de prestations et de patients, première et dernière date, révision, `majLe`.
+### 7.4 Restauration et migration de schéma (`src/store/restauration.js`, `src/store/store.js`, `src/domain/schema.js`)
+
+**Restauration** (`store.restaurer`)
+- `GET /api/sauvegardes` lit et contrôle chaque fichier : taille, lisibilité, restaurable, raison du refus, version de schéma, nombre de prestations et de patients, première et dernière date, révision, `majLe`. Le nombre de patients est la taille du registre (patients sans prestation compris) ; pour une sauvegarde de version 1, le registre est reconstruit en mémoire par la migration, sans rien écrire.
 - Restauration (dans la file, possible dans tous les modes : normal, dégradé, conflit, lecture seule) :
   1. nom contrôlé par le motif strict des sauvegardes (jamais un chemin), sinon 404 ;
   2. en mode dégradé, relecture du fichier actif ; s'il est redevenu lisible et que la décision vient de l'écran dégradé (`depuisModeDegrade`), refus 409 `FICHIER_REVENU` ;
@@ -373,6 +424,31 @@ Le temporaire du **verrou d'instance** suit une autre règle (§8.2).
   6. `revision = max(révisions connues) + 1`, réglage `sauvegardesConservees` courant conservé, écriture atomique, puis rechargement de l'état et de l'empreinte ; tous les drapeaux d'anomalie sont levés.
 - **Repartir d'un fichier vide** (`POST /api/fichier-vide`) : seulement en mode dégradé `absent` ou `illisible` et si aucune sauvegarde n'est restaurable (sinon 409 `SAUVEGARDE_RESTAURABLE`) ; le fichier existant est d'abord copié (`avant-reinitialisation`).
 - La restauration ne concerne que le fichier actif. L'export JSON complet (§9.2) est une copie de dépannage : l'application ne sait pas le restaurer.
+- **Sauvegarde de version 1** : elle est migrée en mémoire (étape 3) puis écrite **en version courante**, registre reconstruit comme pour un fichier actif ; la sauvegarde elle-même n'est pas modifiée. Une sauvegarde de version plus récente est refusée (422 `SAUVEGARDE_INCOMPATIBLE`).
+
+**Migration 1 → 2 au chargement** (`charger` dans `store.js`, `migrerV1VersV2` et `reconstruireRegistre`, fonctions pures sans horloge)
+1. Le fichier lu est de format reconnu et de version 1 (une version plus récente que la version courante n'est jamais migrée : lecture seule, §5.3).
+2. Migration **en mémoire**, sur une copie :
+   - les lignes sont groupées par `patient.id` ; pour chaque identifiant, la ligne de référence est la **plus récente** (date, puis `creeLe`) ; le patient est créé avec son nom et son prénom normalisés, **actif** (aucun patient n'est archivé d'office, même sans activité récente) ;
+   - les copies sont **alignées** : une ligne dont la clé est celle du patient reçoit l'écriture du registre (« dupont » devient « Dupont » si la ligne la plus récente porte « Dupont ») ; une ligne de clé **différente** sous le même identifiant n'est pas modifiée (elle reste signalée comme copie divergente, §5.2) ;
+   - `modifieLe` des lignes n'est jamais changé (ce n'est pas une saisie) ; le registre est trié ; `schemaVersion` passe à 2. Les champs inconnus du niveau supérieur sont conservés ; un champ `patients` déjà présent dans un fichier de version 1 est reconstruit.
+3. Contrôle de structure du résultat (§5.2).
+4. Sauvegarde `avant-migration` : copie **octet pour octet** du fichier d'origine (réserve « opération », §7.3), créée **avant** toute écriture.
+5. Écriture atomique du fichier migré, puis empreinte ; la sauvegarde de démarrage habituelle suit (fichier migré). Une ouverture suivante ne migre plus rien.
+
+Cas limites (vérifiés par les tests) :
+
+| Cas | Résultat |
+|---|---|
+| fichier sans prestation | registre vide |
+| homonymes (deux identifiants, même clé) | deux patients distincts, mention « homonyme » calculée à l'affichage |
+| même identifiant, casse ou espaces différents | un patient, écriture de la ligne la plus récente, copies alignées |
+| même identifiant, clés différentes (fichier retouché) | un patient (l'identifiant fait foi), nom de la ligne la plus récente ; les autres copies sont laissées et signalées |
+| ligne sans nom ou sans prénom, ligne sans patient | migration refusée par le contrôle de structure : mode dégradé |
+
+**Échec** (structure invalide après migration, sauvegarde `avant-migration` impossible, écriture refusée par le disque ou un verrou) : le fichier d'origine n'est **pas modifié** et l'application passe en mode dégradé `illisible` (« La mise à jour du fichier de données vers la version actuelle a échoué ») ; la restauration d'une sauvegarde reste possible (§7.5).
+
+**Retour arrière** : la sauvegarde `avant-migration` est un fichier de version 1 ; une version de l'application antérieure au registre sait la restaurer. La version actuelle, elle, la migrerait de nouveau à la restauration.
 
 ### 7.5 Modes dégradés
 | Situation au chargement | Comportement |
@@ -467,9 +543,9 @@ Une erreur pendant ces étapes est écrite au journal (sans message), le verrou 
 - Corps de requête : `Content-Type: application/json` obligatoire (415 `TYPE_CONTENU`), 1 Mo au plus (413 `TROP_VOLUMINEUX`), objet JSON valide (400), champs inconnus refusés (400 `REQUETE_INVALIDE`). Exception : `/api/presence` accepte aussi `text/plain` (format envoyé par `sendBeacon`), 512 octets au plus. Le corps est toujours lu jusqu'au bout pour que la réponse d'erreur parvienne au client.
 - **Corps non attendus** : les routes qui n'en attendent pas (les `DELETE`, `POST /api/arreter`, `POST /api/sauvegardes`, `POST /api/annulations/{jeton}`) le vident sans le lire ni le conserver (`ignorerCorps`), avec une **borne de 1 Mo** : au-delà, la connexion est fermée. « Payé en totalité » accepte un corps absent (objet vide) ou un corps JSON soumis aux contrôles ordinaires (`lireCorpsOptionnel`).
 - Montants en `…Centimes`, dates `AAAA-MM-JJ`, mois `AAAA-MM`. Paramètres de requête inconnus refusés (400).
-- Réponse de mutation : `{ donnees, avertissements: [{ code, message }], annulation }` (jeton pour les prestations et versements).
+- Réponse de mutation : `{ donnees, avertissements: [{ code, message, details? }], annulation }` (jeton pour les prestations, les versements et le registre des patients ; `null` pour le catalogue et les paramètres).
 - Lignes renvoyées « enrichies » : ligne stockée + `verseCentimes`, `payeCentimes`, `resteCentimes`, `tropPercuCentimes`, `etat`, `aVenir`.
-- **Aucune donnée nominative dans les URL** : le filtre par nom est appliqué dans le navigateur ; les URL ne portent au plus qu'un `patientId` opaque.
+- **Aucune donnée nominative dans les URL** : le filtre par nom est appliqué dans le navigateur ; les URL ne portent au plus qu'un identifiant de patient opaque (`patientId`, `/api/patients/{id}`).
 - Erreur : `{ "erreur": { "code", "message", "champs"?, "details"? } }`, message français, jamais de pile. Toute erreur non prévue devient 500 `ERREUR_INTERNE` avec un message générique.
 - Chemin connu avec une autre méthode : 405 `METHODE_REFUSEE` ; chemin inconnu : 404 `INTROUVABLE`.
 
@@ -483,10 +559,13 @@ Une erreur pendant ces étapes est écrite au journal (sans message), le verrou 
 | `PATCH /api/catalogue/{id}` | `libelle`, `tarifCentimes`, `categorie`, `actif`, `ordre` ; sans effet rétroactif | 404, 422 |
 | `DELETE /api/catalogue/{id}` | seulement si jamais utilisé ; sauvegarde `avant-suppression` | 409 `CATALOGUE_UTILISE` (y compris si une archive est illisible) |
 | `PATCH /api/parametres` | `{ sauvegardesConservees }` (entier 7 à 365, en jours) | 400, 422 |
-| `GET /api/patients` | `{ patients: [{ id, nom, prenom, dernierePrestation }] }` | 503 |
+| `GET /api/patients` | registre complet (actifs et archivés, filtrés dans le navigateur), trié nom, prénom : `{ patients: [{ id, nom, prenom, actif, nombrePrestations, dernierePrestation, homonyme, supprimable }] }`. `nombrePrestations` et `dernierePrestation` (date ou `null`) portent sur le fichier actif ; `homonyme` = un autre patient a la même clé ; `supprimable` = aucune prestation dans le fichier actif ni dans une archive lisible, et aucune archive illisible. Aucun paramètre accepté | 400, 503 |
+| `POST /api/patients` | `{ nom, prenom, homonyme? }` → 201 `{ donnees: { id, nom, prenom, actif: true }, avertissements, annulation }` | 400, 409 `PATIENT_EXISTANT`, 422 `VALIDATION` |
+| `PATCH /api/patients/{id}` | `{ nom?, prenom?, actif?, homonyme? }` (au moins un de `nom`, `prenom`, `actif`) : renommage propagé aux lignes et/ou archivage, réactivation → `{ donnees: { patient, lignesModifiees }, avertissements, annulation }` | 400, 404, 409 `PATIENT_EXISTANT`, 422 |
+| `DELETE /api/patients/{id}` | patient sans prestation ; sauvegarde `avant-suppression` → `{ donnees: { id }, avertissements, annulation }` | 404, 409 `PATIENT_UTILISE`, 503 `SAUVEGARDE_ECHOUEE` |
 | `GET /api/prestations` | filtres `mois`, `de`, `a`, `patientId`, `statut`, `etat` (liste `non_paye,partiel,paye`), `aVenir`, `anciennete` ; → `{ lignes, total, moisDisponibles }` (mois contenant des prestations), tri par date puis création | 400 |
 | `GET /api/prestations/{id}` | une ligne enrichie | 404 |
-| `POST /api/prestations` | `{ patientId \| patient:{nom,prenom}, nouveauPatient?, date, prestationId, montantCentimes, motif? }` → 201 | 422, 409 `PATIENTS_HOMONYMES` |
+| `POST /api/prestations` | `{ patientId \| patient:{nom,prenom}, nouveauPatient?, date, prestationId, montantCentimes, motif? }` → 201 ; le patient est pris dans le registre, ou ajouté au registre dans la même écriture (§6.3) | 422, 409 `PATIENTS_HOMONYMES` |
 | `POST /api/prestations/statut` | `{ ids, statut, date? }` → `{ modifiees }` | 400, 404, 422 |
 | `PATCH /api/prestations/{id}` | champs partiels + `modifieLe` ; `renommerPatient?`, `detacherLigne?` | 409 `MODIFIEE_AILLEURS`, `RENOMMAGE_PATIENT`, `PATIENTS_HOMONYMES` |
 | `DELETE /api/prestations/{id}` | supprime la ligne et ses versements ; sauvegarde `avant-suppression` | 404, 503 `SAUVEGARDE_ECHOUEE` |
@@ -510,6 +589,8 @@ Une erreur pendant ces étapes est écrite au journal (sans message), le verrou 
 | `POST /api/arreter` | arrêt propre → 202 `{ arret: true }`, puis arrêt | — |
 | `POST /api/presence` | `{ id, etat: "ouverte"\|"fermee" }` → 204 | 400 |
 
+Les écritures du registre des patients suivent les règles communes de `store.muter` (§7.1) : file unique, 409 `CONFLIT_FICHIER`, 503 en mode dégradé (`DONNEES_ILLISIBLES`) et en lecture seule (`SCHEMA_PLUS_RECENT`), où la liste reste lisible. Aucune route de réparation des incohérences n'existe (§15). `GET /api/export?format=json` contient le registre dans `actif.patients` ; l'export CSV est inchangé (il lit les copies des lignes).
+
 Les sections du tableau de bord sont des routes séparées pour qu'une section en erreur n'empêche pas l'affichage des autres. Une archive abîmée n'est jamais une erreur de route (§5.4). `GET /favicon.ico` répond 204 (aucune icône servie).
 
 ### 9.3 Codes d'erreur
@@ -519,13 +600,13 @@ Les sections du tableau de bord sont des routes séparées pour qu'une section e
 | 403 | `HOTE_REFUSE`, `ORIGINE_REFUSEE` |
 | 404 | `INTROUVABLE` |
 | 405 | `METHODE_REFUSEE` |
-| 409 | `PATIENTS_HOMONYMES`, `RENOMMAGE_PATIENT`, `MODIFIEE_AILLEURS`, `ANNULATION_IMPOSSIBLE`, `CATALOGUE_UTILISE`, `DEJA_PAYEE`, `CONFLIT_FICHIER`, `FICHIER_ABSENT`, `FICHIER_REVENU`, `SAUVEGARDE_RESTAURABLE`, `REINITIALISATION_REFUSEE` |
+| 409 | `PATIENTS_HOMONYMES`, `PATIENT_EXISTANT`, `PATIENT_UTILISE`, `RENOMMAGE_PATIENT`, `MODIFIEE_AILLEURS`, `ANNULATION_IMPOSSIBLE`, `CATALOGUE_UTILISE`, `DEJA_PAYEE`, `CONFLIT_FICHIER`, `FICHIER_ABSENT`, `FICHIER_REVENU`, `SAUVEGARDE_RESTAURABLE`, `REINITIALISATION_REFUSEE` |
 | 413 / 415 | `TROP_VOLUMINEUX` / `TYPE_CONTENU` |
 | 422 | `VALIDATION` (avec `champs`), `MODE_REQUIS`, `SAUVEGARDE_INCOMPATIBLE` |
 | 503 | `DONNEES_ILLISIBLES`, `SCHEMA_PLUS_RECENT`, `FICHIER_VERROUILLE`, `ECRITURE_ECHOUEE`, `SAUVEGARDE_ECHOUEE` |
 | 500 | `ERREUR_INTERNE` |
 
-Avertissements non bloquants (dans `avertissements` des réponses de mutation) : `DATE_FUTURE`, `DATE_FACTURATION_FUTURE`, `DATE_FACTURATION_AVANT_PRESTATION`, `FACTURATION_DATE_FUTURE`, `VERSEMENT_AVANT_PRESTATION`, `VERSEMENT_DATE_FUTURE`, `TROP_PERCU`, `PATIENT_RATTACHE`, `PATIENT_HOMONYME`, `SAUVEGARDE_ECHOUEE`.
+Avertissements non bloquants (dans `avertissements` des réponses de mutation) : `DATE_FUTURE`, `DATE_FACTURATION_FUTURE`, `DATE_FACTURATION_AVANT_PRESTATION`, `FACTURATION_DATE_FUTURE`, `VERSEMENT_AVANT_PRESTATION`, `VERSEMENT_DATE_FUTURE`, `TROP_PERCU`, `PATIENT_RATTACHE` (prestation rattachée à un patient enregistré dont l'écriture diffère du texte tapé), `PATIENT_REACTIVE` (patient archivé réactivé par une prestation), `PATIENT_HOMONYME` (renommage vers le nom d'un autre patient, confirmé), `PATIENT_ARCHIVE_EN_COURS` (patient archivé qui a des prestations à venir ou un reste à payer ; `details: { aVenir, impayees }`), `SAUVEGARDE_ECHOUEE`. Avertissements de lecture de `/api/etat` : `SAUVEGARDE_ECHOUEE`, `DONNEES_INCOHERENTES` (statuts, lignes orphelines, copies divergentes, §5.2).
 
 ## 10. Sécurité et confidentialité
 
@@ -564,26 +645,33 @@ Racine `public/` uniquement, `/` → `index.html`. Refus (404) : encodage invali
 
 ### 10.6 Données de santé
 - Le fichier de données, les sauvegardes et les exports contiennent des données de santé **en clair** ; ils ne sont pas chiffrés par l'application. L'interface le rappelle avant un export.
-- **Droits restreints** (`src/droits.js`) : les fichiers créés par l'application (fichier actif, sauvegardes, journal, verrou) le sont en `0600`, ses dossiers (dossier de données par défaut, `sauvegardes/`, journal, dossier des verrous) en `0700`. Effectif sous Linux et macOS, sous réserve du masque `umask` ; sans effet sous Windows, où les droits viennent du profil de l'utilisateur. Un dossier choisi par l'utilisatrice et déjà existant garde ses droits.
+- **Droits restreints** (`src/droits.js`) : les fichiers créés par l'application (fichier actif, sauvegardes, journal, verrou) le sont en `0600`, ses dossiers (dossier de données par défaut, `sauvegardes/`, journal, dossier des verrous) en `0700`. Effectif sous Linux et macOS, sous réserve du masque `umask` ; sans effet sous Windows, où les droits viennent du profil de l'utilisateur. Un dossier configuré et déjà existant garde ses droits.
 - Le dossier de données ne peut pas être dans `public/` ni `src/`, ni ailleurs dans le projet hors `data/` et `.tmp/` (ignorés par git), comparaison faite sur les chemins réels (§13.2). Les dossiers du journal et des verrous suivent la même règle (§13.1).
 - Le journal et la console ne contiennent ni nom, ni motif, ni montant (§8.4). Le journal contient en revanche le chemin du dossier de données.
-- Navigateur : aucune donnée nominative dans l'URL, le titre de page ou le stockage du navigateur. `sessionStorage` retient seulement des filtres non nominatifs (mois, statut, état) ; `localStorage` seulement le thème. L'identifiant de présence n'est stocké nulle part (§8.6).
+- Navigateur : aucune donnée nominative dans l'URL, le titre de page ou le stockage du navigateur. `sessionStorage` retient seulement des filtres non nominatifs (mois, statut, état ; filtre Actifs / Archivés / Tous de la page Patients) ; la recherche de patient n'est jamais mémorisée ; `localStorage` ne retient que le thème. L'identifiant de présence n'est stocké nulle part (§8.6).
+- **Registre des patients** : `id`, `nom`, `prenom`, `actif` seulement ; aucune date de naissance, coordonnée, motif, pathologie ni note. Il conserve aussi des patients sans prestation, sans durée de conservation gérée par l'application ; seul un patient sans aucune prestation peut être supprimé (§6.3).
 - Le verrou d'instance ne contient que PID, port, date, version et chemin.
-- Le message `PATIENT_RATTACHE` renvoyé à l'interface contient le nom du patient rattaché (réponse locale, jamais journalisée).
+- Les messages `PATIENT_RATTACHE` et `PATIENT_REACTIVE` renvoyés à l'interface contiennent le nom du patient (réponse locale, jamais journalisée). Les erreurs `PATIENTS_HOMONYMES` et `PATIENT_EXISTANT` ne décrivent les candidats que par identifiant et date ; les noms affichés viennent du registre déjà chargé par la page.
 - Textes saisis : caractères de contrôle, invisibles et bidirectionnels refusés dans les noms, motifs et libellés de tarif (§6.3).
 
 ## 11. Interface (front)
 
-- **Quatre pages** HTML natives, sans routeur client : Facturation du mois (`index.html`), Prestations, Tableau de bord, Paramètres. Chaque page charge `theme-init.js` (script classique, avant affichage), son module `js/pages/<écran>.js` et `presence.js`.
+- **Cinq pages** HTML natives, sans routeur client, avec la même navigation à cinq entrées dans cet ordre : Facturation du mois (`index.html`), Prestations, Patients (`patients.html`), Tableau de bord, Paramètres (`aria-current="page"` sur l'entrée courante). Chaque page charge `theme-init.js` (script classique, avant affichage), son module `js/pages/<écran>.js` et `presence.js`.
 - **Modules** : `api.js` (client `fetch`, erreurs typées, téléchargement des exports) ; `dom.js`, `ui.js` (toasts, dialogues `<dialog>` natifs, champs de formulaire) ; `bandeaux.js` (mode dégradé, lecture seule, conflit, sauvegarde en échec, incohérences) ; `ecran-degrade.js` (restauration ou fichier vide quand le fichier est absent ou illisible) ; `conflit.js` (choix de la version à garder) ; `restauration.js` ; `accueil-vide.js` et `catalogue-etat.js` (premier démarrage : définir les tarifs, puis saisir ; saisie impossible tant qu'aucun type n'est actif) ; `format.js` (formats français, `lireMontant`, libellés, libellés des tranches d'ancienneté reçus de `/api/etat`) ; `recap-texte.js` (texte tabulé du récapitulatif pour le presse-papiers, seul endroit à adapter pour le format de copie) ; `recap-regles.js` ; `periodes.js` (12, 6, 3 derniers mois, année en cours, année précédente) ; `icones-paiement.js` (icônes des cinq modes, tracées en SVG).
 - **Modules purs** (sans DOM, testés sous Node) :
   - `entree.js` : `entreeValide` et `validerParEntree`, la touche Entrée valide l'ajout d'une prestation, l'enregistrement d'un tarif et le champ « nombre de jours » (ignorée pour les listes, cases, boutons, pendant une composition de texte, ou si le bouton est désactivé).
-  - `ecriture.js` : **règle unique** d'écriture, partagée par les trois écrans qui modifient des données (Facturation du mois, Prestations, Paramètres). `ecritureAutorisee(etat)` est faux en lecture seule, en conflit non résolu ou en mode dégradé ; les boutons et champs d'écriture sont alors désactivés, avec une explication courte (`explicationEcritureImpossible`), au lieu de laisser un clic échouer.
+  - `ecriture.js` : **règle unique** d'écriture, partagée par les quatre écrans qui modifient des données (Facturation du mois, Prestations, Patients, Paramètres). `ecritureAutorisee(etat)` est faux en lecture seule, en conflit non résolu ou en mode dégradé ; les boutons et champs d'écriture sont alors désactivés, avec une explication courte (`explicationEcritureImpossible`), au lieu de laisser un clic échouer.
   - `selection.js` : sélection multiple de la liste des prestations (ajout et retrait, « Tout sélectionner », texte de la barre de sélection). Cocher une case ne redessine que la ligne et la barre, pas toute la liste.
   - `accessibilite.js` : `descriptionChamp` calcule l'`aria-describedby` d'un champ (texte d'aide, puis message d'erreur quand le champ est en erreur ; attribut retiré s'il n'y a rien à relier), utilisé par `ui.js`.
+  - `recherche-patients.js` : recherche dans le registre (liste de `GET /api/patients`) pendant la frappe. `rechercherPatients` : accents, casse et espaces de bord ignorés (`normaliserRecherche` de `format.js`), recherche sur le nom, le prénom, « nom prénom » et « prénom nom », les deux champs devant correspondre quand ils sont remplis (avec repli sur le champ en cours de frappe si la combinaison ne donne rien) ; tri : actifs avant archivés, puis début du nom, début du prénom, contenu, puis nom et prénom ; 8 suggestions au plus (`LIMITE_SUGGESTIONS`). Aussi : `clePatient` (identique à celle du serveur), `libelleSuggestion` (date de dernière prestation pour les homonymes, mention « archivé »), `estNouveauPatient`, `optionCreer` (option « Créer le patient … » en fin de liste), `indicationPatient` (« Patient enregistré », « Nouveau patient », « Patient archivé : il sera réactivé avec cette prestation »), `annonceSuggestions` (texte pour lecteur d'écran), `candidatsAffiches` (retrouve dans le registre chargé les noms des candidats d'une erreur d'homonyme, qui n'en contient pas).
+- **Composants patients** (DOM construit par `el()` et `textContent` uniquement) :
+  - `combobox-patient.js` (`creerSelecteurPatient`) : les champs Nom et Prénom de la saisie d'une prestation (ajout et dialogue de modification, `pages/prestations-formulaire.js`) deviennent deux combobox sur le même registre, motif ARIA 1.2 « combobox avec liste » (`role="combobox"`, `aria-expanded`, `aria-controls`, `aria-activedescendant`, liste `role="listbox"`, annonce du nombre de suggestions dans une région `role="status"` après une pause de frappe). Flèches pour parcourir, Entrée pour choisir une option active (sinon Entrée valide le formulaire), Échap pour fermer sans fermer le dialogue parent, Tab ferme sans choisir. Choisir un patient remplit les deux champs et envoie son `patientId` ; toute frappe ensuite abandonne ce choix (retour à la saisie libre `patient: { nom, prenom }`, que le serveur rattache ou transforme en nouveau patient). L'option « Créer… » ne crée rien elle-même : le patient naît avec la prestation. Une indication unique sous les deux champs dit ce qui se passera.
+  - `patients-dialogues.js` : dialogue « Un patient porte déjà ce nom » (409 `PATIENT_EXISTANT`) commun à l'ajout (Annuler, Créer quand même un homonyme, Utiliser ce patient) et au renommage (Annuler, Renommer quand même) de la page Patients ; focus initial sur Annuler. Le choix entre homonymes à la saisie d'une prestation (409 `PATIENTS_HOMONYMES`) et le choix « renommer le patient / modifier cette ligne seulement » (409 `RENOMMAGE_PATIENT`) restent dans `pages/prestations-dialogues.js`.
+- **Écran Prestations** : charge le registre au démarrage, après chaque ajout, modification ou annulation (l'annulation d'une création peut retirer le patient créé avec elle) et au retour sur l'onglet ; le message d'ajout indique « Nouveau patient enregistré » quand la prestation a créé le patient. Un échec de chargement du registre laisse la saisie libre possible. Le filtre texte « Patient » de la liste reste local.
+- **Écran Patients** (`pages/patients.js`) : formulaire « Ajouter un patient » (deux champs simples, sans combobox ; sous les champs, la liste informative des patients enregistrés qui ressemblent à ce qui est tapé, 5 au plus) ; aide courte « Actif, archivé, archives annuelles : quelle différence ? » ; recherche locale (jamais mémorisée) et filtre Actifs (défaut) / Archivés / Tous ; tableau trié par nom avec badges « Homonyme » et « Actif / Archivé », date de dernière prestation et nombre de prestations ; actions Renommer (dialogue, nombre de prestations mises à jour), Archiver / Réactiver (sans dialogue), Supprimer (seulement si `supprimable`, après confirmation) ; messages avec bouton « Annuler ». Contrôles d'écriture désactivés avec leur explication en lecture seule, en conflit ou en mode dégradé (`ecriture.js`) ; écran de mode dégradé commun ; liste relue au retour sur l'onglet.
 - **Graphiques SVG maison** (`public/js/graphiques/`) : `mise-en-page.js` (échelles et positions, pur et testé), `barres-svg.js` (barres empilées : légende, motifs, info-bulle, tableau « Voir les chiffres »), `barres-h.js` (barres horizontales HTML/CSS pour répartition et impayés, largeur par variable CSS), `prevision-ca.js` (série « Prévu (estimation indicative) » posée sur les barres du CA). Aucune bibliothèque.
 - **Thème** : clair, sombre ou automatique (`prefers-color-scheme`), choisi dans Paramètres › Apparence ; jetons de couleur dans `public/css/tokens.css`.
-- **Accessibilité** : lien d'évitement, `aria-current` sur la navigation, régions `aria-live` pour bandeaux et toasts, aides et erreurs de champ reliées par `aria-describedby`. Graphiques : le SVG est un `role="group"` nommé (`aria-labelledby`) et décrit (`aria-describedby`) ; chaque colonne est un groupe nommé par son texte (mois et valeurs), focalisable au clavier tant que le graphique compte au plus 26 colonnes (au-delà, par exemple en semaines, le tableau de valeurs fait foi) ; tableau de valeurs pour chaque graphique, motifs en plus des couleurs. Conformité à un référentiel : non vérifiée.
+- **Accessibilité** : lien d'évitement, `aria-current` sur la navigation, régions `aria-live` pour bandeaux et toasts, aides et erreurs de champ reliées par `aria-describedby`. Graphiques : le SVG est un `role="group"` nommé (`aria-labelledby`) et décrit (`aria-describedby`) ; chaque colonne est un groupe nommé par son texte (mois et valeurs), focalisable au clavier tant que le graphique compte au plus 26 colonnes (au-delà, par exemple en semaines, le tableau de valeurs fait foi) ; tableau de valeurs pour chaque graphique, motifs en plus des couleurs. Combobox des patients : motif ARIA 1.2, rôles et attributs contrôlés par un test statique ; usage réel au clavier et avec un lecteur d'écran **non vérifié** par un test automatique. Conformité à un référentiel : non vérifiée.
 - **Impression** : `public/css/impression.css` (`media="print"`) ; boutons « Imprimer » (`window.print()`) sur la facturation du mois et le tableau de bord.
 - **Copie** : `navigator.clipboard.writeText` (127.0.0.1 est un contexte sécurisé).
 - **Quitter** : Paramètres propose « Quitter l'application » (`POST /api/arreter`, arrêt des battements de présence).
@@ -660,14 +748,14 @@ Création seulement pour le dossier par défaut (en `0700`) ; sinon existence, t
 
 - `npm test` : `node --test` sur tout le dossier `tests/`, rapport `spec` à l'écran et dans `derniers-tests.log` (ignoré par git). Aucune dépendance (`node:test`, `node:assert/strict`).
 - **Organisation** (fichiers nommés d'après ce qu'ils vérifient) :
-  - `tests/domain/` : règles pures (paiement, récap, indicateurs, prévisions, dates, CSV, schéma, catalogue vierge, caractères invisibles dans les textes saisis…) ;
-  - `tests/store/` : disque (écriture atomique, sauvegardes et rotation en jours, restauration, conflit, configuration, emplacements détournés par lien ou jonction, droits et robustesse) ;
-  - `tests/http/` : serveur réel sur `127.0.0.1`, port 0 (API, sécurité, statique, corps ignorés, archives abîmées, verrou et son temporaire, PID réutilisé, instance unique, ordre de l'arrêt, arrêt, présence, démarrage) ;
-  - `tests/front/` : modules purs de `public/js` (écriture, sélection, accessibilité, formats, graphiques, présence…) et conformité CSP ;
+  - `tests/domain/` : règles pures (paiement, récap, indicateurs, prévisions, dates, CSV, schéma, catalogue vierge, caractères invisibles dans les textes saisis…) ; registre des patients : `patients.test.js` (clé, liste, résolution, création, renommage, archivage, suppression, réparation), `patients-registre.test.js` (reconstruction du registre et ses cas limites, incohérences comptées, **invariant** I1/I2 après des centaines d'opérations tirées d'une graine fixe), `migration-v1-v2.test.js` (récapitulatif, indicateurs et exports CSV identiques avant et après migration ; cas limites) ;
+  - `tests/store/` : disque (écriture atomique, sauvegardes et rotation en jours, restauration, conflit, configuration, emplacements détournés par lien ou jonction, droits et robustesse) ; `migration-patients.test.js` : migration d'un fichier version 1 au démarrage (sauvegarde `avant-migration` identique octet pour octet, pas de seconde migration), échecs sans perte (structure, écriture, sauvegarde impossible), fichier plus récent, restauration d'une sauvegarde version 1, `nombrePatients`, annulation des opérations du registre, incohérences signalées ;
+  - `tests/http/` : serveur réel sur `127.0.0.1`, port 0 (API, sécurité, statique, corps ignorés, archives abîmées, verrou et son temporaire, PID réutilisé, instance unique, ordre de l'arrêt, arrêt, présence, démarrage) ; `patients.test.js` : chaque route et code des patients (dont `PATIENT_EXISTANT` puis `homonyme: true`, double clic, `PATIENT_UTILISE` avec ligne active, archive lisible ou illisible, réactivation par une prestation, annulation, mode dégradé, lecture seule, conflit, aucun nom au journal, registre dans l'export JSON) ;
+  - `tests/front/` : modules purs de `public/js` (écriture, sélection, accessibilité, formats, graphiques, présence, recherche de patients `recherche-patients.test.js`…) et conformité CSP (dont `patients.html`, navigation à cinq entrées identique sur les cinq pages, attributs ARIA de la combobox, aucun `innerHTML` dans les modules patients) ;
   - `tests/journal/` ;
   - `tests/scripts/` : démonstration (`demo.test.js` : dossier unique, aucun lien suivi, refus du dossier réel, variables imposées, jeu daté du jour, `main` exercé dans un vrai processus) et bibliothèque des lanceurs ;
-  - `tests/qa/` : recette (parcours HTTP, entrées hostiles, robustesse réseau, confidentialité statique, volumétrie à 20 000 prestations, cohérence documentaire du guide, du README et du document d'exploitation).
-- **Aides** (`tests/aides/`) : dossiers temporaires sous `<projet>/.tmp/tests/` nettoyés fichier par fichier puis `rmdir` (jamais de suppression récursive, jamais `data/`) ; `ERGO_SANS_ENV=1` posé par `temp.js` et transmis aux serveurs lancés (tests hermétiques) ; horloge fixe ; `fs` défaillant simulé (`EPERM` sur `rename`, dossier de sauvegardes inaccessible) ; minuteurs simulés pour la présence ; catalogue de test (celui du jeu d'exemple, l'application démarrant avec un catalogue vide) ; serveur de test ; `instance-aide.js` pour lancer de **vrais processus** `node src/server.js` (arrêtés par PID uniquement) ; `panne-arret.mjs` (pannes simulées pendant l'arrêt) ; `course-stress.js` (outil de mesure des courses de démarrage, hors suite).
+  - `tests/qa/` : recette (parcours HTTP, entrées hostiles, robustesse réseau, confidentialité statique, volumétrie à 20 000 prestations, `GET /api/patients` compris, cohérence documentaire du guide, du README et du document d'exploitation).
+- **Aides** (`tests/aides/`) : dossiers temporaires sous `<projet>/.tmp/tests/` nettoyés fichier par fichier puis `rmdir` (jamais de suppression récursive, jamais `data/`) ; `ERGO_SANS_ENV=1` posé par `temp.js` et transmis aux serveurs lancés (tests hermétiques) ; états de test en version courante, registre reconstruit depuis les lignes, et leurs équivalents en version 1 pour les tests de migration (`donnees.js` : `etatTest`, `avecRegistre`, `etatV1`, `enV1`) ; horloge fixe ; `fs` défaillant simulé (`EPERM` sur `rename`, dossier de sauvegardes inaccessible) ; minuteurs simulés pour la présence ; catalogue de test (celui du jeu d'exemple, l'application démarrant avec un catalogue vide) ; serveur de test ; `instance-aide.js` pour lancer de **vrais processus** `node src/server.js` (arrêtés par PID uniquement) ; `panne-arret.mjs` (pannes simulées pendant l'arrêt) ; `course-stress.js` (outil de mesure des courses de démarrage, hors suite).
 - **Tests de processus réels** : instance unique et courses de démarrage, verrou périmé ou bloqué, codes de sortie, arrêt propre et garde-temps, arrêt automatique. Les tests de signaux et de droits POSIX sont ignorés sous Windows.
 - **Instabilité connue** : sous Windows, un processus de fichier de test s'arrête parfois brutalement sans rendre ses résultats (de l'ordre d'une exécution complète sur 400). Cause non démontrée ; aucune trace JS n'a été observée. `tests/aides/garde-processus.js` est une garde de diagnostic qui **ne change pas le comportement** du processus pour les erreurs : exceptions et rejets non gérés sont seulement notés (`uncaughtExceptionMonitor`, sur la sortie d'erreur et dans `.tmp/diagnostic-tests/<pid>.log`), jamais interceptés ni suivis d'une sortie, pour que `node:test` les rattache au test fautif ; une sortie non nulle et un signal reçu sont aussi notés. Traitement : relancer avant de conclure à une régression.
 - **Intégration continue** : `.github/workflows/tests.yml` exécute `npm test` sous Ubuntu, macOS et Windows avec Node 24 (`fail-fast: false`), sur `push` vers `main`, sur les demandes de fusion et à la demande, sans secret ni installation de paquet ; en cas d'échec, la sortie des tests et les traces de diagnostic sont conservées 7 jours.
@@ -678,7 +766,11 @@ Création seulement pour le dossier par défaut (en `0700`) ; sinon existence, t
 - Fenêtre active non bornée : sans archivage, toutes les prestations restent dans le fichier actif, réécrit en entier à chaque modification (mesure de recette : 20 000 prestations, ≈ 13 Mo, temps jugés acceptables sur la machine de développement).
 - Indicateurs et prévisions ignorent les archives éventuelles ; une archive abîmée est ignorée (§5.4).
 - Conflit de synchronisation au niveau minimal : pas de détection des copies créées par le client de synchronisation, pas de protection entre deux ordinateurs, pas de fusion.
-- Pas de détection de doublon à la saisie.
+- Pas de détection de doublon de prestation à la saisie.
+- **Incohérences du registre signalées, non réparables depuis l'application** : une ligne orpheline ou une copie de nom divergente (fichier retouché à la main, fusion par un client de synchronisation) est comptée dans l'avertissement `DONNEES_INCOHERENTES`, mais aucune route ni aucun bouton « Réparer » n'existe ; la fonction du domaine `reparerPatients` n'est pas exposée. Correction possible aujourd'hui : restaurer une sauvegarde cohérente.
+- **Une écriture du nom par patient** : une ligne ne peut pas garder une écriture différente de celle du registre ; corriger la casse ou les espaces du nom sur une seule prestation renomme le patient partout, et un autre nom sur une seule ligne d'un patient qui en a d'autres impose de choisir entre renommer le patient et détacher la ligne. Les lignes des archives annuelles, elles, gardent l'ancien nom après un renommage. Pas de fusion de deux patients.
+- Rattachement automatique par nom : une prestation saisie avec le nom et le prénom d'un seul patient enregistré (actif ou archivé) lui est rattachée ; deux personnes réelles de même nom dont une seule est enregistrée sont confondues. Les suggestions et l'indication sous les champs réduisent ce risque sans l'éliminer.
+- Un patient présent seulement dans des archives annuelles n'est pas dans le registre.
 - Pas d'authentification locale : un autre compte de la même machine peut joindre l'application sur `127.0.0.1` ; à utiliser sur un ordinateur où une seule personne a un compte.
 - Données en clair sur le disque (fichier, sauvegardes, exports) : la protection repose sur la session, les droits des fichiers et le chiffrement du disque de l'ordinateur.
 - La prévision n'a aucune saisonnalité et proratise en jours calendaires.
@@ -690,8 +782,8 @@ Création seulement pour le dossier par défaut (en `0700`) ; sinon existence, t
 - Atomicité de `rename` sous Windows/NTFS en cas de coupure de courant ; les délais de réessai sont des valeurs de départ, non mesurées sur une machine chargée.
 - Lanceurs, raccourcis, arrêt forcé, signaux et droits POSIX sous Linux et macOS sur un système réel ; résultats du workflow d'intégration continue sur ces systèmes.
 - Détection d'un PID réutilisé en conditions réelles (redémarrage, démarrage rapide de Windows) et durée de la lecture par PowerShell.
-- Migrations de schéma : mécanisme présent mais aucune migration réelle n'a été écrite.
-- Conformité de l'interface à un référentiel d'accessibilité, usage avec un lecteur d'écran ; rendu d'impression selon les navigateurs.
+- Migration 1 → 2 sur un fichier réel : testée sur des données fictives seulement ; durée de la migration et du renommage d'un patient à forte volumétrie non mesurées (la recette de volumétrie couvre la lecture, dont `GET /api/patients`).
+- Conformité de l'interface à un référentiel d'accessibilité, usage avec un lecteur d'écran (dont la combobox des patients et ses annonces) ; rendu d'impression selon les navigateurs.
 - Cause de l'arrêt brutal intermittent d'un processus de test sous Windows.
 
 ## 16. Feuille de route
@@ -699,9 +791,10 @@ Création seulement pour le dossier par défaut (en `0700`) ; sinon existence, t
 Prévu, sans ordre ni date :
 - archivage annuel des prestations soldées au-delà de 12 mois (`archive-AAAA.json`), avec relecture par les graphiques ;
 - détection des copies de conflit créées par un client de synchronisation dans le dossier de données ;
-- aide à la saisie ;
-- détection des doublons ;
-- indicateur « patients actifs » et comparaison annuelle ;
+- réparation des incohérences du registre des patients (bouton « Réparer » du bandeau, sauvegarde préalable, mêmes règles que la migration) ;
+- séries de séances (quantité, rythme) rattachées à un patient du registre : elles passeront par une nouvelle version de schéma (3), avec sa migration ; leurs prestations seront créées par les mêmes règles de rattachement (`resoudrePatient`) ;
+- détection des doublons de prestation ;
+- indicateur des patients vus sur une période (« patients actifs », sans rapport avec le drapeau `actif` du registre) et comparaison annuelle ;
 - import depuis un tableur ;
 - distribution sans installation préalable de Node.js ;
 - jeton secret par lancement (authentification locale entre comptes d'une même machine).

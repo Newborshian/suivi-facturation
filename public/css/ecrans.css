@@ -71,11 +71,25 @@
   font-variant-numeric: tabular-nums;
 }
 :is(.ecran-prestations, .ecran-patients) .resume-liste strong { font-weight: 700; }
-:is(.ecran-prestations, .ecran-patients) .actions-ligne {
+:is(.ecran-prestations, .ecran-patients, .ecran-facturation) .actions-ligne {
   display: inline-flex;
   flex-wrap: wrap;
   justify-content: flex-end;
+  align-items: center;
   gap: var(--e-1) var(--e-2);
+}
+/* Paiement en un clic dans la ligne (design-system §5.14), écrans Prestations et Facturation du mois :
+   le groupe de modes forme un seul bloc qui passe à la ligne tout entier si la place manque ; un filet le sépare
+   de « Versement » et « Modifier » tant que les cinq modes sont visibles (au-delà de 48 em). */
+:is(.ecran-prestations, .ecran-facturation) .actions-ligne > .paiement-rapide {
+  padding-inline-end: var(--e-2);
+  border-inline-end: 1px solid var(--c-bordure);
+}
+@media (max-width: 48em) {
+  :is(.ecran-prestations, .ecran-facturation) .actions-ligne > .paiement-rapide {
+    padding-inline-end: 0;
+    border-inline-end: 0;
+  }
 }
 .ecran-prestations .col-etat-paiement { min-width: 9.5rem; }
 .ecran-prestations .col-etat-paiement .cellule-double__secondaire { margin-top: 0.15rem; }

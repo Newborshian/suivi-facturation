@@ -83,6 +83,184 @@
 .btn-payer:hover { background: var(--c-surface); }
 .btn-payer::before { content: "✓"; font-weight: 700; }
 
+/* ======================== Paiement en un clic (design-system §5.14) ========================
+   Groupe de cinq boutons à icône, un par mode de paiement : un clic enregistre le reste à payer avec ce mode.
+   Structure :
+   <div class="paiement-rapide" role="group" aria-label="…">
+     <span class="paiement-rapide__titre" aria-hidden="true">Payer</span>
+     <button class="btn btn--petit btn--secondaire paiement-rapide__declencheur" aria-expanded="false" aria-controls="…">Payer</button>
+     <span class="paiement-rapide__modes" id="…">
+       <button class="btn btn--petit paiement-rapide__mode" data-mode="carte" [data-recent="oui"] title="…" aria-label="…"><svg class="icone-mode …"/></button> ×5
+     </span>
+   </div>
+   Grand écran : les cinq modes sont visibles, le déclencheur est masqué. Écran étroit (≤ 48 em) : seul le déclencheur est visible ;
+   il déplie les cinq modes sous lui (variante compacte). Aucune couleur ne porte seule l'information. */
+.paiement-rapide {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--e-1) var(--e-2);
+}
+.paiement-rapide__titre {
+  font-size: var(--t-s);
+  font-weight: 600;
+  color: var(--c-texte-doux);
+}
+.paiement-rapide__modes {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--e-1) var(--e-2);
+}
+.paiement-rapide__declencheur { display: none; }
+.paiement-rapide__declencheur::after {
+  content: "";
+  flex: none;
+  width: 0.5em;
+  height: 0.5em;
+  margin-top: -0.2em;
+  border-right: 2.5px solid currentColor;
+  border-bottom: 2.5px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform var(--duree) ease;
+}
+.paiement-rapide__declencheur[aria-expanded="true"]::after {
+  margin-top: 0.2em;
+  transform: rotate(-135deg);
+}
+
+/* Bouton d'un mode : carré, icône seule (le nom complet est dans aria-label et title). */
+.paiement-rapide__mode.btn {
+  position: relative;
+  min-width: var(--cible-s);
+  min-height: var(--cible-s);
+  padding: 0;
+  gap: 0;
+  border: 1.5px solid var(--c-bordure-champ);   /* 4,26:1 sur la surface (clair), 5,16:1 (sombre) */
+  background: var(--c-surface);
+  color: var(--c-texte);                         /* 16,29:1 sur la surface (clair), 13,77:1 (sombre) */
+}
+.paiement-rapide__mode .icone-mode { color: inherit; }
+/* Mode récent : le dernier utilisé. Mis en évidence seulement, jamais enregistré sans clic.
+   Signes cumulés : bordure de 2 px en couleur primaire (6,46:1 / 7,34:1), fond « sélection », pastille pleine en coin,
+   et le mot « dernier mode utilisé » dans title et aria-label. */
+.paiement-rapide__mode[data-recent="oui"] {
+  border-width: 2px;
+  border-color: var(--c-primaire);
+  background: var(--c-selection);               /* texte dessus : 13,12:1 (clair), 10,45:1 (sombre) */
+}
+.paiement-rapide__mode[data-recent="oui"]::after {
+  content: "";
+  position: absolute;
+  top: -5px;
+  inset-inline-end: -5px;
+  width: 0.5rem;
+  height: 0.5rem;
+  border: 2px solid var(--c-surface);
+  border-radius: var(--r-pill);
+  background: var(--c-primaire);
+}
+.paiement-rapide__mode.btn:hover { background: var(--c-surface-alt); }   /* texte dessus : 14,13:1 (clair), 11,99:1 (sombre) */
+/* Mode actuel d'un versement existant (variante « changer le mode », aria-pressed) : fond plein + double filet. */
+.paiement-rapide__mode[aria-pressed="true"] {
+  border-color: var(--c-primaire);
+  background: var(--c-primaire);
+  color: var(--c-sur-primaire);                  /* 6,46:1 (clair), 7,94:1 (sombre) */
+  box-shadow: inset 0 0 0 2px var(--c-sur-primaire);
+}
+.paiement-rapide__mode[aria-pressed="true"]:hover { background: var(--c-primaire-survol); }
+.paiement-rapide[aria-busy="true"] .paiement-rapide__mode,
+.paiement-rapide[aria-busy="true"] .paiement-rapide__declencheur { cursor: progress; }
+
+/* Cibles tactiles : 44 px sur écran tactile et dans la variante compacte. */
+@media (pointer: coarse) {
+  .paiement-rapide__mode.btn,
+  .paiement-rapide__declencheur.btn { min-width: var(--cible); min-height: var(--cible); }
+}
+
+/* Variante compacte (≤ 48 em ≈ 768 px). Largeur : déclencheur seul ≈ 5 rem ; modes dépliés 5 × 44 px + 4 × 8 px = 252 px. */
+@media (max-width: 48em) {
+  .paiement-rapide {
+    flex-direction: column;
+    align-items: flex-end;
+    flex-wrap: nowrap;
+  }
+  .paiement-rapide__titre { display: none; }
+  .paiement-rapide__declencheur { display: inline-flex; }
+  .paiement-rapide__modes { display: none; }
+  .paiement-rapide:has(> .paiement-rapide__declencheur[aria-expanded="true"]) > .paiement-rapide__modes { display: inline-flex; }
+  .paiement-rapide__mode.btn,
+  .paiement-rapide__declencheur.btn { min-width: var(--cible); min-height: var(--cible); }
+}
+
+/* Choix du mode dans un dialogue (design-system §5.14) : boutons à choix unique, vrais boutons radio masqués visuellement
+   mais focalisables (flèches du clavier pour passer d'un mode à l'autre, un seul arrêt de tabulation pour le groupe).
+   <fieldset class="groupe choix-mode"><legend>…</legend><div class="choix-mode__liste">
+     <label class="choix-mode__option" [data-recent="oui"]><input class="choix-mode__entree" type="radio" name="mode" value="carte">
+       <svg class="icone-mode icone-mode--carte" aria-hidden="true" focusable="false"/><span class="choix-mode__texte">Carte bancaire</span>
+       [<span class="choix-mode__note">Dernier mode utilisé</span>]</label> ×5 </div><p class="champ__erreur" hidden>…</p></fieldset> */
+.choix-mode__liste {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: var(--e-2);
+}
+.choix-mode__option {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: var(--e-3);
+  min-height: var(--cible);
+  padding: var(--e-2) var(--e-3);
+  border: 2px solid var(--c-bordure-champ);
+  border-radius: var(--r-m);
+  background: var(--c-surface);
+  color: var(--c-texte);
+  font-weight: 600;
+  line-height: var(--interligne-serre);
+  cursor: pointer;
+  transition: background-color var(--duree) ease, border-color var(--duree) ease;
+}
+.choix-mode__option:hover { background: var(--c-surface-alt); }
+.choix-mode__option .icone-mode { grid-row: 1 / span 2; color: inherit; }
+.choix-mode__texte { grid-column: 2; }
+.choix-mode__note {
+  grid-column: 2;
+  font-size: var(--t-s);
+  font-weight: 500;
+  color: var(--c-texte-doux);
+}
+.choix-mode__option[data-recent="oui"] { border-color: var(--c-primaire); }
+.choix-mode__entree {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  opacity: 0;
+}
+/* Mode choisi : fond plein, coche et double filet (pas la couleur seule). */
+.choix-mode__option:has(> .choix-mode__entree:checked) {
+  border-color: var(--c-primaire);
+  background: var(--c-primaire);
+  color: var(--c-sur-primaire);
+  box-shadow: inset 0 0 0 2px var(--c-sur-primaire);
+}
+.choix-mode__option:has(> .choix-mode__entree:checked) .choix-mode__note { color: inherit; }
+.choix-mode__option:has(> .choix-mode__entree:checked) .choix-mode__texte::before { content: "✓ "; }
+.choix-mode__option:has(> .choix-mode__entree:focus-visible) {
+  outline: var(--focus-largeur) solid var(--c-focus);
+  outline-offset: var(--focus-decalage);
+}
+.choix-mode__option:has(> .choix-mode__entree:disabled) { opacity: 0.55; cursor: not-allowed; }
+.choix-mode--erreur .choix-mode__option { border-width: 3px; }
+@media (max-width: 40em) {
+  .choix-mode__liste { grid-template-columns: 1fr 1fr; }
+}
+
 /* Icône inline éventuelle (SVG créé par le JS, taille calée sur le texte). */
 .icone {
   width: 1.15em;
@@ -990,6 +1168,17 @@ details.depliant[open] > summary::before { transform: rotate(45deg); }
     background: Highlight;
     color: HighlightText;
   }
+  /* Paiement en un clic et choix du mode : cadre en couleur système ; mode choisi ou actuel en Highlight ; mode récent : pastille et cadre épais. */
+  .choix-mode__option { border: 2px solid ButtonText; }
+  .paiement-rapide__mode[aria-pressed="true"],
+  .choix-mode__option:has(> .choix-mode__entree:checked) {
+    background: Highlight;
+    color: HighlightText;
+    box-shadow: none;
+  }
+  .paiement-rapide__mode[data-recent="oui"] { border-width: 3px; }
+  .paiement-rapide__mode[data-recent="oui"]::after { background: ButtonText; border-color: Canvas; }
+  .choix-mode__option:has(> .choix-mode__entree:focus-visible) { outline-color: Highlight; }
   /* Focus d'un bouton de segment : couleurs système (les ombres sont ignorées dans ce mode). */
   .segment__bouton:focus-visible {
     outline: 3px solid Highlight;

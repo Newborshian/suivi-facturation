@@ -279,7 +279,7 @@ Les noms de classes sont le **contrat** (§7). Les états sont décrits par attr
 
 ### 5.1 Boutons — `.btn`
 - Variantes : `.btn--primaire` (action principale de la zone, **une seule par zone**), `.btn--secondaire` (bordure), `.btn--discret` (lien-bouton), `.btn--danger` (plein, suppression définitive ou action sans retour), `.btn--danger-discret` (contour rouge, déclencheur d'une confirmation). Tailles : défaut 44 px, `.btn--petit` 36 px. Un `<a>` peut porter `.btn` (liens d'action : « Définir mes prestations et tarifs », « Voir la liste »).
-- `.btn-payer` : « Payé en totalité » (fond vert pâle, ✓ en pseudo-élément). Absent (non rendu) si le reste à payer est 0.
+- `.btn-payer` : « Payé en totalité » (fond vert pâle, ✓ en pseudo-élément). Absent (non rendu) si le reste à payer est 0. Remplacé, dans les lignes de prestations, par le groupe de paiement en un clic `.paiement-rapide` (§5.14) ; la classe reste définie tant qu'un écran l'emploie.
 - `.btn-statut` + `.badge` + `data-statut` : bouton de statut en un clic (§5.4).
 - `.btn-deplier` + `aria-expanded` : dépliage de la ligne patient (chevron en bordures CSS).
 - Désactivé : `disabled` (opacité 0,55, curseur « interdit »). En cours d'action : `aria-busy="true"` (curseur « en cours »).
@@ -300,7 +300,7 @@ Structure (label toujours visible, jamais remplacé par un placeholder) :
 - « Obligatoire » est écrit en toutes lettres (pas un astérisque seul).
 - Montant : `<div class="champ-montant"><input class="input" inputmode="decimal" autocomplete="off" …><span class="champ-montant__unite" aria-hidden="true">€</span></div>`, `type="text"` (pas `number` : on accepte « 1 250,50 »), aligné à droite. Le label contient « (€) ». Au focus, le texte du montant est sélectionné pour être remplacé d'une frappe.
 - Date : `<input type="date">` natif (clavier : jj/mm/aaaa, calendrier du navigateur). Valeur par défaut = « aujourd'hui » fourni par le serveur (`GET /api/etat`).
-- Liste : `<select class="input">` natif ; la frappe d'une lettre saute à l'option. La première option d'une liste obligatoire est un invite (« Choisir une prestation », « Choisir le mode de paiement »).
+- Liste : `<select class="input">` natif ; la frappe d'une lettre saute à l'option. La première option d'une liste obligatoire est un invite (« Choisir une prestation »). Le mode de paiement n'est plus une liste : c'est un choix à boutons (`.choix-mode`, §5.14).
 - Case à cocher / radio : `.case` (libellé cliquable, zone ≥ 36 px).
 - Groupes : `fieldset.groupe` + `legend`.
 - Messages d'erreur : texte précédé de « ! » (pseudo-élément), bordure du champ **épaissie à 3 px** (pas seulement rouge), liés par `aria-describedby` et `aria-invalid`. Un **résumé** `.alerte--danger` (`role="alert"`, titre « N champ(s) à corriger ») avec un lien vers chaque champ en erreur apparaît en haut du formulaire à la soumission ; le focus va au premier champ en erreur.
@@ -373,7 +373,7 @@ Bloc centré à bordure en tirets : `.etat-vide__titre` (ce qui manque), `.etat-
 
 ### 5.13 Icônes des modes de paiement
 
-> Les modes de paiement ont des icônes dans un seul usage. **Seule** la colonne « Paiement » de la liste des prestations utilise ces icônes. Partout ailleurs (dialogues, détail du versement, exports, récapitulatif) le mode reste écrit en toutes lettres.
+> Les modes de paiement ont des icônes dans deux usages. La colonne « Paiement » de la liste des prestations les affiche **seules** (le nom est dans l'`aria-label` du groupe). Les boutons de paiement en un clic et le choix du mode des dialogues (§5.14) les emploient aussi, **avec le nom complet du mode** (texte visible ou `aria-label`). Partout ailleurs (détail du versement, exports, récapitulatif) le mode reste écrit en toutes lettres.
 
 **Principes.** Cinq icônes SVG dessinées à la main, tracés au trait, monochromes (`currentColor`), sans émoji, sans fichier ni police externe. Elles sont construites en JavaScript avec `createElementNS` (`js/icones-paiement.js`). Grille 24 × 24, tracés dans une marge de 2 unités ; épaisseur 1,75 ; extrémités et jointures arrondies. Affichées à **20 px** (1,25 rem, suit le zoom du navigateur).
 
@@ -423,6 +423,85 @@ Bloc centré à bordure en tirets : `.etat-vide__titre` (ce qui manque), `.etat-
 - Contraste forcé (Windows) : trait en `CanvasText`.
 - **Impression** : icônes en noir, 4,2 mm, et le **nom du mode est écrit à côté** (`::after { content: " " attr(title) }`), car la bulle n'existe pas sur papier. D'où l'obligation de renseigner `title`.
 - Rien n'est cliquable : `cursor: help` seulement ; pas de `tabindex`.
+
+### 5.14 Paiement en un clic et choix du mode
+
+> Deux composants servent à choisir le mode de paiement avec le moins de gestes possible : le **groupe de paiement** `.paiement-rapide` (dans la ligne d'une prestation) et le **choix du mode** `.choix-mode` (dans les dialogues). Tous deux réutilisent les cinq icônes de §5.13, **toujours accompagnées du nom complet du mode** (dans `aria-label` et `title` pour les icônes seules, en texte visible dans les dialogues).
+
+#### Groupe de paiement — `.paiement-rapide`
+
+Où : colonne « Actions » de l'écran Prestations et détail de l'écran Facturation du mois, **uniquement quand le reste à payer est supérieur à 0** (sinon le groupe n'est pas rendu). Il remplace le bouton « Payé en totalité » (`.btn-payer`, conservé dans les feuilles de style tant que le JavaScript l'emploie). Un clic sur un mode enregistre **le reste à payer, daté d'aujourd'hui, avec ce mode**, sans dialogue.
+
+```html
+<div class="paiement-rapide" role="group"
+     aria-label="Payer le reste de la prestation du 07/10/2026 de Lapin Pierre : 58,00 €">
+  <span class="paiement-rapide__titre" aria-hidden="true">Payer</span>
+  <button type="button" class="btn btn--petit btn--secondaire paiement-rapide__declencheur"
+          aria-expanded="false" aria-controls="paiement-rapide-ID"
+          aria-label="Payer 58,00 € : choisir le mode de paiement (prestation du 07/10/2026 de Lapin Pierre)">Payer</button>
+  <span class="paiement-rapide__modes" id="paiement-rapide-ID">
+    <button type="button" class="btn btn--petit paiement-rapide__mode" data-mode="carte" data-recent="oui"
+            title="Carte bancaire (dernier mode utilisé)"
+            aria-label="Payer 58,00 € par carte bancaire, dernier mode utilisé : prestation du 07/10/2026 de Lapin Pierre">
+      <svg class="icone-mode icone-mode--carte" viewBox="0 0 24 24" aria-hidden="true" focusable="false"> … </svg>
+    </button>
+    <button type="button" class="btn btn--petit paiement-rapide__mode" data-mode="cheque" title="Chèque"
+            aria-label="Payer 58,00 € par chèque : prestation du 07/10/2026 de Lapin Pierre"> <svg …/> </button>
+    <!-- espèces, virement, autre : même structure, toujours dans cet ordre -->
+  </span>
+</div>
+```
+
+- **Ordre fixe** : carte bancaire, chèque, espèces, virement, autre (celui de `LIBELLES_MODE`). Les boutons ne changent jamais de place : le geste reste le même d'une ligne à l'autre. Le mode récent est signalé, pas déplacé.
+- **Nom accessible** : chaque bouton annonce le verbe, **le montant exact** et **le nom complet du mode**, puis la prestation concernée (« Payer 58,00 € par chèque : prestation du … de … »). Le montant est celui affiché au moment du rendu ; le message qui suit l'enregistrement annonce le montant réellement enregistré (le serveur utilise le reste à payer à cet instant). Le groupe a son propre `aria-label` ; son texte visible « Payer » (`__titre`) est masqué aux lecteurs d'écran (il répéterait le nom du groupe).
+- **Mode récent** (`data-recent="oui"`, au plus un bouton) : le dernier mode utilisé, pris dans `dernierModePaiement` fourni par `GET /api/etat`. C'est **une mise en évidence seule** : aucun enregistrement n'a lieu sans clic. Signes cumulés, jamais la couleur seule : bordure de 2 px en couleur primaire (6,46:1 sur la surface en clair, 7,34:1 en sombre), fond `--c-selection` (texte dessus 13,12:1 en clair, 10,45:1 en sombre), pastille pleine en coin, et la mention « dernier mode utilisé » dans `title` et `aria-label`. Aucun mode récent (jamais de versement) : aucun bouton n'est mis en évidence.
+- **Mode actuel** (variante « changer le mode d'un versement », plus bas) : `aria-pressed="true"` au lieu de `data-recent` ; fond plein `--c-primaire`, texte `--c-sur-primaire` (6,46:1 / 7,94:1) et double filet intérieur.
+- **Taille** : 36 × 36 px (`--cible-s`) à la souris ; **44 × 44 px** (`--cible`) sur écran tactile (`pointer: coarse`) et dans la variante compacte. Icône de 20 px (§5.13). Écart de 8 px entre deux boutons, donc cibles distinctes (WCAG 2.5.8). Largeur du groupe déployé : 5 × 36 + 4 × 8 + titre + filet, soit environ 17 rem.
+- **Contrastes** (calculés) : bordure de bouton `--c-bordure-champ` sur la surface 4,26:1 (clair) / 5,16:1 (sombre) ; icône `--c-texte` sur la surface 16,29:1 / 13,77:1 ; au survol (`--c-surface-alt`) 14,13:1 / 11,99:1. Tous les éléments graphiques dépassent 3:1.
+- **Texte** : « Payer » et toute note à 14 px (`--t-s`) au minimum.
+- **États** : `disabled` (opacité 0,55) en lecture seule, en conflit de fichier et en mode dégradé, **avec la raison** déjà liée à la page par `aria-describedby` (même mécanisme que les autres contrôles d'écriture) ; `aria-busy="true"` sur le groupe et `disabled` sur les cinq boutons pendant l'enregistrement, ce qui évite un second versement par double clic.
+- **Après l'enregistrement** : message éphémère avec « Annuler » (§5.8), du type « 58,00 € enregistrés par carte bancaire. » ; la ligne est mise en surbrillance (`.ligne--modifiee-recemment`), puis le reste à payer passe à 0 et le groupe disparaît de la ligne. Le focus doit passer à un élément qui existe encore (le bouton « Versement » de la même ligne), pas retomber sur `body`.
+
+**Variante compacte** (≤ 48 em, soit 768 px). Le groupe ne montre plus que le déclencheur « Payer » (chevron CSS) ; les cinq modes sont masqués (`display: none`, donc hors de l'ordre de tabulation et de l'arbre d'accessibilité) tant que `aria-expanded="false"`. Le déclencheur bascule `aria-expanded` ; à `true`, les cinq boutons de 44 px apparaissent **sous** le déclencheur (252 px de large). Échap referme et rend le focus au déclencheur ; un clic sur un mode enregistre et referme ; la fermeture au départ du focus est laissée au JavaScript. Le choix de la variante est **uniquement CSS** (media query) : le HTML est le même quelle que soit la largeur, le déclencheur étant `display: none` au-dessus de 48 em.
+
+```
+> 48 em :  Payer  [carte][chèque][espèces][virement][…]  | Versement  Modifier
+≤ 48 em :  [Payer ▾]  Versement  Modifier   (déplié : une seconde ligne de cinq boutons de 44 px)
+```
+Le schéma est indicatif : les icônes réelles sont celles de §5.13. À 375 px, le groupe déplié occupe 252 px au plus : il tient dans la largeur de l'écran. La colonne « Actions » du tableau reste atteignable par le défilement du conteneur, comme avant.
+
+#### Choix du mode dans un dialogue — `.choix-mode`
+
+Remplace le menu déroulant « Mode de paiement » du dialogue d'ajout ou de modification d'un versement et du dialogue de choix du mode. Les cinq modes sont des **boutons à choix unique** : de vrais `<input type="radio">` (masqués visuellement mais focalisables) enveloppés dans des `<label>`. On obtient sans JavaScript un seul arrêt de tabulation pour tout le groupe, les flèches pour passer d'un mode à l'autre, l'annonce « 2 sur 5 » par les lecteurs d'écran et la sélection au clic sur toute la surface.
+
+```html
+<fieldset class="groupe choix-mode" aria-describedby="mode-aide mode-erreur">
+  <legend>Mode de paiement <span class="champ__requis"> (obligatoire)</span></legend>
+  <div class="choix-mode__liste">
+    <label class="choix-mode__option" data-recent="oui">
+      <input class="choix-mode__entree" type="radio" name="mode" value="carte" checked>
+      <svg class="icone-mode icone-mode--carte" viewBox="0 0 24 24" aria-hidden="true" focusable="false"> … </svg>
+      <span class="choix-mode__texte">Carte bancaire</span>
+      <span class="choix-mode__note">Dernier mode utilisé</span>
+    </label>
+    <label class="choix-mode__option"> … Chèque … </label>   <!-- espèces, virement, autre -->
+  </div>
+  <p class="champ__erreur" id="mode-erreur" hidden>Choisissez le mode de paiement.</p>
+</fieldset>
+```
+
+- Chaque option montre **l'icône et le nom en toutes lettres** (texte de 16 px, graisse 600). Hauteur minimale 44 px ; grille `auto-fit` de 10 rem minimum : trois colonnes dans un dialogue large, **deux colonnes à 375 px** (la cinquième option seule sur sa ligne).
+- **Option choisie** : fond plein `--c-primaire`, texte `--c-sur-primaire`, coche « ✓ » devant le nom et double filet intérieur. **Option récente** (`data-recent="oui"`, à l'ajout seulement) : bordure primaire et mention texte « Dernier mode utilisé » (14 px). À l'ajout d'un versement, le mode récent est **présélectionné** ; à la modification, c'est le mode du versement qui l'est et aucune mention « récent » n'apparaît. Sans mode récent, rien n'est présélectionné.
+- **Focus** : anneau de 3 px `--c-focus` décalé de 2 px **autour** de l'option (`:has(> input:focus-visible)`), donc sur la surface du dialogue, sans conflit avec le fond plein de l'option choisie. Focus initial : le champ « Montant » (formulaire de versement) ; l'option choisie ou, à défaut, la première (dialogue de choix du mode).
+- **Erreur** : si aucun mode n'est choisi à l'envoi, `.choix-mode--erreur` épaissit la bordure de chaque option à 3 px, `.champ__erreur` (texte précédé de « ! ») s'affiche, et le résumé d'erreurs du formulaire (§5.2) pointe vers le groupe ; le focus va à la première option.
+- **Désactivé** : `disabled` sur chaque radio, options à 0,55 d'opacité.
+
+**Variante « changer le mode d'un versement existant »** (liste des versements du dialogue de modification d'une prestation) : même `.paiement-rapide` dans la cellule « Mode », mais les cinq boutons portent `aria-pressed` (« vrai » pour le mode actuel). Un clic sur un autre mode **enregistre aussitôt** la modification, sans toucher au montant ni à la date ; un clic sur le mode déjà actif ne fait rien. Nom accessible : « Passer le versement du 07/10/2026 en espèces ». Le bouton « Modifier » du versement reste disponible pour changer aussi le montant ou la date ; son dialogue utilise `.choix-mode`.
+
+#### Compatibilité et impression
+- Contraste forcé (Windows) : cadres en `ButtonText`, mode choisi ou actuel en `Highlight` / `HighlightText`, mode récent à bordure de 3 px et pastille en `ButtonText`, anneau de focus du choix de mode en `Highlight`.
+- Impression : le groupe est dans la colonne « Actions », masquée à l'impression avec les boutons ; rien à ajouter.
+- Aucun style en ligne : la présentation relève du CSS seul ; le JavaScript gère le clic, le dépliage et `aria-expanded`.
 
 ## 6. Graphiques SVG et barres horizontales
 
@@ -552,7 +631,7 @@ Récapitulatif des classes définies dans `public/css/`. Les classes absentes de
 ### 7.2 Composants
 | Famille | Classes |
 |---|---|
-| Boutons | `.btn` + `.btn--primaire / --secondaire / --discret / --danger / --danger-discret`, `.btn--petit`, `.btn-payer`, `.btn-statut`, `.btn-deplier` ; définis, non utilisés : `.btn--bloc`, `.icone` (icône SVG en ligne, calée sur le texte) |
+| Boutons | `.btn` + `.btn--primaire / --secondaire / --discret / --danger / --danger-discret`, `.btn--petit`, `.btn-payer`, `.btn-statut`, `.btn-deplier` ; paiement en un clic (§5.14) : `.paiement-rapide`, `.paiement-rapide__titre / __declencheur / __modes / __mode` (+ `[data-recent="oui"]`, `[aria-pressed="true"]`), `.choix-mode`, `.choix-mode__liste / __option / __entree / __texte / __note` (+ `[data-recent="oui"]`, `.choix-mode--erreur`) ; définis, non utilisés : `.btn--bloc`, `.icone` (icône SVG en ligne, calée sur le texte) |
 | Champs | `.champ`, `.champ__label`, `.champ__requis`, `.champ__aide`, `.champ__erreur`, `.champ--erreur`, `.champ--large`, `.input`, `.input--recherche`, `.champ-montant`, `.champ-montant__unite`, `.case`, `fieldset.groupe`, `.formulaire-grille`, `.filtres`, `.selecteur-mois`, `.segment`, `.segment__bouton` ; combobox de patient (§8.10, spécifiée, pas encore branchée par le JS) : `.champ--combo`, `.combo`, `.suggestions`, `.suggestion` (+ `--archive`, `--creer`), `.suggestion__nom`, `.suggestion__detail`, `.suggestion__marque`, `.suggestions__vide`, `.indication-patient` |
 | Cartes | `.carte`, `.carte__entete`, `.carte__titre`, `.carte__note`, `.grille-cartes`, `.kpi`, `.kpi__libelle`, `.kpi__valeur`, `.kpi__detail`, `.kpi[data-serie]` |
 | Tableaux | `.table-wrap`, `.table-wrap--haut`, `.table`, `.table--dense`, `.col-nombre / -montant / -action / -case / -reste / -etat-paiement / -tarif`, `.col-libelle-tarif`, `.cellule-double__secondaire`, `.modes-paiement`, `.mode-paiement`, `.icone-mode` (+ `--carte / --cheque / --especes / --virement / --autre`, §5.13), `.ligne--selectionnee / --a-venir / --modifiee-recemment / --total / --inactive`, `.ligne-detail`, `.ligne-detail__contenu`, `tbody.patient`, `.montant`, `.montant--zero / --reste`, `.nom-prestation` (libellé barré d'une prestation désactivée) ; définis, non utilisés : `.col-centre`, `.col-secondaire`, `.col-prestation`, `.montant--fort` |
@@ -586,6 +665,8 @@ Récapitulatif des classes définies dans `public/css/`. Les classes absentes de
 | `data-accueil-vide`, `data-catalogue` | `oui` ; `vide`, `inactif` | accueil de premier démarrage (§8.7), repères pour les tests ; sans règle CSS |
 | `data-ajout-desactive` | `oui` | sur la carte du formulaire d'ajout désactivé (§8.7) ; sans règle CSS |
 | `data-tarifs-vide` | `oui` | sur l'état vide de Paramètres › Tarifs ; sans règle CSS |
+| `data-mode` | `carte`, `cheque`, `especes`, `virement`, `autre` | sur `.paiement-rapide__mode` : repère pour les tests ; sans règle CSS |
+| `data-recent` | `oui` | sur un bouton de mode (`.paiement-rapide__mode`, `.choix-mode__option`) : dernier mode utilisé (§5.14) |
 | `data-vue-ca` | `prestation`, `versement` | boutons du commutateur de vue du chiffre d'affaires ; sans règle CSS |
 
 ### 7.5 Règles d'implémentation
@@ -1206,6 +1287,7 @@ Application de bureau d'abord ; **utilisable jusqu'à un téléphone**. Points d
 | ≥ 62 em | Tableau de bord : cartes `.tdb-moitie` côte à côte ; Paramètres avec sommaire collant à gauche (14 rem) ; page de 76 rem maximum, centrée |
 | 48 – 62 em | Une colonne ; les tableaux défilent horizontalement dans leur conteneur si besoin |
 | < 48 em | Les colonnes `.col-secondaire` seraient masquées, mais aucun tableau actuel n'en utilise : tous les tableaux gardent leurs colonnes et défilent dans leur cadre |
+| < 48 em | Paiement en un clic : seul le déclencheur « Payer » est visible, il déplie les cinq modes en boutons de 44 px (§5.14) |
 | < 40 em | Page Patients : tableau à deux colonnes (Patient, Actions), boutons d'action empilés (§8.11) ; combobox : options sur deux lignes si besoin. Marges de page réduites, `h1` plus petit ; navigation sur toute la largeur ; dialogues en feuille collée en bas, boutons pleine largeur ; barres horizontales sur 2 lignes (libellé + valeur, puis piste) ; `.champ--large` sur une colonne ; `dl.infos` sur une colonne ; versions du conflit empilées ; commutateurs du tableau de bord à options empilées |
 
 Le formulaire d'ajout garde le même ordre de champs quelle que soit la largeur (grille `auto-fit`). Aucun `overflow: hidden` sur un contenu porteur d'information (les pistes de barres et les dialogues rognent seulement leurs bords arrondis).
@@ -1264,10 +1346,11 @@ Décisions prises pour l'interface livrée, et leurs raisons.
 9. **Barres horizontales en HTML/CSS** pour les classements (répartition, impayés) : plus simple et plus accessible que du SVG ; les barres empilées du chiffre d'affaires et des séances sont en SVG.
 10. **Sens de « à facturer » et de « prévu »** : « À facturer » désigne le reste à payer des prestations non facturées (dans les graphiques) ou le montant des lignes à facturer (indicateur de tête, acomptes compris). « Prévu » est une série distincte, réservée à l'estimation indicative et aux séances à venir.
 11. **Homonymes** : la distinction se fait dans un dialogue de choix qui affiche « dernière prestation le jj/mm/aaaa ». Avec le registre des patients (§8.10, §8.11), les homonymes portent en plus un badge « Homonyme » dans la liste des patients et la date de dernière prestation dans les suggestions.
-12. **Symboles** : les symboles d'état (✓ ◐ ○ ◇ ◆ » ↻) sont des caractères Unicode, pas des icônes dessinées. Seuls les modes de paiement ont des icônes SVG, dans la liste des prestations.
-13. **Icône « Virement » sans libellé** : l'icône est affichée seule ; le libellé est dans l'`aria-label` du groupe, dans la bulle `title` et à l'impression.
+12. **Symboles** : les symboles d'état (✓ ◐ ○ ◇ ◆ » ↻) sont des caractères Unicode, pas des icônes dessinées. Seuls les modes de paiement ont des icônes SVG (liste des prestations, boutons de paiement en un clic, choix du mode).
+13. **Icône « Virement » sans libellé** : dans la colonne « Paiement », l'icône est affichée seule ; le libellé est dans l'`aria-label` du groupe, dans la bulle `title` et à l'impression. Les boutons de paiement en un clic sont aussi des icônes seules, mais ce sont des **actions** : leur nom complet (mode et montant) est dans leur `aria-label`, et la bulle `title` le répète au survol.
 14. **Navigation** : quatre entrées fixes aujourd'hui (Facturation du mois, Prestations, Tableau de bord, Paramètres) ; une cinquième, « Patients », est spécifiée au §8.11.
 15. **Quitter l'application** : un bouton explicite dans Paramètres, avec confirmation, plutôt qu'un arrêt silencieux ; la page cesse alors toute requête.
+16. **Payer en un clic** : un bouton par mode sur la ligne plutôt qu'un « Payé en totalité » qui réutilise en silence le dernier mode ; le dernier mode est mis en évidence, jamais appliqué sans clic. L'ordre des cinq boutons est fixe, pour que la position d'un mode ne change pas d'une ligne à l'autre. Sur écran étroit, un seul déclencheur « Payer » déplie les cinq modes (§5.14).
 
 ## 15. Limites et points non vérifiés
 

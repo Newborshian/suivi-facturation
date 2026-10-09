@@ -4,7 +4,7 @@
 
 Application web **locale** de suivi d'activité pour un praticien ou une praticienne libérale de santé travaillant seul(e) : séances par patient, statut de facturation, paiements (partiels possibles), chiffre d'affaires mensuel prévu/encaissé. Conçu d'abord pour une ergothérapeute libérale ; utilisable par d'autres professions de santé libérales après avoir défini ses prestations.
 
-**Ce que ce n'est pas.** Ce n'est ni un logiciel de facturation (il ne produit pas de facture : il prépare un récapitulatif mensuel copiable ou imprimable, à recopier dans l'outil de facturation habituel), ni un logiciel de comptabilité certifié, ni un dossier patient. Il n'apporte aucune garantie de conformité réglementaire.
+**Ce que ce n'est pas.** Ce n'est ni un logiciel de facturation (il ne produit pas de facture : il prépare un récapitulatif mensuel copiable ou imprimable, à recopier dans l'outil de facturation habituel), ni un logiciel de comptabilité certifié, ni un dossier patient (le registre des patients ne contient que le nom, le prénom et un état actif ou archivé : ni coordonnées, ni donnée de santé, ni motif). Il n'apporte aucune garantie de conformité réglementaire.
 
 **Vos données de santé restent sous votre responsabilité.** Les noms, motifs et montants saisis sont des données de santé, stockés **en clair** dans un fichier sur votre ordinateur (et dans le dossier synchronisé de votre choix, si vous en configurez un). Choisir l'endroit où elles sont hébergées (disque local, cloud personnel comme Proton Drive, sauvegarde externe) et vérifier que ce choix respecte vos obligations (ordre professionnel, CNIL, hébergement de données de santé) est de **votre ressort** : ce projet ne l'affirme pas et ne le garantit pas.
 
@@ -23,11 +23,13 @@ Détails : [SECURITY.md](SECURITY.md) et [docs/exploitation.md](docs/exploitatio
 
 ## Fonctions disponibles
 
-Facturation du mois (récapitulatif par patient, copie, impression), saisie et liste des prestations, paiements en un clic ou en plusieurs versements (modes : carte bancaire, chèque, espèces, virement, autre ; la liste des prestations les montre par de petites icônes avec une bulle au survol), tableau de bord (CA par mois, impayés, séances, répartition), catalogue de prestations et tarifs que vous définissez vous-même, sauvegardes, restauration, export.
+Facturation du mois (récapitulatif par patient, copie, impression), saisie et liste des prestations avec recherche de patient à la frappe et création rapide, page Patients (ajouter, renommer, archiver et réactiver, supprimer un patient sans prestation, homonymes signalés), paiements en un clic ou en plusieurs versements (modes : carte bancaire, chèque, espèces, virement, autre ; la liste des prestations les montre par de petites icônes avec une bulle au survol), tableau de bord (CA par mois, impayés, séances, répartition), catalogue de prestations et tarifs que vous définissez vous-même, sauvegardes, restauration, export.
 
 **Prévisions :** le graphique du chiffre d'affaires par mois peut afficher, pour le mois en cours et les 3 suivants, une *estimation indicative* (moyenne des 3 derniers mois complets et séances déjà planifiées). Elle n'apparaît qu'avec au moins 3 mois complets de données ; un mois sans prestation compte pour 0.
 
-*À venir :* archivage à 12 mois, détection automatique des copies de conflit du cloud, aide à la saisie, avertissement de doublon, patients actifs.
+**Mise à jour d'un ancien fichier :** un fichier de données de l'ancien format (sans registre des patients) est mis à jour tout seul au premier lancement, après une sauvegarde « Avant une mise à jour du fichier » (voir [docs/exploitation.md](docs/exploitation.md)).
+
+*À venir :* archivage à 12 mois, détection automatique des copies de conflit du cloud, avertissement de doublon de prestation.
 
 ## Premier lancement : le catalogue est vide
 
