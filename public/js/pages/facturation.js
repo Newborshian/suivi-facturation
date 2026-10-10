@@ -7,11 +7,11 @@ import { LIEN_TARIFS, saisieImpossible } from '/js/catalogue-etat.js';
 import { afficherBandeaux, alerte } from '/js/bandeaux.js';
 import { el, remplacer } from '/js/dom.js';
 import { afficherEcranDegrade } from '/js/ecran-degrade.js';
-import { ecritureAutorisee, explicationEcritureImpossible } from '/js/ecriture.js';
+import { MESSAGE_ACTION_EN_COURS, ecritureAutorisee, explicationEcritureImpossible } from '/js/ecriture.js';
 import { formatDate, formatEuros, formatMois, moisPlusN, nomPatient, pluriel } from '/js/format.js';
 import { messagePaiement } from '/js/paiement-libelles.js';
 import { focaliserVersement } from '/js/paiement-rapide.js';
-import { dialogueModification, dialogueVersement, choisirMode } from '/js/pages/prestations-dialogues.js';
+import { dialogueModification, dialogueVersement } from '/js/pages/prestations-dialogues.js';
 import { construireTableau } from '/js/pages/facturation-tableau.js';
 import { formaterDetailTexte, formaterRecapTexte } from '/js/recap-texte.js';
 import { lignesAMarquer, lignesAMarquerDuMois, nbAVenirAFacturer, recapACopier, toutesLesLignes } from '/js/recap-regles.js';
@@ -86,7 +86,10 @@ async function annulerAction(jeton, ligneId) {
 
 /** Une seule action à la fois (évite les doubles clics) ; toute erreur devient un message clair. */
 async function proteger(action) {
-  if (page.occupe) return;
+  if (page.occupe) {
+    afficherToast({ texte: MESSAGE_ACTION_EN_COURS, variante: 'attention' }); // le clic est ignoré : on le dit
+    return;
+  }
   page.occupe = true;
   try {
     await action();
@@ -201,22 +204,13 @@ async function basculerStatut(ligne) {
 
 /** Paiement en un clic : le reste à payer (celui du serveur à cet instant), daté d'aujourd'hui, avec le mode du bouton cliqué. */
 async function payer(ligne, mode) {
-  try {
-    const r = await appeler('POST', `/api/prestations/${ligne.id}/payer-totalite`, { mode });
-    const paiement = messagePaiement(r.donnees, ligne.resteCentimes);
-    if (paiement.mode) page.dernierMode.valeur = paiement.mode;
-    page.recent = ligne.patient.id;
-    notifier({ texte: paiement.texte, avertissements: r.avertissements, annulation: r.annulation, ligneId: ligne.id });
-    await charger();
-    focaliserVersement(zone.contenu, ligne.id);
-  } catch (err) {
-    if (err instanceof ErreurApi && err.code === 'MODE_REQUIS') {
-      const choisi = await choisirMode({ resteCentimes: ligne.resteCentimes });
-      if (choisi) await payer(ligne, choisi);
-      return;
-    }
-    throw err;
-  }
+  const r = await appeler('POST', `/api/prestations/${ligne.id}/payer-totalite`, { mode });
+  const paiement = messagePaiement(r.donnees, ligne.resteCentimes);
+  if (paiement.mode) page.dernierMode.valeur = paiement.mode;
+  page.recent = ligne.patient.id;
+  notifier({ texte: paiement.texte, avertissements: r.avertissements, annulation: r.annulation, ligneId: ligne.id });
+  await charger();
+  focaliserVersement(zone.contenu, ligne.id);
 }
 
 const ctxDialogues = {

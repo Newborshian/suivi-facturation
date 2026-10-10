@@ -509,12 +509,36 @@ test('renommer un patient : options invalides (non booléennes, contradictoires)
     assert.equal((await a.post('/api/prestations', saisie({ renommerPatient: true }))).status, 400, 'option réservée à la modification');
   }));
 
-test('renommage sur toutes les lignes : avertissement si un autre patient porte déjà ce nom', () =>
+test('renommage sur toutes les lignes vers le nom d\'un autre patient : 409 PATIENT_EXISTANT sans rien modifier ; confirmé (homonyme: true), avertissement et aucune fusion', () =>
   avecServeur(async (s, a) => {
     const l1 = (await a.post('/api/prestations', saisie())).json.donnees;
     await a.post('/api/prestations', saisie({ date: '2026-09-01' }));
     await a.post('/api/prestations', saisie({ patient: { nom: 'Ours', prenom: 'Baloo' } }));
-    const r = await a.patch(`/api/prestations/${l1.id}`, { modifieLe: l1.modifieLe, patient: { nom: 'ours', prenom: 'baloo' }, renommerPatient: true });
+    const corps = { modifieLe: l1.modifieLe, patient: { nom: 'ours', prenom: 'baloo' }, renommerPatient: true };
+    const refus = await a.patch(`/api/prestations/${l1.id}`, corps);
+    assert.equal(refus.status, 409);
+    assert.equal(refus.json.erreur.code, 'PATIENT_EXISTANT');
+    assert.equal(refus.json.erreur.details.candidats.length, 1, 'identifiant et date seulement, jamais de nom');
+    assert.doesNotMatch(JSON.stringify(refus.json), /Baloo|Ours/i);
+    const patients = (await a.get('/api/patients')).json.patients;
+    assert.deepEqual(patients.map((p) => p.homonyme), [false, false], 'rien n\'est renommé sans confirmation');
+    const r = await a.patch(`/api/prestations/${l1.id}`, { ...corps, homonyme: true });
     assert.equal(r.status, 200);
     assert.deepEqual(r.json.avertissements.map((x) => x.code), ['PATIENT_HOMONYME']);
+    assert.equal((await a.get('/api/patients')).json.patients.length, 2, 'deux patients distincts : aucune fusion');
+  }));
+
+test('modification d\'une prestation : « homonyme » doit être un booléen (400) ; versement : PATCH vide -> 400 REQUETE_INVALIDE, aucun jeton d\'annulation', () =>
+  avecServeur(async (s, a) => {
+    const l = (await a.post('/api/prestations', saisie())).json.donnees;
+    const mauvais = await a.patch(`/api/prestations/${l.id}`, { modifieLe: l.modifieLe, homonyme: 'oui' });
+    assert.equal(mauvais.status, 400);
+    assert.equal(mauvais.json.erreur.code, 'REQUETE_INVALIDE');
+    const paye = (await a.post(`/api/prestations/${l.id}/payer-totalite`, { mode: 'cheque' })).json.donnees;
+    const vide = await a.patch(`/api/prestations/${l.id}/versements/${paye.versements[0].id}`, {});
+    assert.equal(vide.status, 400);
+    assert.equal(vide.json.erreur.code, 'REQUETE_INVALIDE');
+    assert.equal(vide.json.annulation, undefined);
+    const ok = await a.patch(`/api/prestations/${l.id}/versements/${paye.versements[0].id}`, { mode: 'virement' });
+    assert.equal(ok.status, 200, 'un champ valide reste accepté');
   }));

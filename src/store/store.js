@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto';
 import fsp from 'node:fs/promises';
 import path from 'node:path';
 import { ErreurApp } from '../erreurs.js';
-import { FORMAT, MIGRATIONS, VERSION_COURANTE, compterIncoherencesPatients, compterIncoherencesStatut, controlerStructure, creerEtatInitial, migrer } from '../domain/schema.js';
+import { FORMAT, MIGRATIONS, VERSION_COURANTE, compterAnomaliesRegistre, compterIncoherencesPatients, compterIncoherencesStatut, controlerStructure, creerEtatInitial, migrer } from '../domain/schema.js';
 import { SAUVEGARDES_MAX, SAUVEGARDES_MIN } from '../domain/validation.js';
 import { ecrireAtomique, nettoyerTemporaires } from './fichier-atomique.js';
 import { chercherConflitNonResolu, empreinteDe, resumerVersion, sha256 } from './conflit.js';
@@ -38,13 +38,28 @@ const MESSAGE_STRUCTURE_INCONNUE = "Ce fichier a été créé par une version pl
 function avertissementIncoherences(etat) {
   const { factureSansDate, aFacturerAvecDate } = compterIncoherencesStatut(etat);
   const { orphelines, copiesDivergentes } = compterIncoherencesPatients(etat);
-  if (factureSansDate === 0 && aFacturerAvecDate === 0 && orphelines === 0 && copiesDivergentes === 0) return null;
+  const { champsInconnus, nomsHorsBornes } = compterAnomaliesRegistre(etat);
+  if (factureSansDate === 0 && aFacturerAvecDate === 0 && orphelines === 0 && copiesDivergentes === 0 && champsInconnus === 0 && nomsHorsBornes === 0) return null;
   const phrases = [];
   if (factureSansDate > 0) phrases.push(`${factureSansDate} prestation${factureSansDate > 1 ? 's sont marquées' : ' est marquée'} « facturé${factureSansDate > 1 ? 'es' : 'e'} » sans date de facturation (la date de la prestation sert alors à calculer l'ancienneté des impayés).`);
   if (aFacturerAvecDate > 0) phrases.push(`${aFacturerAvecDate} prestation${aFacturerAvecDate > 1 ? 's sont marquées' : ' est marquée'} « à facturer » alors qu'une date de facturation est enregistrée.`);
   if (orphelines > 0) phrases.push(`${orphelines} prestation${orphelines > 1 ? 's concernent' : ' concerne'} un patient absent du registre des patients.`);
   if (copiesDivergentes > 0) phrases.push(`${copiesDivergentes} prestation${copiesDivergentes > 1 ? 's portent' : ' porte'} un nom de patient différent de celui du registre.`);
-  return { code: 'DONNEES_INCOHERENTES', message: `${phrases.join(' ')} Le fichier n'a pas été modifié ; vérifiez ces prestations dans la liste.` };
+  if (champsInconnus > 0) phrases.push(`${champsInconnus} fiche${champsInconnus > 1 ? 's de patient contiennent' : ' de patient contient'} des informations que l'application ne connaît pas (seuls le nom, le prénom et l'état actif sont attendus).`);
+  if (nomsHorsBornes > 0) phrases.push(`${nomsHorsBornes} nom${nomsHorsBornes > 1 ? 's de patient sont' : ' de patient est'} anormalement ${nomsHorsBornes > 1 ? 'longs' : 'long'} ou ${nomsHorsBornes > 1 ? 'contiennent' : 'contient'} un caractère invisible.`);
+  return { code: 'DONNEES_INCOHERENTES', message: `${phrases.join(' ')} Le fichier n'a pas été modifié ; vérifiez-les.` };
+}
+
+/** Cause de l'échec d'une migration, en clair et sans aucune donnée du fichier (pas de nom, pas de valeur) : l'étape et le type de problème seulement. */
+function causeMigration(etape, problemes) {
+  if (etape === 'sauvegarde') return "la copie de sécurité du fichier n'a pas pu être créée (dossier des sauvegardes inaccessible ?).";
+  if (etape === 'ecriture') return "le nouveau fichier n'a pas pu être écrit (fichier occupé par un autre programme, droits insuffisants ?).";
+  if (etape === 'structure') {
+    const patients = problemes.filter((p) => /\.patient invalide/.test(p)).length;
+    if (patients > 0) return `${patients} prestation${patients > 1 ? 's ont' : ' a'} un patient incomplet (nom, prénom ou identifiant manquant).`;
+    return `la structure du fichier n'est pas celle attendue (${problemes.length} point${problemes.length > 1 ? 's' : ''} à vérifier).`;
+  }
+  return "le contenu du fichier n'a pas pu être converti.";
 }
 
 const serialiser = (etat) => `${JSON.stringify(etat, null, 2)}\n`;
@@ -211,16 +226,28 @@ export async function ouvrirStore({ dossier, horloge, fs = fsp, optionsAtomique,
     }
 
     if (donnees.schemaVersion < VERSION_COURANTE) {
+      // Journal : version et nombre de patients en cas de succès ; étape et code d'erreur technique en cas d'échec. Jamais de nom ni de contenu.
+      let etape = 'migration';
+      let problemes = [];
       try {
         const migre = migrer(donnees, migrations);
-        const problemes = controlerStructure(migre);
+        etape = 'structure';
+        problemes = controlerStructure(migre);
         if (problemes.length > 0) throw new Error('Structure invalide après migration.');
+        etape = 'sauvegarde';
         await creerSauvegarde({ dossier, maintenant: horloge.maintenant(), raison: 'avant-migration', contenu: octets, fs, optionsAtomique });
+        etape = 'ecriture';
         const texte = serialiser(migre);
         await ecrireAtomique(chemin, texte, optAtomique);
-        return memoriser(migre, texte);
-      } catch {
-        return signalerDegrade('illisible', "La mise à jour du fichier de données vers la version actuelle a échoué. Rien n'a été modifié.");
+        await memoriser(migre, texte);
+        journal.info?.(`Migration du fichier de données : version ${donnees.schemaVersion} vers ${migre.schemaVersion}, ${migre.patients?.length ?? 0} patient${(migre.patients?.length ?? 0) > 1 ? 's' : ''} au registre.`);
+        return;
+      } catch (err) {
+        journal.erreur(`Migration du fichier de données en échec (version ${donnees.schemaVersion} vers ${VERSION_COURANTE}, étape : ${etape}${etape === 'structure' ? `, ${problemes.length} point${problemes.length > 1 ? 's' : ''} invalide${problemes.length > 1 ? 's' : ''}` : ''}, cause : ${err?.code ?? err?.name ?? 'inconnue'}). Fichier d'origine intact.`);
+        const cause = causeMigration(etape, problemes);
+        signalerDegrade('migration', `La mise à jour du fichier de données vers la version actuelle a échoué : ${cause} Votre fichier est intact. Rien n'a été modifié ni perdu.`);
+        degrade.cause = cause;
+        return;
       }
     }
 
@@ -549,6 +576,9 @@ export async function ouvrirStore({ dossier, horloge, fs = fsp, optionsAtomique,
   async function repartirDeZero() {
     if (degrade) await relireFichier();
     if (!degrade) throw fichierRevenu();
+    if (degrade.raison === 'migration') {
+      throw new ErreurApp(409, 'REINITIALISATION_REFUSEE', "Le fichier de données est intact : il n'a seulement pas pu être mis à jour vers la version actuelle. Il ne doit pas être remplacé par un fichier vide ; faites-le examiner avant toute autre action.");
+    }
     if (degrade.raison !== 'absent' && degrade.raison !== 'illisible') {
       throw new ErreurApp(409, 'REINITIALISATION_REFUSEE', "Le fichier de données est occupé par un autre programme : il ne peut pas être remplacé pour l'instant. Réessayez dans un instant.");
     }
@@ -616,7 +646,7 @@ export async function ouvrirStore({ dossier, horloge, fs = fsp, optionsAtomique,
     etat() {
       return {
         modeDegrade: degrade !== null,
-        erreur: degrade ? { code: degrade.code, raison: degrade.raison, message: degrade.message } : null,
+        erreur: degrade ? { code: degrade.code, raison: degrade.raison, message: degrade.message, ...(degrade.cause ? { cause: degrade.cause } : {}) } : null,
         lectureSeule,
         structureInconnue,
         conflit,

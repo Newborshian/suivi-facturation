@@ -230,7 +230,8 @@ test('dialogues : plus de menu déroulant pour le mode (cinq boutons à choix un
   const src = await lire('js', 'pages', 'prestations-dialogues.js');
   assert.doesNotMatch(src, /optionsMode|el\('select'/);
   assert.match(src, /creerChoixMode\(/);
-  assert.ok((src.match(/creerChoixMode\(/g) ?? []).length >= 2, 'dialogue de versement ET dialogue de repli MODE_REQUIS');
+  assert.equal((src.match(/creerChoixMode\(/g) ?? []).length, 1, 'un seul usage : le dialogue de versement (le repli « mode requis » a été retiré)');
+  assert.doesNotMatch(src, /choisirMode/);
   assert.match(src, /if \(!versement && corps\.mode\) ctx\.dernierMode\.valeur = corps\.mode;/);
   assert.equal((src.match(/dernierMode\.valeur =/g) ?? []).length, 1, 'une seule écriture du dernier mode, réservée à l\'ajout');
   assert.match(src, /changerModeVersement\(/);

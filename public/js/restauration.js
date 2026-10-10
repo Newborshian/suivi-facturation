@@ -61,6 +61,7 @@ export function texteEtatActuel(etat) {
   if (etat.modeDegrade) {
     if (etat.erreur?.raison === 'absent') return "Il n'y a plus de fichier de données : cette sauvegarde le remplacera.";
     if (etat.erreur?.raison === 'lecture') return "Le fichier actuel n'a pas pu être lu. L'application essaiera d'en garder une copie ; si elle n'y arrive pas, la restauration sera annulée et rien ne sera modifié.";
+    if (etat.erreur?.raison === 'migration') return "Le fichier actuel est intact mais n'a pas pu être mis à jour : une copie en sera conservée à part avant la restauration, et la restauration le remplacera.";
     return "Le fichier actuel est abîmé : une copie en sera conservée à part avant la restauration.";
   }
   if (etat.lectureSeule) return "Le fichier actuel vient d'une version plus récente de l'application : il sera mis de côté avant la restauration. Vous ne pourrez pas y revenir depuis cette version de l'application.";

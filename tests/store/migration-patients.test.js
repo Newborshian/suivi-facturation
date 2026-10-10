@@ -106,7 +106,9 @@ test('migration impossible (patient sans prénom) : mode dégradé, fichier d\'o
   await avecFichier(texte, async (dossier, chemin, ouvrir) => {
     const store = await ouvrir();
     assert.equal(store.etat().modeDegrade, true);
-    assert.equal(store.etat().erreur.raison, 'illisible');
+    assert.equal(store.etat().erreur.raison, 'migration', 'cause propre : ni « illisible » ni « absent » (pas de fichier vide proposé)');
+    assert.match(store.etat().erreur.message, /Votre fichier est intact/);
+    assert.match(store.etat().erreur.cause, /1 prestation a un patient incomplet/);
     assert.equal(await fs.readFile(chemin, 'utf8'), texte);
     assert.deepEqual(await sauvegardes(dossier), []);
     await assert.rejects(store.muter('x', () => {}), (e) => e.status === 503 && e.code === 'DONNEES_ILLISIBLES');
@@ -271,4 +273,113 @@ test('incohérences : ligne orpheline et copie divergente signalées (DONNEES_IN
     await store.muter('x', (copie) => { copie.parametres.sauvegardesConservees = 40; });
     assert.equal(store.lire().parametres.sauvegardesConservees, 40);
   });
+});
+
+// ------------------------------------------------------------ Journal, sauvegarde conservée, champs inconnus, fichier vide refusé
+
+/** Journal qui garde ses lignes en mémoire (le store n'écrit que des messages sans donnée). */
+const journalMemoire = () => {
+  const lignes = [];
+  return { lignes, info: (m) => lignes.push(['INFO', m]), avert: (m) => lignes.push(['AVERT', m]), erreur: (m) => lignes.push(['ERREUR', m]) };
+};
+
+test('journal : migration réussie = une ligne avec la version et le nombre de patients, jamais un nom ni un motif', async () => {
+  const v1 = etatV1(5);
+  await avecFichier(texteEtat(v1), async (dossier, chemin, ouvrir) => {
+    const journal = journalMemoire();
+    await ouvrir({ journal });
+    const lignes = journal.lignes.filter(([, m]) => /Migration/.test(m));
+    assert.equal(lignes.length, 1);
+    assert.equal(lignes[0][0], 'INFO');
+    assert.match(lignes[0][1], /version 1 vers 2, 3 patients au registre/);
+    const tout = journal.lignes.map(([, m]) => m).join('\n');
+    for (const l of v1.prestations) {
+      assert.ok(!tout.includes(l.patient.nom) && !tout.includes(l.patient.prenom) && (l.motif === '' || !tout.includes(l.motif)), 'aucune donnée de patient dans le journal');
+    }
+  });
+});
+
+test('journal : migration en échec = une ligne d\'erreur avec l\'étape et la cause technique, sans donnée ; message et cause lisibles côté écran', async () => {
+  const v1 = etatV1(3);
+  v1.prestations[1].patient = { id: 'x', nom: 'Secretnom', prenom: '' };
+  await avecFichier(texteEtat(v1), async (dossier, chemin, ouvrir) => {
+    const journal = journalMemoire();
+    const store = await ouvrir({ journal });
+    const echec = journal.lignes.filter(([niveau, m]) => niveau === 'ERREUR' && /Migration/.test(m));
+    assert.equal(echec.length, 1);
+    assert.match(echec[0][1], /étape : structure, \d+ points? invalides?/);
+    assert.match(echec[0][1], /Fichier d'origine intact/);
+    assert.ok(!journal.lignes.map(([, m]) => m).join('\n').includes('Secretnom'));
+    assert.match(store.etat().erreur.message, /Rien n'a été modifié ni perdu/);
+    assert.ok(!JSON.stringify(store.etat().erreur).includes('Secretnom'), 'la cause affichée ne contient aucune donnée du fichier');
+  });
+});
+
+test('journal : sauvegarde de sécurité impossible -> échec journalisé à l\'étape « sauvegarde », cause lisible, fichier intact', async () => {
+  const texte = texteEtat(etatV1(3));
+  await avecFichier(texte, async (dossier, chemin, ouvrir) => {
+    const journal = journalMemoire();
+    const { fs: bloque, etat } = fsSauvegardesBloquees();
+    etat.bloque = true;
+    const store = await ouvrir({ journal, fs: bloque });
+    assert.equal(store.etat().modeDegrade, true);
+    assert.equal(store.etat().erreur.raison, 'migration');
+    assert.match(store.etat().erreur.cause, /copie de sécurité/);
+    assert.ok(journal.lignes.some(([niveau, m]) => niveau === 'ERREUR' && /étape : sauvegarde/.test(m)));
+    assert.equal(await fs.readFile(chemin, 'utf8'), texte);
+  });
+});
+
+test('après un échec de migration, « repartir d\'un fichier vide » est refusé (409) : le fichier est intact', async () => {
+  const v1 = etatV1(3);
+  v1.prestations[0].patient = { id: 'x', nom: 'Lapin', prenom: '' };
+  const texte = texteEtat(v1);
+  await avecFichier(texte, async (dossier, chemin, ouvrir) => {
+    const store = await ouvrir();
+    await assert.rejects(store.repartirDeZero(), (e) => e.status === 409 && e.code === 'REINITIALISATION_REFUSEE' && /intact/.test(e.message));
+    assert.equal(await fs.readFile(chemin, 'utf8'), texte, 'fichier toujours identique');
+  });
+});
+
+test('champ inconnu dans le registre, copie ou nom hors bornes = avertissement DONNEES_INCOHERENTES, fichier utilisable et non réécrit, aucun nom dans le message', async () => {
+  const etat = etatTest(3);
+  etat.patients[0].notes = 'texte libre';
+  etat.prestations[0].patient.telephone = '0000';
+  etat.patients[1].nom = 'N'.repeat(150);
+  etat.prestations.forEach((l) => { if (l.patient.id === etat.patients[1].id) l.patient.nom = etat.patients[1].nom; });
+  const texte = texteEtat(etat);
+  await avecFichier(texte, async (dossier, chemin, ouvrir) => {
+    const store = await ouvrir();
+    assert.equal(store.etat().modeDegrade, false, 'jamais un fichier illisible pour un champ en trop');
+    const a = store.etat().avertissements.find((x) => x.code === 'DONNEES_INCOHERENTES');
+    assert.ok(a);
+    assert.match(a.message, /informations que l'application ne connaît pas/);
+    assert.match(a.message, /anormalement long/);
+    assert.ok(!a.message.includes('texte libre') && !a.message.includes('NNNN'));
+    assert.equal(await fs.readFile(chemin, 'utf8'), texte, 'fichier non réécrit');
+    await store.muter('x', (copie) => { copie.parametres.sauvegardesConservees = 41; });
+    assert.equal(store.lire().parametres.sauvegardesConservees, 41, 'toujours modifiable');
+  });
+});
+
+test('la sauvegarde « avant-migration » est conservée 90 jours, hors de la limite de 30 sauvegardes d\'opération', async () => {
+  const { appliquerRotation, analyserNomSauvegarde } = await import('../../src/store/sauvegardes.js');
+  const dossier = await creerDossierTemp('avant-migration-90');
+  try {
+    await fs.mkdir(path.join(dossier, 'sauvegardes'));
+    const ecrire = (nom) => ecrireFichierTest(path.join(dossier, 'sauvegardes', nom), '{}');
+    const recente = 'sauvegarde-2026-09-01_09h00m00s_avant-migration.json';
+    const ancienne = 'sauvegarde-2026-06-01_09h00m00s_avant-migration.json';
+    await ecrire(recente);
+    await ecrire(ancienne);
+    for (let i = 1; i <= 40; i++) await ecrire(`sauvegarde-2026-09-${String((i % 28) + 1).padStart(2, '0')}_10h${String(i).padStart(2, '0')}m00s_avant-suppression.json`);
+    assert.equal(analyserNomSauvegarde(recente).reserve, 'conservee');
+    const supprimes = await appliquerRotation({ dossier, joursQuotidiens: 30, maintenant: new Date(2026, 9, 2, 12, 0, 0) });
+    const restantes = await fs.readdir(path.join(dossier, 'sauvegardes'));
+    assert.ok(restantes.includes(recente), 'moins de 90 jours : conservée malgré 40 sauvegardes d\'opération');
+    assert.ok(supprimes.includes(ancienne) && !restantes.includes(ancienne), 'au-delà de 90 jours : supprimée comme les autres copies conservées');
+    assert.equal(restantes.filter((n) => n.includes('avant-suppression')).length, 30);
+  } finally {
+    await supprimerDossierTemp(dossier);
+  }
 });

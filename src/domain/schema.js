@@ -2,6 +2,7 @@
 import { estDateCivile } from './dates.js';
 import { estMontantPrestation, estMontantVersement } from './money.js';
 import { reconstruireRegistre } from './patients.js';
+import { CARACTERES_INVISIBLES, LONGUEUR_NOM } from './validation.js';
 
 export const FORMAT = 'suivi-facturation';
 export const VERSION_COURANTE = 2;
@@ -173,4 +174,26 @@ export function compterIncoherencesPatients(etat) {
     else if (l.patient.nom !== p.nom || l.patient.prenom !== p.prenom) copiesDivergentes += 1;
   }
   return { orphelines, copiesDivergentes };
+}
+
+const CHAMPS_REGISTRE = ['id', 'nom', 'prenom', 'actif'];
+const CHAMPS_COPIE = ['id', 'nom', 'prenom'];
+const horsBornes = (texte) => typeof texte === 'string' && (texte.length > LONGUEUR_NOM || CARACTERES_INVISIBLES.test(texte));
+
+/**
+ * Anomalies d'identité tolérées mais à signaler (le registre ne doit contenir que id, nom, prénom, actif ; les copies des lignes que id, nom, prénom) :
+ * un fichier retouché à la main ou fusionné par un client de synchronisation peut contenir autre chose. Le fichier reste lisible, rien n'est corrigé ni supprimé.
+ * -> { champsInconnus (registre + copies avec un champ en trop), nomsHorsBornes (nom ou prénom de plus de 100 caractères ou avec caractère invisible) }.
+ */
+export function compterAnomaliesRegistre(etat) {
+  let champsInconnus = 0;
+  let nomsHorsBornes = 0;
+  const examiner = (identite, champsAttendus) => {
+    if (!estObjet(identite)) return;
+    if (Object.keys(identite).some((c) => !champsAttendus.includes(c))) champsInconnus += 1;
+    if (horsBornes(identite.nom) || horsBornes(identite.prenom)) nomsHorsBornes += 1;
+  };
+  for (const p of Array.isArray(etat?.patients) ? etat.patients : []) examiner(p, CHAMPS_REGISTRE);
+  for (const l of Array.isArray(etat?.prestations) ? etat.prestations : []) examiner(l?.patient, CHAMPS_COPIE);
+  return { champsInconnus, nomsHorsBornes };
 }

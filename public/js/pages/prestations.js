@@ -7,11 +7,11 @@ import { afficherBandeaux, alerte } from '/js/bandeaux.js';
 import { LIEN_TARIFS, etatCatalogue, explicationFormulaireDesactive, saisieImpossible } from '/js/catalogue-etat.js';
 import { el, elementModesPaiement, remplacer } from '/js/dom.js';
 import { afficherEcranDegrade } from '/js/ecran-degrade.js';
-import { ecritureAutorisee, explicationEcritureImpossible } from '/js/ecriture.js';
+import { MESSAGE_ACTION_EN_COURS, ecritureAutorisee, explicationEcritureImpossible } from '/js/ecriture.js';
 import { LIBELLES_ETAT, LIBELLES_STATUT, correspondPatient, formatDate, formatDateCourte, formatEuros, formatMois, libelleTranche, listeModesPaiement, pluriel, resumePaiement, totaliserLignes } from '/js/format.js';
 import { modeConnu, messagePaiement } from '/js/paiement-libelles.js';
 import { focaliserVersement, paiementRapide } from '/js/paiement-rapide.js';
-import { choisirHomonyme, choisirMode, dialogueModification, dialogueVersement } from '/js/pages/prestations-dialogues.js';
+import { choisirHomonyme, dialogueModification, dialogueVersement } from '/js/pages/prestations-dialogues.js';
 import { creerFormulairePrestation } from '/js/pages/prestations-formulaire.js';
 import { lignesAMarquer } from '/js/recap-regles.js';
 import { appliquerSelection, etatBarreSelection, toutSelectionne } from '/js/selection.js';
@@ -106,7 +106,10 @@ async function annulerAction(jeton, ligneId) {
 
 /** Une seule action à la fois (évite les doubles clics) ; toute erreur devient un message clair. */
 async function proteger(action) {
-  if (page.occupe) return;
+  if (page.occupe) {
+    afficherToast({ texte: MESSAGE_ACTION_EN_COURS, variante: 'attention' }); // le clic est ignoré : on le dit
+    return;
+  }
   page.occupe = true;
   try {
     await action();
@@ -225,22 +228,13 @@ async function marquerSelectionFacturee() {
 
 /** Paiement en un clic : le reste à payer (celui du serveur à cet instant), daté d'aujourd'hui, avec le mode du bouton cliqué. */
 async function payerEnTotalite(ligne, mode) {
-  try {
-    const r = await appeler('POST', `/api/prestations/${ligne.id}/payer-totalite`, { mode });
-    const paiement = messagePaiement(r.donnees, ligne.resteCentimes);
-    if (paiement.mode) page.dernierMode.valeur = paiement.mode;
-    page.recent = ligne.id;
-    notifier({ texte: paiement.texte, avertissements: r.avertissements, annulation: r.annulation, ligneId: ligne.id });
-    await charger();
-    focaliserVersement(zone.liste, ligne.id);
-  } catch (err) {
-    if (err instanceof ErreurApi && err.code === 'MODE_REQUIS') {
-      const choisi = await choisirMode({ resteCentimes: ligne.resteCentimes });
-      if (choisi) await payerEnTotalite(ligne, choisi);
-      return;
-    }
-    throw err;
-  }
+  const r = await appeler('POST', `/api/prestations/${ligne.id}/payer-totalite`, { mode });
+  const paiement = messagePaiement(r.donnees, ligne.resteCentimes);
+  if (paiement.mode) page.dernierMode.valeur = paiement.mode;
+  page.recent = ligne.id;
+  notifier({ texte: paiement.texte, avertissements: r.avertissements, annulation: r.annulation, ligneId: ligne.id });
+  await charger();
+  focaliserVersement(zone.liste, ligne.id);
 }
 
 async function ajouterVersement(ligne) {
@@ -425,7 +419,7 @@ function rendreListe() {
       zone.liste,
       el(
         'div',
-        { classe: 'table-wrap table-wrap--haut', attributs: { role: 'region', 'aria-label': 'Liste des prestations', tabindex: '0' } },
+        { classe: 'table-wrap table-wrap--haut table-wrap--modes', attributs: { role: 'region', 'aria-label': 'Liste des prestations', tabindex: '0' } },
         el(
           'table',
           { classe: 'table' },

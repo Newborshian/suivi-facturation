@@ -74,15 +74,6 @@
 }
 .btn[aria-busy="true"] { cursor: progress; }
 
-/* Bouton « Payé en totalité » : action fréquente, visible mais pas dominante. */
-.btn-payer {
-  border-color: var(--c-ok-bord);
-  background: var(--c-ok-fond);
-  color: var(--c-ok-texte);
-}
-.btn-payer:hover { background: var(--c-surface); }
-.btn-payer::before { content: "✓"; font-weight: 700; }
-
 /* ======================== Paiement en un clic (design-system §5.14) ========================
    Groupe de cinq boutons à icône, un par mode de paiement : un clic enregistre le reste à payer avec ce mode.
    Structure :
@@ -93,11 +84,16 @@
        <button class="btn btn--petit paiement-rapide__mode" data-mode="carte" [data-recent="oui"] title="…" aria-label="…"><svg class="icone-mode …"/></button> ×5
      </span>
    </div>
-   Grand écran : les cinq modes sont visibles, le déclencheur est masqué. Écran étroit (≤ 48 em) : seul le déclencheur est visible ;
-   il déplie les cinq modes sous lui (variante compacte). Aucune couleur ne porte seule l'information. */
+   Les cinq modes tiennent TOUJOURS sur une seule ligne (jamais de retour à la ligne ni de colonne). Tant que le tableau qui porte le
+   groupe est assez large, ils sont tous visibles et le déclencheur est masqué. Quand le tableau devient trop étroit pour les afficher sans
+   défilement horizontal, seul le déclencheur « Payer ▾ » reste visible ; il déplie les cinq modes, toujours sur une ligne, sous lui
+   (variante compacte). Le choix se fait sur la largeur du tableau (requête de conteneur, voir `.table-wrap--modes`), pas sur celle de
+   l'écran : même résultat avec ou sans le défilement de la page, et dans un dialogue. Aucune couleur ne porte seule l'information. */
+.table-wrap--modes { container-type: inline-size; container-name: tableau; }
+.table-wrap--modes-dialogue { container-name: versements; }   /* liste des versements d'un dialogue : seuil propre (tableau plus court) */
 .paiement-rapide {
   display: inline-flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: flex-end;
   gap: var(--e-1) var(--e-2);
@@ -106,10 +102,11 @@
   font-size: var(--t-s);
   font-weight: 600;
   color: var(--c-texte-doux);
+  white-space: nowrap;
 }
 .paiement-rapide__modes {
   display: inline-flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: flex-end;
   gap: var(--e-1) var(--e-2);
 }
@@ -179,12 +176,27 @@
   .paiement-rapide__declencheur.btn { min-width: var(--cible); min-height: var(--cible); }
 }
 
-/* Variante compacte (≤ 48 em ≈ 768 px). Largeur : déclencheur seul ≈ 5 rem ; modes dépliés 5 × 44 px + 4 × 8 px = 252 px. */
-@media (max-width: 48em) {
+/* Variante compacte : seulement quand le tableau est trop étroit pour les cinq modes visibles SANS défilement horizontal.
+   Seuils mesurés dans le navigateur (largeur minimale du tableau avec les cinq modes visibles : liste des prestations ≈ 949 px, détail de
+   Facturation du mois ≈ 929 px, versements d'un dialogue ≈ 670 px) : 60 rem (960 px) pour les deux tableaux de page, 42 rem (672 px) pour les
+   versements d'un dialogue. Déclencheur seul ≈ 5 rem ; modes dépliés : 5 × 44 px + 4 × 8 px = 252 px, sur UNE ligne sous le déclencheur.
+   Les deux blocs ci-dessous sont identiques (une requête de conteneur ne peut viser qu'un seul conteneur nommé). */
+@container tableau (width < 60rem) {
   .paiement-rapide {
     flex-direction: column;
     align-items: flex-end;
-    flex-wrap: nowrap;
+  }
+  .paiement-rapide__titre { display: none; }
+  .paiement-rapide__declencheur { display: inline-flex; }
+  .paiement-rapide__modes { display: none; }
+  .paiement-rapide:has(> .paiement-rapide__declencheur[aria-expanded="true"]) > .paiement-rapide__modes { display: inline-flex; }
+  .paiement-rapide__mode.btn,
+  .paiement-rapide__declencheur.btn { min-width: var(--cible); min-height: var(--cible); }
+}
+@container versements (width < 42rem) {
+  .paiement-rapide {
+    flex-direction: column;
+    align-items: flex-end;
   }
   .paiement-rapide__titre { display: none; }
   .paiement-rapide__declencheur { display: inline-flex; }

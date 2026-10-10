@@ -6,7 +6,7 @@ import { ErreurApi, appeler, lireEtat } from '/js/api.js';
 import { afficherBandeaux, alerte } from '/js/bandeaux.js';
 import { el, remplacer } from '/js/dom.js';
 import { afficherEcranDegrade } from '/js/ecran-degrade.js';
-import { ecritureAutorisee, explicationEcritureImpossible } from '/js/ecriture.js';
+import { MESSAGE_ACTION_EN_COURS, ecritureAutorisee, explicationEcritureImpossible } from '/js/ecriture.js';
 import { correspondPatient, formatDate, normaliserRecherche, pluriel } from '/js/format.js';
 import { dialogueHomonyme, lignePatientExistant } from '/js/patients-dialogues.js';
 import { rechercherPatients } from '/js/recherche-patients.js';
@@ -81,7 +81,10 @@ async function annulerAction(jeton) {
 
 /** Une seule action à la fois (évite les doubles clics) ; toute erreur devient un message clair. */
 async function proteger(action) {
-  if (page.occupe) return;
+  if (page.occupe) {
+    afficherToast({ texte: MESSAGE_ACTION_EN_COURS, variante: 'attention' }); // le clic est ignoré : on le dit
+    return;
+  }
   page.occupe = true;
   try {
     await action();

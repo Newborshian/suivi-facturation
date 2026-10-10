@@ -7,16 +7,39 @@ import { LIBELLES_MODE } from './format.js';
 import { MODES, modeConnu, nomBoutonPaiement, nomChangementMode, nomDeclencheurChangementMode, nomDeclencheurPaiement, nomGroupeChangementMode, nomGroupePaiement, titreBoutonPaiement } from './paiement-libelles.js';
 
 /**
+ * Après un échec qui a fait reconstruire la page (conflit au clic, ligne déjà payée), le groupe cliqué n'existe plus et le focus est tombé sur `body` :
+ * l'utilisateur au clavier repartirait du début de la page. Le focus est rendu, dans l'ordre : au bouton du même mode du nouveau groupe (s'il est utilisable),
+ * au bouton « Versement » de la même ligne, puis au premier message du bandeau (il explique la situation ; un bouton désactivé ne peut pas recevoir le focus).
+ */
+export function refocaliserApresRechargement({ idGroupe, mode, ligneId }) {
+  const utilisable = (noeud) => noeud && !noeud.disabled;
+  const bouton = document.getElementById(idGroupe)?.querySelector(`[data-mode="${mode}"]`);
+  if (utilisable(bouton)) return bouton.focus();
+  const versement = ligneId ? [...document.querySelectorAll('button[data-versement]')].find((b) => b.getAttribute('data-versement') === ligneId) : null;
+  if (utilisable(versement)) return versement.focus();
+  const message = document.querySelector('#bandeaux [role="alert"], #bandeaux [role="status"]');
+  if (message) {
+    message.setAttribute('tabindex', '-1');
+    message.focus();
+  }
+}
+
+/**
  * Construit le groupe. `boutons` : [{ mode, nom, titre, recent?, actuel? }] dans l'ordre fixe ; `auChoix(mode)` : promesse (l'enregistrement).
  * `declencheur` : { texte, nom } ; `titre` : mot visible « Payer » (absent pour le changement de mode d'un versement).
  * `desactive` : lecture seule, conflit ou mode dégradé -> boutons désactivés, avec l'explication (infobulle et aria-describedby).
  */
-function groupe({ id, nom, titre, declencheur, boutons, desactive, explication, raisonId, auChoix }) {
+function groupe({ id, ligneId = null, nom, titre, declencheur, boutons, desactive, explication, raisonId, auChoix }) {
   const acces = desactive ? { disabled: true, title: explication, 'aria-describedby': raisonId } : {};
   let racine;
   let bascule;
+  let modes;
 
-  const ouvrir = (ouvert) => bascule.setAttribute('aria-expanded', String(ouvert));
+  const ouvrir = (ouvert) => {
+    bascule.setAttribute('aria-expanded', String(ouvert));
+    // Variante compacte : les cinq modes dépliés (252 px) peuvent dépasser la largeur du tableau, qui défile alors dans son cadre ; on les amène à l'écran.
+    if (ouvert) modes?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
+  };
   const estOuvert = () => bascule.getAttribute('aria-expanded') === 'true';
 
   async function choisir(bouton, mode) {
@@ -31,11 +54,13 @@ function groupe({ id, nom, titre, declencheur, boutons, desactive, explication, 
         racine.removeAttribute('aria-busy');
         if (!desactive) for (const b of tous) b.disabled = false;
         if (document.activeElement === document.body) bouton.focus(); // échec : le focus ne reste pas perdu sur la page
+      } else if (document.activeElement === document.body) {
+        refocaliserApresRechargement({ idGroupe: id, mode, ligneId }); // la page a été reconstruite (conflit, ligne déjà payée…)
       }
     }
   }
 
-  const modes = el(
+  modes = el(
     'span',
     { classe: 'paiement-rapide__modes', attributs: { id } },
     ...boutons.map((b) =>
@@ -78,6 +103,7 @@ function groupe({ id, nom, titre, declencheur, boutons, desactive, explication, 
 export function paiementRapide({ ligne, dernierMode, desactive, explication, raisonId, auChoix }) {
   return groupe({
     id: `paiement-rapide-${ligne.id}`,
+    ligneId: ligne.id,
     nom: nomGroupePaiement(ligne),
     titre: 'Payer',
     declencheur: { texte: 'Payer', nom: nomDeclencheurPaiement(ligne) },

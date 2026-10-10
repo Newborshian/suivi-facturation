@@ -13,11 +13,12 @@ export const SOUS_DOSSIER_SAUVEGARDES = 'sauvegardes';
  * ni la seule copie d'une version écartée :
  *  - quotidienne : le réglage « sauvegardes à conserver » (7 à 365) compte des JOURS d'historique ;
  *  - operation : 30 dernières ;
- *  - conservee : copies de conflit et « avant restauration » (ou réinitialisation), gardées par âge (90 jours), hors limite de 30.
+ *  - conservee : copies de conflit, « avant restauration » (ou réinitialisation) et « avant migration » (la copie exacte du fichier d'avant la mise à jour),
+ *    gardées par âge (90 jours), hors limite de 30.
  */
 export const RAISONS_QUOTIDIENNES = ['demarrage', 'quotidienne', 'manuelle'];
-export const RAISONS_OPERATION = ['avant-suppression', 'avant-archivage', 'avant-migration'];
-export const RAISONS_CONSERVEES = ['avant-restauration', 'avant-reinitialisation', 'conflit-disque', 'conflit-memoire'];
+export const RAISONS_OPERATION = ['avant-suppression', 'avant-archivage'];
+export const RAISONS_CONSERVEES = ['avant-restauration', 'avant-reinitialisation', 'avant-migration', 'conflit-disque', 'conflit-memoire'];
 export const LIMITE_OPERATION = 30;
 export const AGE_MAX_CONSERVEES_JOURS = 90;
 

@@ -74,7 +74,7 @@ function tableauLignes(e, { aujourdHui, ecriture, actions, dernierMode, explicat
   });
   return el(
     'div',
-    { classe: 'table-wrap', attributs: { role: 'region', 'aria-label': `Prestations du mois de ${nomPatient(e.patient)}` } },
+    { classe: 'table-wrap table-wrap--modes', attributs: { role: 'region', 'aria-label': `Prestations du mois de ${nomPatient(e.patient)}` } },
     el(
       'table',
       { classe: 'table table--dense' },

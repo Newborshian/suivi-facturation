@@ -63,13 +63,22 @@ export function modifierPrestation(etat, id, corps, ctx) {
 
   if (v.identite) {
     const parNom = v.identite.nom !== undefined && !v.identite.nouveau;
-    const memeNom = parNom && clePatient(v.identite.nom, v.identite.prenom) === clePatient(ligne.patient.nom, ligne.patient.prenom);
+    // La comparaison se fait avec le REGISTRE (source de vérité), pas avec la copie de la ligne : si la copie diverge, une correction
+    // de casse ne doit pas renommer le patient vers le texte de la copie. Ligne orpheline : on se rabat sur sa copie.
+    const reference = etat.patients.find((p) => p.id === ligne.patient.id) ?? ligne.patient;
+    const cleSaisie = parNom ? clePatient(v.identite.nom, v.identite.prenom) : null;
+    const memeNom = parNom && cleSaisie === clePatient(reference.nom, reference.prenom);
     const autresLignes = etat.prestations.filter((l) => l.id !== ligne.id && l.patient.id === ligne.patient.id);
-    if ((parNom && v.renommerPatient) || memeNom) {
+    // Seule prestation du patient, nouveau nom qui ne correspond à aucun AUTRE patient : c'est une correction du patient lui-même
+    // (identifiant conservé), pas un nouveau patient ; sinon l'ancienne écriture resterait active au registre.
+    const renommageEnPlace = parNom && !memeNom && autresLignes.length === 0
+      && !etat.patients.some((p) => p.id !== ligne.patient.id && clePatient(p.nom, p.prenom) === cleSaisie);
+    if ((parNom && v.renommerPatient) || memeNom || renommageEnPlace) {
       // Renommage du patient dans le registre, propagé à toutes ses lignes (l'identifiant est conservé). Une correction de casse ou
-      // d'espaces sur une ligne d'un patient qui en a d'autres est aussi un renommage : sinon la copie divergerait du registre.
+      // d'espaces est aussi un renommage : sinon la copie divergerait du registre. Vers le nom d'un autre patient : 409 PATIENT_EXISTANT
+      // tant que le client n'a pas confirmé l'homonyme (`homonyme: true`).
       assurerAuRegistre(etat, ligne.patient);
-      const r = renommerPatient(etat, ligne.patient.id, v.identite, ctx, { homonyme: true });
+      const r = renommerPatient(etat, ligne.patient.id, v.identite, ctx, { homonyme: v.homonyme });
       avertissements.push(...r.avertissements);
     } else {
       if (parNom && autresLignes.length > 0 && !v.detacherLigne) {

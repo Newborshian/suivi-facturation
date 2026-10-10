@@ -13,6 +13,9 @@ const INTRODUCTIONS = {
   absent: "Le fichier de données est introuvable. Si vous venez de changer d'ordinateur, la synchronisation n'est peut-être pas terminée : cliquez sur « Réessayer » pour relire le fichier. Sinon, choisissez ci-dessous la sauvegarde à remettre en place.",
   lecture: "Le fichier est peut-être utilisé par un autre programme (synchronisation, antivirus). Attendez un instant puis cliquez sur « Réessayer ». Vous pouvez aussi restaurer une sauvegarde ci-dessous.",
 };
+/** Échec de la mise à jour du fichier vers la version actuelle : le fichier n'a pas bougé. `cause` : texte du serveur, sans aucune donnée du fichier. */
+const introductionMigration = (cause) =>
+  `Votre fichier de données est intact : rien n'a été modifié ni perdu. L'application n'a pas pu le mettre à jour vers la version actuelle${cause ? ` : ${cause}` : '.'} Ne supprimez rien et ne remplacez rien pour l'instant : faites d'abord examiner le fichier. Une fois le problème réglé, cliquez sur « Réessayer ». Vous pouvez aussi choisir une sauvegarde ci-dessous ; le fichier actuel est alors conservé à part avant la restauration.`;
 const INTRODUCTION_DEFAUT = "Le fichier est peut-être en cours de synchronisation : cliquez sur « Réessayer » pour le relire. Sinon, choisissez la sauvegarde à remettre en place ; le fichier abîmé est conservé à part avant la restauration : rien n'est supprimé.";
 
 /** Donne le focus à un message qui vient d'apparaître (le déclencheur a disparu avec le contenu précédent). */
@@ -25,13 +28,14 @@ function mettreEnAvant(noeud) {
 export async function afficherEcranDegrade(zone, etat) {
   const contenu = el('div', { classe: 'ecran-bloquant' });
   remplacer(zone, contenu);
-  const intro = el('p', { texte: INTRODUCTIONS[etat.erreur?.raison] ?? INTRODUCTION_DEFAUT });
+  const migration = etat.erreur?.raison === 'migration';
+  const intro = el('p', { texte: migration ? introductionMigration(etat.erreur?.cause) : (INTRODUCTIONS[etat.erreur?.raison] ?? INTRODUCTION_DEFAUT) });
   const zoneStatut = el('div', { attributs: { role: 'status' } });
   const zoneErreur = el('div', {});
   const zoneListe = el('div', {}, el('p', { classe: 'chargement', attributs: { role: 'status' }, texte: 'Chargement des sauvegardes…' }));
   const zoneVide = el('div', {});
   const reessayer = el('button', { classe: 'btn btn--secondaire', texte: 'Réessayer la lecture du fichier', attributs: { type: 'button' } });
-  remplacer(contenu, el('h2', { texte: 'Restaurer une sauvegarde' }), intro, el('div', {}, reessayer), zoneStatut, zoneErreur, zoneListe, zoneVide);
+  remplacer(contenu, el('h2', { texte: migration ? "Le fichier n'a pas pu être mis à jour" : 'Restaurer une sauvegarde' }), intro, el('div', {}, reessayer), zoneStatut, zoneErreur, zoneListe, zoneVide);
 
   const finir = (titre, texte) => {
     document.getElementById('bandeaux')?.replaceChildren(); // le bandeau d'erreur n'a plus lieu d'être
@@ -84,6 +88,7 @@ export async function afficherEcranDegrade(zone, etat) {
   };
 
   // En dernier recours, seulement quand aucune sauvegarde n'est restaurable (et que le fichier est absent ou abîmé).
+  // Jamais après un échec de mise à jour (raison « migration ») : le fichier est intact, il ne doit pas être remplacé par un fichier vide.
   const proposerFichierVide = () => {
     if (etat.erreur?.raison !== 'absent' && etat.erreur?.raison !== 'illisible') return;
     const bouton = el('button', { classe: 'btn btn--danger', texte: "Repartir d'un fichier vide", attributs: { type: 'button' } });

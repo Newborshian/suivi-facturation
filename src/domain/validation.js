@@ -10,13 +10,13 @@ import { CATEGORIES, MODES_PAIEMENT, STATUTS } from './schema.js';
 
 export const ETATS_PAIEMENT = ['non_paye', 'partiel', 'paye'];
 export const MAX_IDS_GROUPE = 1000;
-const LONGUEUR_NOM = 100;
+export const LONGUEUR_NOM = 100;
 const LONGUEUR_MOTIF = 200;
 const CARACTERES_CONTROLE = /[\u0000-\u001f\u007f-\u009f]/;
 // Caractères invisibles ou de mise en forme, refusés dans les noms, prénoms, motifs et libellés de tarif (deux patients « identiques à l'écran » resteraient distincts) :
 // césure conditionnelle, jonction de graphèmes, marques bidirectionnelles, espaces à largeur nulle, séparateurs de ligne et de paragraphe,
 // sélecteurs de variante, caractères de remplissage, BOM, caractères de balisage.
-const CARACTERES_INVISIBLES = /[\u00ad\u034f\u061c\u115f\u1160\u17b4\u17b5\u180b-\u180f\u200b-\u200f\u2028-\u202e\u2060-\u206f\u3164\ufe00-\ufe0f\ufeff\uffa0\ufff9-\ufffb\u{e0000}-\u{e007f}]/u;
+export const CARACTERES_INVISIBLES = /[\u00ad\u034f\u061c\u115f\u1160\u17b4\u17b5\u180b-\u180f\u200b-\u200f\u2028-\u202e\u2060-\u206f\u3164\ufe00-\ufe0f\ufeff\uffa0\ufff9-\ufffb\u{e0000}-\u{e007f}]/u;
 const estObjet = (v) => typeof v === 'object' && v !== null && !Array.isArray(v);
 
 /** Accumule les erreurs par champ, puis les lève toutes ensemble en un 422. */
@@ -199,11 +199,11 @@ export function validerCreation(corps, catalogue) {
 
 /**
  * Modification partielle : seuls les champs présents changent. `modifieLe` (version vue par le client) est obligatoire.
- * -> { modifieLe, identite (ou null), date?, type?, montantCentimes?, motif? }
+ * -> { modifieLe, identite (ou null), renommerPatient, detacherLigne, homonyme, date?, type?, montantCentimes?, motif? }
  */
 export function validerModification(corps, catalogue, ligne) {
-  refuserChampsInconnus(corps, [...CHAMPS_LIGNE, 'modifieLe', 'renommerPatient', 'detacherLigne']);
-  for (const option of ['renommerPatient', 'detacherLigne']) {
+  refuserChampsInconnus(corps, [...CHAMPS_LIGNE, 'modifieLe', 'renommerPatient', 'detacherLigne', 'homonyme']);
+  for (const option of ['renommerPatient', 'detacherLigne', 'homonyme']) {
     if (corps[option] !== undefined && typeof corps[option] !== 'boolean') throw new ErreurApp(400, 'REQUETE_INVALIDE', `Le champ « ${option} » doit être vrai ou faux.`);
   }
   if (corps.renommerPatient === true && corps.detacherLigne === true) {
@@ -216,6 +216,7 @@ export function validerModification(corps, catalogue, ligne) {
     identite: identitePatient(corps, c, { exiger: false }),
     renommerPatient: corps.renommerPatient === true,
     detacherLigne: corps.detacherLigne === true,
+    homonyme: corps.homonyme === true, // confirmation explicite d'un renommage vers le nom d'un autre patient
   };
   if ('date' in corps) resultat.date = dateObligatoire(corps.date, { nom: 'date', libelle: 'de la prestation', collecteur: c });
   if ('prestationId' in corps) resultat.type = typePrestation(corps.prestationId, catalogue, c, { idActuel: ligne.prestationId });
@@ -228,6 +229,7 @@ export function validerModification(corps, catalogue, ligne) {
 /** Versement complet (création) ou partiel (modification). -> { montantCentimes, date, mode } (champs présents seulement si partiel) */
 export function validerVersement(corps, { partiel = false } = {}) {
   refuserChampsInconnus(corps, ['montantCentimes', 'date', 'mode']);
+  if (partiel && Object.keys(corps).length === 0) throw new ErreurApp(400, 'REQUETE_INVALIDE', 'Indiquez au moins un champ à modifier : montant, date ou mode.');
   const c = new Collecteur();
   const resultat = {};
   if (!partiel || 'montantCentimes' in corps) resultat.montantCentimes = montantVersement(corps.montantCentimes, c);

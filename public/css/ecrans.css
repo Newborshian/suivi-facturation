@@ -79,13 +79,13 @@
   gap: var(--e-1) var(--e-2);
 }
 /* Paiement en un clic dans la ligne (design-system §5.14), écrans Prestations et Facturation du mois :
-   le groupe de modes forme un seul bloc qui passe à la ligne tout entier si la place manque ; un filet le sépare
-   de « Versement » et « Modifier » tant que les cinq modes sont visibles (au-delà de 48 em). */
+   le groupe de modes forme un seul bloc (jamais coupé) qui passe à la ligne tout entier si la place manque ; un filet le sépare
+   de « Versement » et « Modifier » tant que les cinq modes sont visibles (au-dessus du seuil de la variante compacte). */
 :is(.ecran-prestations, .ecran-facturation) .actions-ligne > .paiement-rapide {
   padding-inline-end: var(--e-2);
   border-inline-end: 1px solid var(--c-bordure);
 }
-@media (max-width: 48em) {
+@container tableau (width < 60rem) {
   :is(.ecran-prestations, .ecran-facturation) .actions-ligne > .paiement-rapide {
     padding-inline-end: 0;
     border-inline-end: 0;

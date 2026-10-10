@@ -12,3 +12,6 @@ export function explicationEcritureImpossible(etat) {
   if (etat.lectureSeule) return "Modification impossible : ce fichier a été créé par une version plus récente de l'application, il reste consultable en lecture seule.";
   return "Modification impossible tant que vous n'avez pas choisi la version des données à garder (voir le bandeau en haut de page).";
 }
+
+/** Message affiché quand un clic est ignoré parce qu'une autre action est en cours (une seule action à la fois : pas de double enregistrement). */
+export const MESSAGE_ACTION_EN_COURS = 'Une action est déjà en cours : réessayez dans un instant.';

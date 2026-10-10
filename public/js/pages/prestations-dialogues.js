@@ -1,4 +1,4 @@
-// Dialogues de l'écran Prestations : versement, mode de paiement, homonymes, modification.
+// Dialogues de l'écran Prestations : versement, homonymes, renommage, modification.
 // `ctx` (fourni par la page) : { catalogue, aujourdHui, dernierMode (lecture/écriture), ecriture, explication, notifier({texte, avertissements, annulation}) }.
 // `ctx.ecriture` faux (lecture seule, conflit, mode dégradé) : les boutons d'écriture des dialogues sont désactivés et la raison est affichée.
 import { ErreurApi, appeler } from '/js/api.js';
@@ -6,6 +6,7 @@ import { creerChoixMode } from '/js/choix-mode.js';
 import { el } from '/js/dom.js';
 import { LIBELLES_ETAT, formatDate, formatEuros, formatMontantSaisie, lireMontant, pluriel } from '/js/format.js';
 import { EN_MODE } from '/js/paiement-libelles.js';
+import { dialogueHomonyme } from '/js/patients-dialogues.js';
 import { changerModeVersement } from '/js/paiement-rapide.js';
 import { creerFormulairePrestation } from '/js/pages/prestations-formulaire.js';
 import { confirmer, creerChamp, creerDialogue, creerEntreeMontant, creerResume } from '/js/ui.js';
@@ -85,31 +86,6 @@ export function choisirRenommage({ ancien, nouveau, autresLignes }) {
     d.pied.append(annuler, bouton('Modifier seulement cette ligne', 'btn--secondaire', choisir('cette-ligne')), bouton('Renommer sur toutes les prestations', 'btn--primaire', choisir('toutes')));
     d.dialogue.addEventListener('close', () => resolve(reponse));
     d.ouvrir(annuler);
-  });
-}
-
-// ---------------------------------------------------------- Mode de paiement
-
-/** Repli du paiement en un clic (422 MODE_REQUIS) : demander le mode, avec les mêmes cinq boutons que partout. -> Promise<mode | null> */
-export function choisirMode({ resteCentimes }) {
-  return new Promise((resolve) => {
-    const d = creerDialogue({ titre: 'Quel mode de paiement ?' });
-    let reponse = null;
-    const choix = creerChoixMode();
-    d.corps.append(el('p', { texte: `Ce sera un versement de ${formatEuros(resteCentimes)}, daté d'aujourd'hui. Le mode choisi sera proposé la prochaine fois.` }), choix.racine);
-    const valider = () => {
-      const mode = choix.valeur();
-      if (!mode) {
-        choix.erreur('Choisissez le mode de paiement.');
-        choix.entree.focus();
-        return;
-      }
-      reponse = mode;
-      d.fermer();
-    };
-    d.pied.append(bouton('Annuler', 'btn--secondaire', () => d.fermer()), bouton('Enregistrer le paiement', 'btn--primaire', valider));
-    d.dialogue.addEventListener('close', () => resolve(reponse));
-    d.ouvrir(choix.entree);
   });
 }
 
@@ -248,7 +224,7 @@ export function dialogueModification({ ligne: ligneInitiale, ctx }) {
       } else {
         liste = el(
           'div',
-          { classe: 'table-wrap', attributs: { role: 'region', 'aria-label': 'Versements de la prestation', tabindex: '0' } },
+          { classe: 'table-wrap table-wrap--modes table-wrap--modes-dialogue', attributs: { role: 'region', 'aria-label': 'Versements de la prestation', tabindex: '0' } },
           el(
             'table',
             { classe: 'table table--dense versements-liste' },
@@ -420,6 +396,11 @@ export function dialogueModification({ ligne: ligneInitiale, ctx }) {
           const choix = await choisirRenommage({ ancien: `${ligne.patient.prenom} ${ligne.patient.nom}`, nouveau: `${v.prenom.trim()} ${v.nom.trim()}`, autresLignes: err.details?.autresLignes ?? 0 });
           if (choix === 'toutes') await enregistrer({ renommerPatient: true });
           else if (choix === 'cette-ligne') await enregistrer({ detacherLigne: true });
+        } else if (err instanceof ErreurApi && err.code === 'PATIENT_EXISTANT') {
+          // Renommage vers le nom d'un AUTRE patient : même confirmation que sur la page Patients ; rien n'est modifié tant qu'elle n'est pas donnée.
+          const choix = await dialogueHomonyme({ mode: 'renommage', nom: v.nom, prenom: v.prenom, candidats: err.details?.candidats ?? [], registre: ctx.patients ?? [] });
+          if (choix?.homonyme) await enregistrer({ ...options, homonyme: true });
+          else form.entrees.nom.focus();
         } else {
           zoneAlerte.replaceChildren(alerteDansDialogue('danger', 'Erreur', err.message));
         }
