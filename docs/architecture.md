@@ -95,12 +95,12 @@ suivi-facturation/
 │  ├─ erreurs.js           ErreurApp (statut HTTP, code stable, message français, champs, détails)
 │  ├─ exemple.js           générateur déterministe du jeu fictif (config/exemple.json)
 │  ├─ domain/              PUR : schema, money, dates, paiement, patients, catalogue, prestations, validation,
-│  │                        recap, indicateurs, previsions, csv
+│  │                        recap, indicateurs, previsions, csv, tri (ordres de tri partagés)
 │  ├─ store/               store.js (état + file), fichier-atomique.js, sauvegardes.js, restauration.js,
-│  │                        conflit.js (empreinte, conflit non résolu), archives-lecture.js (lecture seule)
+│  │                        conflit.js (empreinte, conflit non résolu), archives-lecture.js (lecture seule), json.js (lecture BOM toléré, format d'écriture)
 │  └─ http/                serveur.js, securite.js, statique.js, routeur.js, reponses.js,
 │     └─ api/               sante, etat, catalogue, patients, prestations, recap, indicateurs, sauvegardes, export,
-│                           parametres, arret, presence (+ index.js qui les enregistre)
+│                           parametres, arret, presence (+ index.js qui les enregistre, commun.js : contexte et réponse des écritures)
 ├─ public/
 │  ├─ index.html           Facturation du mois (accueil)
 │  ├─ prestations.html     saisie et liste
@@ -277,7 +277,7 @@ Une prestation à 0 € est « payée » d'office. Le trop-perçu reste attaché
 **Opérations sur le registre** (`creerPatient`, `modifierPatient`, `supprimerPatient`, appelées par `/api/patients`, §9.2) :
 - **Création** : patient actif sans prestation. Même clé qu'un patient existant, actif ou archivé → 409 `PATIENT_EXISTANT` avec `details.candidats` (sans nom), sauf `homonyme: true`. Deux requêtes simultanées (double clic) passent l'une après l'autre dans la file d'écriture : la seconde reçoit `PATIENT_EXISTANT`.
 - **Renommage** (`renommerPatient`) : identifiant conservé ; nom et prénom normalisés ; un simple changement de casse ou d'espaces (même clé) est appliqué sans confirmation ; même clé qu'un **autre** patient → 409 `PATIENT_EXISTANT`, sauf `homonyme: true` (alors avertissement `PATIENT_HOMONYME`). Le nouveau nom est propagé à **toutes** les lignes du fichier actif de ce patient dont la copie diffère (leur `modifieLe` est mis à jour : un dialogue ouvert ailleurs sur l'une d'elles reçoit ensuite 409 `MODIFIEE_AILLEURS`) ; résultat `{ patient, lignesModifiees }`. Les archives ne sont pas touchées (§5.4). Aucune fusion de patients n'existe.
-- **Archiver / réactiver** (`actif`) : sans effet si le patient est déjà dans l'état demandé (idempotent). Archiver un patient qui a des prestations à venir ou un reste à payer est autorisé, avec l'avertissement `PATIENT_ARCHIVE_EN_COURS` et ses nombres (`details: { aVenir, impayees }`). Les prestations d'un patient archivé restent partout (listes, récapitulatif, tableau de bord, exports, sauvegardes).
+- **Archiver / réactiver** (`actif`) : sans effet si le patient est déjà dans l'état demandé (idempotent). Archiver un patient qui a des prestations à venir ou un reste à payer est autorisé, avec l'avertissement `PATIENT_ARCHIVE_EN_COURS`, dont le message donne les nombres de prestations à venir et impayées. Les prestations d'un patient archivé restent partout (listes, récapitulatif, tableau de bord, exports, sauvegardes).
 - **Suppression** : seulement pour un patient sans aucune prestation, ni dans le fichier actif, ni dans une archive lisible, et si aucune archive n'est illisible ; sinon 409 `PATIENT_UTILISE`. Sauvegarde `avant-suppression` préalable. Supprimer une prestation ne supprime jamais son patient, qui reste au registre (éventuellement sans prestation).
 
 **Nom modifié depuis une prestation** (`PATCH /api/prestations/{id}`, `modifierPrestation`). La comparaison se fait avec le **registre** (source de vérité), pas avec la copie de la ligne : si la copie diverge du registre (fichier retouché), une correction de casse sur cette ligne ne renomme pas le patient vers le texte de la copie.
@@ -303,7 +303,7 @@ Une prestation à 0 € est « payée » d'office. Le trop-perçu reste attaché
 
 ### 6.5 Récapitulatif du mois et double vue (`src/domain/recap.js`)
 `GET /api/recap?mois=AAAA-MM&vue=prestation|versement` regroupe par `patient.id` (tri nom, prénom, identifiant).
-- **Vue `prestation`** (défaut) : lignes dont la **date** est dans le mois, tous statuts, à venir comprises. Par patient et au total : `nbPrestations`, `nbSeances` (catégorie `seance`), `nbAutres`, `nbAFacturer`, `nbAVenir`, `du = Σ montant`, `paye = Σ paye`, `reste = Σ reste`, `tropPercu = Σ tropPercu`. Invariant : `du = paye + reste`. État du groupe (`etatDepuisTotaux`) : `reste = 0` → payé ; `paye = 0` et `du > 0` → non payé ; sinon partiel.
+- **Vue `prestation`** (défaut) : lignes dont la **date** est dans le mois, tous statuts, à venir comprises. Par patient et au total : `nbSeances` (catégorie `seance`), `nbAutres`, `du = Σ montant`, `paye = Σ paye`, `reste = Σ reste`, `tropPercu = Σ tropPercu`. Invariant : `du = paye + reste`. État du groupe (`etatDepuisTotaux`) : `reste = 0` → payé ; `paye = 0` et `du > 0` → non payé ; sinon partiel.
 - **Vue `versement`** (trésorerie) : `paye` = Σ des versements **datés** dans le mois, toutes prestations confondues (y compris d'autres mois), trop-perçu compris ; `du` reste celui des prestations du mois ; `reste`, `tropPercu` et `etat` valent `null`.
 - **Mois proposés** (`moisDisponibles`, `moisProposes`) : mois contenant des prestations, mois en cours et mois demandé, du plus ancien au plus récent. En vue `versement`, les mois qui n'ont **que des versements** (prestation d'un autre mois payée plus tard) sont aussi proposés.
 - `aFacturer` (global, tous mois) : lignes `a_facturer` de montant > 0 et de date ≤ aujourd'hui ; les lignes à venir sont comptées à part (`aVenirNombre`, `aVenirMontantCentimes`) ; les lignes à 0 € non facturées sont seulement dénombrées (`zeroNombre`).
@@ -335,7 +335,7 @@ Les parts somment **exactement 1000** (toutes à 0 si le total est nul) ; les mo
 **Reste à encaisser et ancienneté** : une ligne compte si `reste > 0` **et** (date ≤ aujourd'hui **ou** statut « facturé ») ; une prestation à venir non facturée n'est pas un impayé.
 - Ancienneté = jours depuis `factureLe` (ligne facturée avec date), sinon depuis la date de prestation ; jamais négative.
 - Tranches (`TRANCHES`, définies une seule fois côté serveur et transmises à l'interface par `/api/etat`, §9.2) : `0-29`, `30-59`, `60-89`, `90-plus` (30 jours pile → `30-59`).
-- Sortie : `totalResteCentimes`, `nombre`, `resteFactureCentimes`, `resteNonFactureCentimes`, `factures[]` et `nonFactures[]` par tranche. Le même critère sert au filtre `anciennete` de `GET /api/prestations`.
+- Sortie : `totalResteCentimes`, `nombre`, `resteNonFactureCentimes` (la part facturée vaut `totalResteCentimes − resteNonFactureCentimes`), `factures[]` et `nonFactures[]` par tranche. Le même critère sert au filtre `anciennete` de `GET /api/prestations`.
 
 **Synthèse** (`/api/indicateurs/synthese`) : toujours le mois en cours — reste à encaisser, à facturer global, CA du mois (vue prestation), séances du mois.
 
@@ -346,7 +346,7 @@ Grandeur prévue : le **CA dû** (Σ des montants, par date de prestation, tous 
 2. **Base** : `B = arrondi((CA(M−1) + CA(M−2) + CA(M−3)) / 3)`, un mois sans activité comptant 0.
 3. **Mois en cours** : `R` = Σ montants de `M` avec date ≤ `A` ; `P` = Σ montants de `M` avec date > `A` ; `joursRestants = joursDuMois − jour(A)` (le jour même est considéré comme vécu) ; `Bf = arrondi(B × joursRestants / joursDuMois)` ; `estimation = R + max(P, Bf)`.
 4. **Mois `M+1` à `M+3`** : `estimation = R + max(P, B)` (en pratique `R = 0`).
-5. Sortie par mois : `{ mois, courant, realiseCentimes, planifieCentimes, complementEstimeCentimes = estimation − R − P, estimationCentimes }`.
+5. Sortie du domaine par mois : `{ mois, courant, realiseCentimes, planifieCentimes, complementEstimeCentimes = estimation − R − P, estimationCentimes }`, plus `base`. La route `GET /api/indicateurs/prevision` n'envoie que `{ mois, courant, estimationCentimes }` par mois et pas `base` (seuls champs lus par l'écran) ; le détail sert aux tests de la formule.
 
 Arrondi : `diviserArrondi(n, d) = floor((2n + d) / (2d))`, division entière, moitiés vers le haut, sans flottant.
 Pourquoi `max` et non une somme : `B` représente un mois complet « typique », séances planifiées comprises ; additionner `P` et `B` compterait deux fois ce qui est déjà saisi. Limites : aucune saisonnalité, prorata en jours calendaires.
@@ -416,7 +416,7 @@ Le temporaire du **verrou d'instance** suit une autre règle (§8.2).
 ### 7.4 Restauration et migration de schéma (`src/store/restauration.js`, `src/store/store.js`, `src/domain/schema.js`)
 
 **Restauration** (`store.restaurer`)
-- `GET /api/sauvegardes` lit et contrôle chaque fichier : taille, lisibilité, restaurable, raison du refus, version de schéma, nombre de prestations et de patients, première et dernière date, révision, `majLe`. Le nombre de patients est la taille du registre (patients sans prestation compris) ; pour une sauvegarde de version 1, le registre est reconstruit en mémoire par la migration, sans rien écrire.
+- `GET /api/sauvegardes` lit et contrôle chaque fichier : taille, lisibilité, restaurable, raison du refus, nombre de prestations, première et dernière date, révision, `majLe`. Une sauvegarde de version 1 est migrée en mémoire pour être contrôlée, sans rien écrire.
 - Restauration (dans la file, possible dans tous les modes : normal, dégradé, conflit, lecture seule) :
   1. nom contrôlé par le motif strict des sauvegardes (jamais un chemin), sinon 404 ;
   2. en mode dégradé, relecture du fichier actif ; s'il est redevenu lisible et que la décision vient de l'écran dégradé (`depuisModeDegrade`), refus 409 `FICHIER_REVENU` ;
@@ -558,8 +558,8 @@ Une erreur pendant ces étapes est écrite au journal (sans message), le verrou 
 ### 9.2 Routes
 | Méthode et chemin | Rôle | Erreurs propres |
 |---|---|---|
-| `GET /api/sante` | `{ ok, application: "suivi-facturation", version, pid }` (sondes du verrou et des lanceurs) | — |
-| `GET /api/etat` | contrôle d'empreinte ou relecture, puis : `version`, `aujourdHui`, `dossier`, `tailleOctets`, `nombrePrestations`, `sauvegardesConservees`, `modeDegrade`, `erreur`, `lectureSeule`, `structureInconnue`, `conflit`, `conflitNonResolu`, `avertissements`, `derniereSauvegarde`, `dernierModePaiement`, `arretAuto`, `demonstration` (vrai seulement pour `npm run demo`), `tranchesAnciennete` (`[{ id, libelle }]`, tranches d'ancienneté des impayés, §6.6) | — |
+| `GET /api/sante` | `{ ok, application: "suivi-facturation", pid }` (sondes du verrou et des lanceurs) | — |
+| `GET /api/etat` | contrôle d'empreinte ou relecture, puis : `aujourdHui`, `dossier`, `tailleOctets`, `nombrePrestations`, `sauvegardesConservees`, `modeDegrade`, `erreur`, `lectureSeule`, `structureInconnue`, `conflit`, `conflitNonResolu`, `avertissements`, `dernierModePaiement`, `arretAuto`, `demonstration` (vrai seulement pour `npm run demo`), `tranchesAnciennete` (`[{ id, libelle }]`, tranches d'ancienneté des impayés, §6.6) | — |
 | `GET /api/catalogue` | catalogue complet + `utilisations` par type (fichier actif et archives lisibles) | 503 |
 | `POST /api/catalogue` | ajout `{ libelle, tarifCentimes, categorie }` (actif, placé en dernier) → 201 | 422 |
 | `PATCH /api/catalogue/{id}` | `libelle`, `tarifCentimes`, `categorie`, `actif`, `ordre` ; sans effet rétroactif | 404, 422 |
@@ -569,7 +569,7 @@ Une erreur pendant ces étapes est écrite au journal (sans message), le verrou 
 | `POST /api/patients` | `{ nom, prenom, homonyme? }` → 201 `{ donnees: { id, nom, prenom, actif: true }, avertissements, annulation }` | 400, 409 `PATIENT_EXISTANT`, 422 `VALIDATION` |
 | `PATCH /api/patients/{id}` | `{ nom?, prenom?, actif?, homonyme? }` (au moins un de `nom`, `prenom`, `actif`) : renommage propagé aux lignes et/ou archivage, réactivation → `{ donnees: { patient, lignesModifiees }, avertissements, annulation }` | 400, 404, 409 `PATIENT_EXISTANT`, 422 |
 | `DELETE /api/patients/{id}` | patient sans prestation ; sauvegarde `avant-suppression` → `{ donnees: { id }, avertissements, annulation }` | 404, 409 `PATIENT_UTILISE`, 503 `SAUVEGARDE_ECHOUEE` |
-| `GET /api/prestations` | filtres `mois`, `de`, `a`, `patientId`, `statut`, `etat` (liste `non_paye,partiel,paye`), `aVenir`, `anciennete` ; → `{ lignes, total, moisDisponibles }` (mois contenant des prestations), tri par date puis création | 400 |
+| `GET /api/prestations` | filtres `mois`, `de`, `a`, `patientId`, `statut`, `etat` (liste `non_paye,partiel,paye`), `aVenir`, `anciennete` ; → `{ lignes, moisDisponibles }` (les totaux affichés sont calculés par le navigateur sur les lignes filtrées) (mois contenant des prestations), tri par date puis création | 400 |
 | `GET /api/prestations/{id}` | une ligne enrichie | 404 |
 | `POST /api/prestations` | `{ patientId \| patient:{nom,prenom}, nouveauPatient?, date, prestationId, montantCentimes, motif? }` → 201 ; le patient est pris dans le registre, ou ajouté au registre dans la même écriture (§6.3) | 422, 409 `PATIENTS_HOMONYMES` |
 | `POST /api/prestations/statut` | `{ ids, statut, date? }` → `{ modifiees }` | 400, 404, 422 |
@@ -612,7 +612,7 @@ Les sections du tableau de bord sont des routes séparées pour qu'une section e
 | 503 | `DONNEES_ILLISIBLES`, `SCHEMA_PLUS_RECENT`, `FICHIER_VERROUILLE`, `ECRITURE_ECHOUEE`, `SAUVEGARDE_ECHOUEE` |
 | 500 | `ERREUR_INTERNE` |
 
-Avertissements non bloquants (dans `avertissements` des réponses de mutation) : `DATE_FUTURE`, `DATE_FACTURATION_FUTURE`, `DATE_FACTURATION_AVANT_PRESTATION`, `FACTURATION_DATE_FUTURE`, `VERSEMENT_AVANT_PRESTATION`, `VERSEMENT_DATE_FUTURE`, `TROP_PERCU`, `PATIENT_RATTACHE` (prestation rattachée à un patient enregistré dont l'écriture diffère du texte tapé), `PATIENT_REACTIVE` (patient archivé réactivé par une prestation), `PATIENT_HOMONYME` (renommage vers le nom d'un autre patient, confirmé), `PATIENT_ARCHIVE_EN_COURS` (patient archivé qui a des prestations à venir ou un reste à payer ; `details: { aVenir, impayees }`), `SAUVEGARDE_ECHOUEE`. Avertissements de lecture de `/api/etat` : `SAUVEGARDE_ECHOUEE`, `DONNEES_INCOHERENTES` (statuts, lignes orphelines, copies divergentes, §5.2).
+Avertissements non bloquants (dans `avertissements` des réponses de mutation) : `DATE_FUTURE`, `DATE_FACTURATION_FUTURE`, `DATE_FACTURATION_AVANT_PRESTATION`, `FACTURATION_DATE_FUTURE`, `VERSEMENT_AVANT_PRESTATION`, `VERSEMENT_DATE_FUTURE`, `TROP_PERCU`, `PATIENT_RATTACHE` (prestation rattachée à un patient enregistré dont l'écriture diffère du texte tapé), `PATIENT_REACTIVE` (patient archivé réactivé par une prestation), `PATIENT_HOMONYME` (renommage vers le nom d'un autre patient, confirmé), `PATIENT_ARCHIVE_EN_COURS` (patient archivé qui a des prestations à venir ou un reste à payer ; nombres dans le message), `SAUVEGARDE_ECHOUEE`. Avertissements de lecture de `/api/etat` : `SAUVEGARDE_ECHOUEE`, `DONNEES_INCOHERENTES` (statuts, lignes orphelines, copies divergentes, §5.2).
 
 ## 10. Sécurité et confidentialité
 
@@ -757,7 +757,7 @@ Création seulement pour le dossier par défaut (en `0700`) ; sinon existence, t
 - `npm test` : `node --test` sur tout le dossier `tests/`, rapport `spec` à l'écran et dans `derniers-tests.log` (ignoré par git). Aucune dépendance (`node:test`, `node:assert/strict`).
 - **Organisation** (fichiers nommés d'après ce qu'ils vérifient) :
   - `tests/domain/` : règles pures (paiement, récap, indicateurs, prévisions, dates, CSV, schéma, catalogue vierge, caractères invisibles dans les textes saisis…) ; registre des patients : `patients.test.js` (clé, liste, résolution, création, renommage, archivage, suppression, réparation), `patients-registre.test.js` (reconstruction du registre et ses cas limites, incohérences comptées, **invariant** I1/I2 après des centaines d'opérations tirées d'une graine fixe), `migration-v1-v2.test.js` (récapitulatif, indicateurs et exports CSV identiques avant et après migration ; cas limites) ;
-  - `tests/store/` : disque (écriture atomique, sauvegardes et rotation en jours, restauration, conflit, configuration, emplacements détournés par lien ou jonction, droits et robustesse) ; `migration-patients.test.js` : migration d'un fichier version 1 au démarrage (sauvegarde `avant-migration` identique octet pour octet, pas de seconde migration), échecs sans perte (structure, écriture, sauvegarde impossible), fichier plus récent, restauration d'une sauvegarde version 1, `nombrePatients`, annulation des opérations du registre, incohérences signalées ;
+  - `tests/store/` : disque (écriture atomique, sauvegardes et rotation en jours, restauration, conflit, configuration, emplacements détournés par lien ou jonction, droits et robustesse) ; `migration-patients.test.js` : migration d'un fichier version 1 au démarrage (sauvegarde `avant-migration` identique octet pour octet, pas de seconde migration), échecs sans perte (structure, écriture, sauvegarde impossible), fichier plus récent, restauration d'une sauvegarde version 1, liste des sauvegardes réduite aux champs affichés, annulation des opérations du registre, incohérences signalées ;
   - `tests/http/` : serveur réel sur `127.0.0.1`, port 0 (API, sécurité, statique, corps ignorés, archives abîmées, verrou et son temporaire, PID réutilisé, instance unique, ordre de l'arrêt, arrêt, présence, démarrage) ; `patients.test.js` : chaque route et code des patients (dont `PATIENT_EXISTANT` puis `homonyme: true`, double clic, `PATIENT_UTILISE` avec ligne active, archive lisible ou illisible, réactivation par une prestation, annulation, mode dégradé, lecture seule, conflit, aucun nom au journal, registre dans l'export JSON) ;
   - `tests/front/` : modules purs de `public/js` (écriture, sélection, accessibilité, formats, graphiques, présence, recherche de patients `recherche-patients.test.js`…) et conformité CSP (dont `patients.html`, navigation à cinq entrées identique sur les cinq pages, attributs ARIA de la combobox, aucun `innerHTML` dans les modules patients) ;
   - `tests/journal/` ;

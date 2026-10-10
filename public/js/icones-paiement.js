@@ -1,5 +1,6 @@
 // Icônes des modes de paiement (design system §5.13) : tracés au trait sur une grille 24 × 24, couleur et épaisseur posées par le CSS.
 // Construites par createElementNS (via svg.js) : jamais de HTML construit, aucun attribut style, aucune ressource externe.
+// Utilisé par dom.js, choix-mode.js et paiement-rapide.js. Ajouter un mode de paiement : une icône ici (voir l'en-tête de src/domain/validation.js).
 import { svg } from './graphiques/svg.js';
 import { LIBELLES_MODE } from './format.js';
 

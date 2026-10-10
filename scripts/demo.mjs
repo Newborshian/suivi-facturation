@@ -52,7 +52,7 @@ const estDans = (parent, enfant) => {
 const memeChemin = (a, b) => (EST_WINDOWS ? a.toLowerCase() === b.toLowerCase() : a === b);
 
 /** Garde-fou : vrai si le dossier de démonstration touche le dossier de données réel (identique, contenu ou contenant). */
-export function demoTouheLesDonneesReelles(dossierDemo, dossierReel) {
+export function demoToucheLesDonneesReelles(dossierDemo, dossierReel) {
   const a = normaliser(dossierDemo);
   const b = normaliser(dossierReel);
   return estDans(a, b) || estDans(b, a);
@@ -217,7 +217,7 @@ export async function main() {
     return 1;
   }
   const { base, donnees, logs: dossierLogs, verrou: dossierVerrou } = dossiers;
-  if (demoTouheLesDonneesReelles(base, dossierReel) || demoTouheLesDonneesReelles(base, path.join(RACINE, 'data'))) {
+  if (demoToucheLesDonneesReelles(base, dossierReel) || demoToucheLesDonneesReelles(base, path.join(RACINE, 'data'))) {
     nettoyerEtSignaler(base);
     console.error(`Démonstration refusée : son dossier (${base}) correspond au dossier de données réel. Rien n'a été touché.`);
     return 1;

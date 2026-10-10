@@ -15,7 +15,7 @@ test('GET /api/sante', async () => {
   try {
     const r = await s.requete({ chemin: '/api/sante' });
     assert.equal(r.status, 200);
-    assert.deepEqual(r.json, { ok: true, application: 'suivi-facturation', version: '0.0.0-test', pid: process.pid });
+    assert.deepEqual(r.json, { ok: true, application: 'suivi-facturation', pid: process.pid });
     assert.equal(r.headers['cache-control'], 'no-store');
     assert.equal(r.headers['content-type'], 'application/json; charset=utf-8');
   } finally {

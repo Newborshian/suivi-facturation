@@ -23,13 +23,15 @@
 // Toute opération fichier réessaie sur EPERM / EBUSY / EACCES (Windows : fichier tenu un instant par un autre processus) et sur un contenu JSON
 // incomplet, avec une attente aléatoire de 10 à 60 ms, jusqu'à 2 s. Chaque série de réessais épuisée est écrite au journal avec le code d'erreur réel.
 // Un verrou « bloque » n'est JAMAIS supprimé ni tué automatiquement. Il ne protège pas entre deux ordinateurs.
+// Appelé par server.js (acquérir, mettre à jour le port, libérer) et les scripts (lire l'état, arrêt de secours). À ne pas casser : un verrou
+// « bloque » n'est jamais supprimé ni son processus arrêté automatiquement ; le nom du fichier dépend du chemin réel du dossier de données.
 import { execFile } from 'node:child_process';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
-import { RACINE_PROJET, ErreurConfig, cheminReel, refuserEmplacementInterdit } from './config.js';
+import { RACINE_PROJET, ErreurConfig, cheminReel, estDans, refuserEmplacementInterdit } from './config.js';
 import { MODE_DOSSIER } from './droits.js';
 
 export const DELAI_SONDE_MS = 1500;
@@ -48,10 +50,6 @@ const NOM_DOSSIER_VERROUS = 'suivi-facturation-verrous';
 const dormir = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const dormirSync = (ms) => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
 const attente = (reessai) => reessai.minMs + Math.random() * (reessai.maxMs - reessai.minMs);
-const estDans = (parent, enfant) => {
-  const rel = path.relative(parent, enfant);
-  return rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel));
-};
 
 /** Contexte des opérations : système de fichiers (remplaçable par un faux dans les tests), journal facultatif, paramètres de réessai. */
 const uidCourant = () => (typeof process.getuid === 'function' ? process.getuid() : null);

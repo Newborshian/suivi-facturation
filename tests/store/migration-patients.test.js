@@ -171,8 +171,7 @@ test('restauration d\'une sauvegarde version 1 : registre reconstruit, fichier �
     const liste = await store.sauvegardes();
     const resume = liste.find((s) => s.nom === SAUV);
     assert.equal(resume.restaurable, true);
-    assert.equal(resume.schemaVersion, 1);
-    assert.equal(resume.nombrePatients, 3, 'registre reconstruit en mémoire : même nombre qu\'avant');
+    assert.equal(resume.nombrePrestations, 6, 'sauvegarde version 1 lue (migrée en mémoire) pour la liste');
     const r = await store.restaurer(SAUV);
     assert.equal(r.nombrePrestations, 6);
     const disque = await lireJson(chemin);
@@ -183,7 +182,7 @@ test('restauration d\'une sauvegarde version 1 : registre reconstruit, fichier �
   });
 });
 
-test('liste des sauvegardes : nombrePatients d\'une sauvegarde version 2 = taille de son registre (patients sans prestation compris)', async () => {
+test('liste des sauvegardes : seulement les champs lus par l\'écran (ni version de schéma, ni nombre de patients)', async () => {
   const exemple = genererExemple();
   await avecFichier(texteEtat(etatTest(1)), async (dossier, chemin, ouvrir) => {
     await fs.mkdir(path.join(dossier, 'sauvegardes'), { recursive: true });
@@ -191,8 +190,8 @@ test('liste des sauvegardes : nombrePatients d\'une sauvegarde version 2 = taill
     await ouvrir();
     const liste = await listerSauvegardesDetaillees({ dossier });
     const s = liste.find((x) => x.nom.includes('2026-09-01'));
-    assert.equal(s.nombrePatients, exemple.patients.length);
-    assert.equal(s.nombrePatients, 7, '6 patients actifs et 1 archivé sans prestation');
+    assert.equal(s.nombrePrestations, exemple.prestations.length);
+    assert.deepEqual(Object.keys(s).sort(), ['derniereDate', 'heure', 'jour', 'lisible', 'majLe', 'nom', 'nombrePrestations', 'premiereDate', 'raison', 'raisonRefus', 'reserve', 'restaurable', 'revision', 'tailleOctets']);
   });
 });
 

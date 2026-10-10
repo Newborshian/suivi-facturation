@@ -75,7 +75,8 @@ test('indicateurs de bout en bout : CA = récapitulatif du même mois, séances,
     assert.equal(rep.types.reduce((t, x) => t + x.caCentimes, 0), rep.totalCentimes);
 
     const imp = (await a.get('/api/indicateurs/impayes')).json;
-    assert.equal(imp.resteFactureCentimes, 3500);
+    assert.equal(imp.totalResteCentimes - imp.resteNonFactureCentimes, 3500, 'part facturée');
+    assert.equal(imp.resteFactureCentimes, undefined, 'champ retiré : jamais lu par l\'écran');
     assert.equal(imp.resteNonFactureCentimes, 2500 + 25000); // la prestation à venir n'est pas un impayé
     assert.equal(imp.factures[0].nombre, 1); // facturée le 30/09 : 2 jours
 
@@ -145,7 +146,7 @@ test('prestation à venir déjà facturée (avec acompte) : « facturé en atten
       assert.equal(m.attenteCentimes + m.aFacturerCentimes + m.aVenirCentimes, recap.resteCentimes, m.mois);
     }
     const imp = (await a.get('/api/indicateurs/impayes')).json;
-    assert.deepEqual([imp.resteFactureCentimes, imp.resteNonFactureCentimes, imp.nombre], [3000 + 3500, 0, 2]);
+    assert.deepEqual([imp.totalResteCentimes - imp.resteNonFactureCentimes, imp.resteNonFactureCentimes, imp.nombre], [3000 + 3500, 0, 2]);
     assert.equal((await a.get('/api/indicateurs/synthese')).json.resteAEncaisser.montantCentimes, 6500);
     assert.equal((await a.get('/api/prestations?statut=facture&anciennete=0-29')).json.lignes.length, 2, 'le clic sur la tranche liste les mêmes lignes');
   }));

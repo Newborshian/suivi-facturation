@@ -1,5 +1,6 @@
 // Dialogues communs aux patients (design system §8.11) : « Un patient porte déjà ce nom » (ajout ou renommage vers un nom existant).
 // Le serveur ne renvoie que des identifiants et des dates (409 PATIENT_EXISTANT) : les noms viennent du registre déjà chargé par la page.
+// Utilisé par pages/patients.js et pages/prestations-dialogues.js.
 import { alerte } from '/js/bandeaux.js';
 import { el } from '/js/dom.js';
 import { formatDate, pluriel } from '/js/format.js';

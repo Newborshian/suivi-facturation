@@ -109,7 +109,7 @@ La suite (`node:test`, sans dépendance) lance de vrais serveurs locaux sur des 
 
 ## Contribuer
 
-Voir [CONTRIBUTING.md](CONTRIBUTING.md).
+Voir [CONTRIBUTING.md](CONTRIBUTING.md) et, pour modifier le code, le [guide du développeur](docs/guide-developpeur.md).
 
 ## Licence
 

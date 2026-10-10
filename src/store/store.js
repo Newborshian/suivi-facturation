@@ -1,5 +1,10 @@
 // Stockage : état en mémoire + file d'écriture unique + contrôle d'empreinte avant écriture.
 // Seul module (avec ses voisins de src/store/) à toucher au disque.
+// Créé par server.js (ouvrirStore) ; utilisé par toutes les routes : lecture par store.lire(), écriture UNIQUEMENT par store.muter(raison, fn).
+// Flux d'une écriture : route -> store.muter -> file -> executer -> fonction du domaine sur une copie -> contrôle -> sauvegardes -> écriture
+// atomique -> état en mémoire -> réponse { etat, avertissements, resultat, annulation } (détail : architecture §7.1, docs/guide-developpeur.md).
+// À ne pas casser : (1) aucune écriture hors de la file (deux écritures simultanées se marcheraient dessus) ; (2) l'état en mémoire n'est
+// remplacé qu'après une écriture réussie ; (3) jamais de suppression automatique de données (seules les sauvegardes tournent, voir sauvegardes.js).
 import { randomUUID } from 'node:crypto';
 import fsp from 'node:fs/promises';
 import path from 'node:path';
@@ -7,6 +12,7 @@ import { ErreurApp } from '../erreurs.js';
 import { FORMAT, MIGRATIONS, VERSION_COURANTE, compterAnomaliesRegistre, compterIncoherencesPatients, compterIncoherencesStatut, controlerStructure, creerEtatInitial, migrer } from '../domain/schema.js';
 import { SAUVEGARDES_MAX, SAUVEGARDES_MIN } from '../domain/validation.js';
 import { ecrireAtomique, nettoyerTemporaires } from './fichier-atomique.js';
+import { lireJson, serialiser } from './json.js';
 import { chercherConflitNonResolu, empreinteDe, resumerVersion, sha256 } from './conflit.js';
 import { analyserContenu, listerSauvegardesDetaillees } from './restauration.js';
 import { SOUS_DOSSIER_SAUVEGARDES, analyserNomSauvegarde, appliquerRotation, creerSauvegarde, listerSauvegardes, nettoyerTemporairesSauvegardes } from './sauvegardes.js';
@@ -14,6 +20,7 @@ import { SOUS_DOSSIER_SAUVEGARDES, analyserNomSauvegarde, appliquerRotation, cre
 export const NOM_FICHIER_ACTIF = 'suivi-facturation.json';
 const ATTENTE_ARRET_MS = 5000;
 
+/** Gèle récursivement l'état en mémoire : une route qui le modifierait par erreur (au lieu de passer par muter) lève une TypeError en mode strict. */
 function geler(valeur) {
   if (valeur && typeof valeur === 'object' && !Object.isFrozen(valeur)) {
     Object.freeze(valeur);
@@ -25,7 +32,7 @@ function geler(valeur) {
 /** Réglage « sauvegardes à conserver » lisible dans des octets (fichier abîmé ou d'une autre version), sinon null. */
 function reglageDans(octets) {
   try {
-    const n = JSON.parse(octets.toString('utf8').replace(/^﻿/, ''))?.parametres?.sauvegardesConservees;
+    const n = lireJson(octets)?.parametres?.sauvegardesConservees;
     return Number.isSafeInteger(n) && n >= 1 ? n : null;
   } catch {
     return null;
@@ -61,8 +68,6 @@ function causeMigration(etape, problemes) {
   }
   return "le contenu du fichier n'a pas pu être converti.";
 }
-
-const serialiser = (etat) => `${JSON.stringify(etat, null, 2)}\n`;
 
 const AVERTISSEMENT_SAUVEGARDE = {
   code: 'SAUVEGARDE_ECHOUEE',
@@ -105,7 +110,7 @@ function lignesTouchees(ancien, nouveau) {
  * dégradé et pendant une restauration (aucune suppression à ces moments-là). La réserve quotidienne garde un nombre de JOURS d'historique :
  * toujours le réglage courant (7 à 365), jamais une valeur par défaut ni celle d'une sauvegarde restaurée.
  */
-export async function ouvrirStore({ dossier, horloge, fs = fsp, optionsAtomique, migrations = MIGRATIONS, journal = { avert() {}, erreur() {} }, etatInitial = creerEtatInitial } = {}) {
+export async function ouvrirStore({ dossier, horloge, fs = fsp, optionsAtomique, migrations = MIGRATIONS, journal = { info() {}, avert() {}, erreur() {} }, etatInitial = creerEtatInitial } = {}) {
   const chemin = path.join(dossier, NOM_FICHIER_ACTIF);
   const optAtomique = { fs, ...optionsAtomique };
 
@@ -117,7 +122,6 @@ export async function ouvrirStore({ dossier, horloge, fs = fsp, optionsAtomique,
   let file = Promise.resolve();
   let creeAuDemarrage = false;
   let avertissementSauvegarde = null; // persistant jusqu'à la prochaine sauvegarde réussie
-  let derniereSauvegarde = null;
   let jourSauvegardeQuotidienne = null; // jour civil dont le début est déjà couvert par une sauvegarde
   let derniereAnnulation = null; // { jeton, revision, avant: Map, parametresAvant, patientsAvant }
   let reglageCourant = null; // dernier réglage « sauvegardes à conserver » connu (null tant qu'aucun fichier n'a été lu)
@@ -131,6 +135,8 @@ export async function ouvrirStore({ dossier, horloge, fs = fsp, optionsAtomique,
     if (Number.isSafeInteger(n)) reglageCourant = n;
   };
 
+  // File d'écriture : chaque tâche attend la fin de la précédente (chaîne de promesses). `suite` est rendue à l'appelant (succès ou erreur) ;
+  // `file` avale l'erreur pour que la tâche suivante s'exécute quand même. Toute opération qui écrit DOIT passer par enfiler.
   const enfiler = (tache) => {
     const suite = file.then(tache);
     file = suite.catch(() => {});
@@ -207,7 +213,7 @@ export async function ouvrirStore({ dossier, horloge, fs = fsp, optionsAtomique,
     empreinte = empreinteDe(stat, octets);
     let donnees;
     try {
-      donnees = JSON.parse(octets.toString('utf8').replace(/^﻿/, ''));
+      donnees = lireJson(octets);
     } catch {
       empreinte = null;
       return signalerDegrade('illisible', "Le fichier de données est illisible (abîmé ou incomplet). Rien n'a été modifié. Choisissez une sauvegarde à restaurer.");
@@ -336,7 +342,6 @@ export async function ouvrirStore({ dossier, horloge, fs = fsp, optionsAtomique,
    */
   async function sauvegarder(raison, octets, { rotation = true } = {}) {
     const nom = await creerSauvegarde({ dossier, maintenant: horloge.maintenant(), raison, contenu: octets, fs, optionsAtomique });
-    derniereSauvegarde = nom;
     if (rotation && !degrade) {
       await appliquerRotation({ dossier, joursQuotidiens: joursConserves(), maintenant: horloge.maintenant(), fs, journal })
         .catch((err) => journal.avert(`Rotation des sauvegardes en échec (code : ${err?.code ?? err?.name ?? 'inconnu'}) : des sauvegardes anciennes peuvent s'accumuler.`));
@@ -361,7 +366,6 @@ export async function ouvrirStore({ dossier, horloge, fs = fsp, optionsAtomique,
       if (derniere) {
         const octetsDerniere = await fs.readFile(path.join(dossier, SOUS_DOSSIER_SAUVEGARDES, derniere.nom));
         if (sha256(octetsDerniere) === sha256(octets)) {
-          derniereSauvegarde = derniere.nom;
           jourSauvegardeQuotidienne = jour;
           return;
         }
@@ -389,13 +393,51 @@ export async function ouvrirStore({ dossier, horloge, fs = fsp, optionsAtomique,
     }
   }
 
-  async function executer(raison, fn, { sauvegardeAvant = null, suivreAnnulation = true } = {}) {
+  /** Étape 1 d'une écriture : refus si le fichier n'est pas modifiable (dégradé 503, lecture seule 503, conflit de synchronisation 409). */
+  async function refuserSiEcritureImpossible() {
     if (degrade) throw new ErreurApp(503, degrade.code, degrade.message);
     if (lectureSeule) throw new ErreurApp(503, 'SCHEMA_PLUS_RECENT', 'Ce fichier a été créé par une version plus récente de l\'application. Il est ouvert en lecture seule : aucune modification n\'est possible.');
-    const refus = () => new ErreurApp(409, 'CONFLIT_FICHIER', "Le fichier de données a été modifié ailleurs (synchronisation ?). Rien n'a été enregistré et les deux versions ont été conservées dans les sauvegardes. Choisissez la version à garder (bouton en haut de la page).");
-    await controlerEmpreinte();
-    if (conflit) throw refus();
+    await controlerEmpreinte(); // le fichier sur le disque est-il toujours celui que nous connaissons ? sinon : conflit déclaré
+    if (conflit) throw new ErreurApp(409, 'CONFLIT_FICHIER', "Le fichier de données a été modifié ailleurs (synchronisation ?). Rien n'a été enregistré et les deux versions ont été conservées dans les sauvegardes. Choisissez la version à garder (bouton en haut de la page).");
+  }
 
+  /** Étape 3 : sauvegardes de l'état AVANT la modification (quotidienne si c'est la première du jour, puis préalable obligatoire si demandée). */
+  async function sauvegardesAvantEcriture(sauvegardeAvant) {
+    await sauvegardeQuotidienne(); // son échec n'empêche pas l'écriture (avertissement persistant SAUVEGARDE_ECHOUEE)
+    if (!sauvegardeAvant) return;
+    try {
+      await sauvegarder(sauvegardeAvant, await fs.readFile(chemin));
+    } catch (err) {
+      echecSauvegarde('de sécurité avant opération', err);
+      throw new ErreurApp(503, 'SAUVEGARDE_ECHOUEE', "L'opération a été annulée : la sauvegarde de sécurité n'a pas pu être créée. Rien n'a été modifié.");
+    }
+  }
+
+  /**
+   * Étape 5 : retient de quoi annuler CETTE écriture (lignes touchées, paramètres et registre d'avant) et renvoie le jeton, ou null.
+   * Une écriture non suivie (catalogue, paramètres) efface le jeton précédent : on n'annule jamais « par-dessus » une autre écriture.
+   */
+  function retenirAnnulation(ancien, suivreAnnulation) {
+    if (!suivreAnnulation) {
+      derniereAnnulation = null;
+      return null;
+    }
+    const jeton = randomUUID();
+    derniereAnnulation = { jeton, revision: etat.revision, avant: lignesTouchees(ancien, etat), parametresAvant: ancien.parametres, patientsAvant: ancien.patients };
+    return jeton;
+  }
+
+  /**
+   * Une écriture complète, TOUJOURS appelée par la file (voir `muter`) : deux écritures ne se chevauchent jamais.
+   * `raison` : étiquette de l'opération (ex. 'creer-prestation'), seulement descriptive aujourd'hui (ni journalisée, ni stockée).
+   * `fn(copie)` : fonction du domaine qui modifie la COPIE de travail et renvoie { resultat, avertissements } (ou { etat } pour remplacer la copie).
+   * Ordre à ne pas changer : refus -> calcul sur une copie -> contrôle de structure -> sauvegardes -> écriture atomique -> état en mémoire.
+   * La mémoire n'est modifiée qu'APRÈS l'écriture réussie : en cas d'échec, mémoire et disque restent sur l'ancienne version.
+   */
+  async function executer(raison, fn, { sauvegardeAvant = null, suivreAnnulation = true } = {}) {
+    await refuserSiEcritureImpossible();
+
+    // Étape 2 : la fonction du domaine travaille sur une copie ; l'état gelé en mémoire n'est jamais touché.
     const ancien = etat;
     const copie = structuredClone(etat);
     const retour = (await fn(copie)) ?? {};
@@ -403,38 +445,30 @@ export async function ouvrirStore({ dossier, horloge, fs = fsp, optionsAtomique,
     suivant.revision = etat.revision + 1;
     suivant.majLe = horloge.maintenant().toISOString();
     if (controlerStructure(suivant).length > 0) {
+      // Filet de sécurité : une fonction du domaine a produit un état invalide. Rien n'est écrit.
       throw new ErreurApp(500, 'ERREUR_INTERNE', 'Une erreur interne a empêché l\'enregistrement. Rien n\'a été modifié.');
     }
 
-    // Sauvegardes de l'état AVANT cette modification (`fn` a réussi : une saisie refusée n'en crée pas).
-    await sauvegardeQuotidienne();
-    if (sauvegardeAvant) {
-      try {
-        await sauvegarder(sauvegardeAvant, await fs.readFile(chemin));
-      } catch (err) {
-        echecSauvegarde('de sécurité avant opération', err);
-        throw new ErreurApp(503, 'SAUVEGARDE_ECHOUEE', "L'opération a été annulée : la sauvegarde de sécurité n'a pas pu être créée. Rien n'a été modifié.");
-      }
-    }
+    await sauvegardesAvantEcriture(sauvegardeAvant); // `fn` a réussi : une saisie refusée ne crée aucune sauvegarde
 
+    // Étape 4 : écriture atomique, puis seulement l'état en mémoire et l'empreinte.
     const texte = serialiser(suivant);
     await ecrireAtomique(chemin, texte, optAtomique); // en cas d'échec, la mémoire reste inchangée
     await memoriser(suivant, texte);
 
-    let annulation = null;
-    if (suivreAnnulation) {
-      annulation = randomUUID();
-      derniereAnnulation = { jeton: annulation, revision: suivant.revision, avant: lignesTouchees(ancien, etat), parametresAvant: ancien.parametres, patientsAvant: ancien.patients };
-    } else {
-      derniereAnnulation = null;
-    }
+    const annulation = retenirAnnulation(ancien, suivreAnnulation);
     // Alerte immédiate si la sauvegarde automatique du jour n'a pas pu être créée (elle est aussi dans /api/etat).
     const avertissements = [...(retour.avertissements ?? [])];
     if (avertissementSauvegarde) avertissements.push(avertissementSauvegarde);
     return { etat, avertissements, resultat: retour.resultat, annulation };
   }
 
-  /** Restaure l'état d'avant la dernière mutation si aucune autre n'a eu lieu depuis (même révision). */
+  /**
+   * Annulation (bouton « Annuler » des messages) : restaure l'état d'avant la dernière écriture, si aucune autre n'a eu lieu depuis (même révision).
+   * C'est une NOUVELLE écriture (révision + 1, sauvegarde « avant-suppression » si elle retire une ligne), pas un retour arrière du fichier :
+   * les lignes touchées reprennent leur valeur d'avant, les paramètres (dont le dernier mode de paiement) et le registre des patients aussi.
+   * Le jeton est perdu au redémarrage ; une écriture du catalogue ou des paramètres l'efface (elles ne sont pas annulables).
+   */
   function annulerDerniere(jeton) {
     if (!derniereAnnulation || derniereAnnulation.jeton !== jeton || !etat || etat.revision !== derniereAnnulation.revision) {
       throw new ErreurApp(409, 'ANNULATION_IMPOSSIBLE', "Impossible d'annuler : une autre modification a été faite depuis, ou l'application a été relancée.");
@@ -480,10 +514,41 @@ export async function ouvrirStore({ dossier, horloge, fs = fsp, optionsAtomique,
 
   const fichierRevenu = () => new ErreurApp(409, 'FICHIER_REVENU', "Le fichier de données est revenu et il est de nouveau lisible (synchronisation terminée ?). Il n'a pas été remplacé : rien n'a été modifié. L'application l'a repris tel quel.");
 
+  // --- Aides communes à la restauration et à la remise à zéro (remplacement complet du fichier actif) ---
+
+  /** Octets du fichier actif tel qu'il est sur le disque (même illisible), ou null s'il n'existe pas. Autre erreur : 503 FICHIER_VERROUILLE avec `message`. */
+  async function lireFichierActuel(message) {
+    try {
+      return await fs.readFile(chemin);
+    } catch (err) {
+      if (err.code === 'ENOENT') return null;
+      throw new ErreurApp(503, 'FICHIER_VERROUILLE', message);
+    }
+  }
+
+  /**
+   * Copie de sécurité OBLIGATOIRE du fichier actuel avant de le remplacer (raison `avant-restauration` ou `avant-reinitialisation`),
+   * sans rotation (on ne supprime rien pendant l'opération). Rien à copier (fichier absent) : null. Échec : 503 SAUVEGARDE_ECHOUEE avec
+   * `messageEchec`, et l'opération s'arrête là (le fichier n'est pas remplacé).
+   */
+  async function mettreDeCote(raison, actuel, messageEchec) {
+    if (!actuel) return null;
+    try {
+      return await sauvegarder(raison, actuel, { rotation: false });
+    } catch {
+      throw new ErreurApp(503, 'SAUVEGARDE_ECHOUEE', messageEchec);
+    }
+  }
+
+  /** Révision lisible dans les octets du fichier actuel (0 s'il est absent ou illisible) : la nouvelle révision doit la dépasser. */
+  const revisionDe = (actuel) => (actuel ? (resumerVersion(actuel).revision ?? 0) : 0);
+
+  /** Réglage « jours d'historique » à garder dans le fichier qui remplace l'actuel : le réglage courant, à défaut celui lu dans le fichier actuel. */
+  const reglageAConserver = (actuel) => reglageCourant ?? (actuel ? reglageDans(actuel) : null);
+
   /** Après une restauration ou une réinitialisation : état et empreinte à jour, tous les drapeaux d'anomalie levés. */
   async function adopterFichierEcrit(nouvelEtat, texte) {
-    empreinte = await empreinteApresEcriture(texte); // si le `stat` échoue : empreinte à recalculer au prochain contrôle
-    poser(nouvelEtat);
+    await memoriser(nouvelEtat, texte); // si le `stat` échoue : empreinte à recalculer au prochain contrôle
     degrade = null;
     lectureSeule = false;
     structureInconnue = false;
@@ -534,27 +599,14 @@ export async function ouvrirStore({ dossier, horloge, fs = fsp, optionsAtomique,
       }
     }
 
-    let actuel = null;
-    try {
-      actuel = await fs.readFile(chemin);
-    } catch (err) {
-      if (err.code !== 'ENOENT') throw new ErreurApp(503, 'FICHIER_VERROUILLE', "Le fichier de données actuel n'a pas pu être lu pour être sauvegardé (fichier occupé). La restauration est annulée ; rien n'a été modifié.");
-    }
-    let sauvegardeAvant = null;
-    if (actuel) {
-      try {
-        sauvegardeAvant = await sauvegarder('avant-restauration', actuel, { rotation: false });
-      } catch {
-        throw new ErreurApp(503, 'SAUVEGARDE_ECHOUEE', "La restauration a été annulée : la sauvegarde de sécurité de l'état actuel n'a pas pu être créée. Rien n'a été modifié.");
-      }
-    }
+    const actuel = await lireFichierActuel("Le fichier de données actuel n'a pas pu être lu pour être sauvegardé (fichier occupé). La restauration est annulée ; rien n'a été modifié.");
+    const sauvegardeAvant = await mettreDeCote('avant-restauration', actuel, "La restauration a été annulée : la sauvegarde de sécurité de l'état actuel n'a pas pu être créée. Rien n'a été modifié.");
     const annulable = sauvegardeAvant !== null && analyserContenu(actuel, migrations).ok;
-    const revisionActuelle = actuel ? (resumerVersion(actuel).revision ?? 0) : 0;
 
     const restaure = verdict.etat;
-    restaure.revision = Math.max(restaure.revision, revisionActuelle, etat?.revision ?? 0) + 1;
+    restaure.revision = Math.max(restaure.revision, revisionDe(actuel), etat?.revision ?? 0) + 1;
     restaure.majLe = horloge.maintenant().toISOString();
-    const reglage = reglageCourant ?? (actuel ? reglageDans(actuel) : null); // le réglage courant prime sur celui de la sauvegarde
+    const reglage = reglageAConserver(actuel); // le réglage courant prime sur celui de la sauvegarde
     if (reglage !== null) restaure.parametres.sauvegardesConservees = reglage;
     const texte = serialiser(restaure);
     await ecrireAtomique(chemin, texte, optAtomique); // en cas d'échec : le fichier actuel est intact, l'état en mémoire aussi
@@ -566,7 +618,7 @@ export async function ouvrirStore({ dossier, horloge, fs = fsp, optionsAtomique,
       const choix = nom === conflitResolu.sauvegardes?.disque ? 'version du disque' : nom === conflitResolu.sauvegardes?.application ? "version de l'application" : 'autre sauvegarde';
       journal.info?.(`Conflit de synchronisation résolu (choix : ${choix}). Les deux versions restent dans les sauvegardes.`);
     }
-    return { restauree: nom, sauvegardeAvant, sauvegardeApplication, annulable, nombrePrestations: restaure.prestations.length };
+    return { sauvegardeAvant, sauvegardeApplication, annulable, nombrePrestations: restaure.prestations.length };
   }
 
   /**
@@ -585,28 +637,16 @@ export async function ouvrirStore({ dossier, horloge, fs = fsp, optionsAtomique,
     if ((await listerSauvegardesDetaillees({ dossier, fs, migrations })).some((s) => s.restaurable)) {
       throw new ErreurApp(409, 'SAUVEGARDE_RESTAURABLE', "Une sauvegarde peut être restaurée : utilisez-la plutôt que de repartir d'un fichier vide.");
     }
-    let actuel = null;
-    try {
-      actuel = await fs.readFile(chemin);
-    } catch (err) {
-      if (err.code !== 'ENOENT') throw new ErreurApp(503, 'FICHIER_VERROUILLE', "Le fichier de données actuel n'a pas pu être lu pour être conservé (fichier occupé). Rien n'a été modifié.");
-    }
-    let sauvegardeAvant = null;
-    if (actuel) {
-      try {
-        sauvegardeAvant = await sauvegarder('avant-reinitialisation', actuel, { rotation: false });
-      } catch {
-        throw new ErreurApp(503, 'SAUVEGARDE_ECHOUEE', "L'opération a été annulée : la copie de sécurité du fichier actuel n'a pas pu être créée. Rien n'a été modifié.");
-      }
-    }
+    const actuel = await lireFichierActuel("Le fichier de données actuel n'a pas pu être lu pour être conservé (fichier occupé). Rien n'a été modifié.");
+    const sauvegardeAvant = await mettreDeCote('avant-reinitialisation', actuel, "L'opération a été annulée : la copie de sécurité du fichier actuel n'a pas pu être créée. Rien n'a été modifié.");
     const initial = etatInitial(horloge.maintenant());
-    initial.revision = (actuel ? (resumerVersion(actuel).revision ?? 0) : 0) + 1;
-    const reglage = reglageCourant ?? (actuel ? reglageDans(actuel) : null);
+    initial.revision = revisionDe(actuel) + 1;
+    const reglage = reglageAConserver(actuel);
     if (reglage !== null) initial.parametres.sauvegardesConservees = reglage;
     const texte = serialiser(initial);
     await ecrireAtomique(chemin, texte, optAtomique);
     await adopterFichierEcrit(initial, texte);
-    return { sauvegardeAvant, nombrePrestations: 0 };
+    return { sauvegardeAvant };
   }
 
   await charger();
@@ -652,7 +692,6 @@ export async function ouvrirStore({ dossier, horloge, fs = fsp, optionsAtomique,
         conflit,
         conflitNonResolu,
         avertissements: [avertissementSauvegarde, !degrade && !structureInconnue && etat ? avertissementIncoherences(etat) : null].filter(Boolean),
-        derniereSauvegarde,
         tailleOctets: empreinte ? empreinte.taille : null,
         nombrePrestations: Array.isArray(etat?.prestations) ? etat.prestations.length : null,
         sauvegardesConservees: etat ? joursConserves() : null,

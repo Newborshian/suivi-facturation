@@ -1,5 +1,6 @@
 // Champs d'une prestation (Nom, Prénom, Date, Prestation, Montant, Motif), partagés entre le formulaire d'ajout rapide
 // et le dialogue de modification. L'ordre de tabulation est l'ordre visuel.
+// Utilisé par l'ajout rapide (pages/prestations.js) et le dialogue de modification (pages/prestations-dialogues.js).
 import { creerSelecteurPatient } from '/js/combobox-patient.js';
 import { el } from '/js/dom.js';
 import { formatEuros, formatMontantSaisie, lireMontant } from '/js/format.js';

@@ -1,5 +1,7 @@
 // Arrêt propre du processus, dans cet ordre : garde-temps armé, plus de nouvelles requêtes, file d'écriture vidée,
 // connexions restantes fermées, verrou libéré, ligne au journal, sortie. Dépendances injectables pour les tests.
+// Appelé par server.js (bouton « Quitter », arrêt automatique, signaux). À ne pas casser : l'ordre (architecture §8.5) ; vider la file
+// d'écriture AVANT de fermer les connexions, sinon une écriture en cours peut être perdue.
 import { decrireErreur } from './journal.js';
 
 export const DELAI_ARRET_MS = 5000;

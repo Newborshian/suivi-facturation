@@ -1,6 +1,7 @@
 // POST /api/arreter : arrêt propre de l'application (bouton « Quitter l'application », script de secours).
 // Les contrôles Host / Origin / Sec-Fetch-Site sont faits en amont par controlerRequete (comme pour toute route d'écriture).
 // La réponse 202 est envoyée AVANT l'arrêt : `demanderArret` n'est appelée qu'une fois la réponse écrite.
+// Appelé par le bouton « Quitter l'application » (public/js/pages/parametres.js) et scripts/arreter.mjs (avec Host et Origin corrects).
 import { ignorerCorps } from '../reponses.js';
 
 export function routesArret(routeur, { demanderArret }) {

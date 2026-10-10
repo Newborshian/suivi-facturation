@@ -2,8 +2,12 @@
 // Module pur. Le registre `etat.patients` ({ id, nom, prenom, actif }) est la source de vérité de l'identité ; chaque prestation
 // garde une copie `patient: { id, nom, prenom }` tenue identique à celle du registre par les fonctions de ce module.
 // Les fonctions qui reçoivent `etat` modifient la COPIE de travail fournie par store.muter (jamais l'état gelé en mémoire).
+// Appelé par http/api/patients.js (registre) et prestations.js (patient d'une ligne, renommage depuis une ligne), et par la migration (schema.js).
+// À ne pas casser : invariants I1/I2 (architecture §5.2) vérifiés par tests/domain/patients-registre.test.js ; les erreurs d'homonymes ne
+// contiennent JAMAIS de nom (seulement identifiants et dates) ; la copie posée dans une ligne est toujours l'écriture du registre.
 import { ErreurApp } from '../erreurs.js';
 import { etatPaiement } from './paiement.js';
+import { comparerPatients, estPlusRecente } from './tri.js';
 import { validerPatientCreation, validerPatientModification } from './validation.js';
 
 /** Espaces de bord retirés, espaces internes réduits à un, NFC. Conserve la casse et les accents saisis. */
@@ -18,14 +22,12 @@ export function clePatient(nom, prenom) {
   return `${cle(nom)}\u0000${cle(prenom)}`;
 }
 
-const plusRecente = (a, b) => (a.date !== b.date ? a.date > b.date : a.creeLe >= b.creeLe);
 const estTexteNonVide = (v) => typeof v === 'string' && v.trim() !== '';
 const copieDe = (p) => ({ id: p.id, nom: p.nom, prenom: p.prenom });
-const comparer = (a, b) => a.nom.localeCompare(b.nom, 'fr') || a.prenom.localeCompare(b.prenom, 'fr') || a.id.localeCompare(b.id);
 
 /** Registre trié nom, prénom (collation `fr`), puis identifiant : sortie déterministe, diffs lisibles. Renvoie un nouveau tableau. */
 export function trierRegistre(patients) {
-  return [...patients].sort(comparer);
+  return [...patients].sort(comparerPatients);
 }
 
 /** Date de la dernière prestation (AAAA-MM-JJ) de chaque patient : Map<id, date>. */
@@ -56,7 +58,7 @@ export function reconstruireRegistre(prestations, registre = []) {
     const id = l?.patient?.id;
     if (!estTexteNonVide(id) || parId.has(id)) continue;
     const courante = references.get(id);
-    if (!courante || plusRecente(l, courante)) references.set(id, l);
+    if (!courante || estPlusRecente(l, courante)) references.set(id, l);
   }
   const ajoutes = [];
   for (const [id, l] of references) {
@@ -125,7 +127,7 @@ function reactiver(patient, avertissements) {
 
 function ajouterAuRegistre(etat, patient) {
   etat.patients.push(patient);
-  etat.patients.sort(comparer);
+  etat.patients.sort(comparerPatients);
 }
 
 /**
@@ -195,7 +197,7 @@ export function renommerPatient(etat, id, { nom, prenom }, ctx, { homonyme = fal
   }
   patient.nom = nouveauNom;
   patient.prenom = nouveauPrenom;
-  etat.patients.sort(comparer);
+  etat.patients.sort(comparerPatients);
   let lignesModifiees = 0;
   for (const l of etat.prestations) {
     if (l.patient.id !== id || (l.patient.nom === nouveauNom && l.patient.prenom === nouveauPrenom)) continue;
@@ -248,7 +250,6 @@ export function modifierPatient(etat, id, corps, ctx) {
         avertissements.push({
           code: 'PATIENT_ARCHIVE_EN_COURS',
           message: `Ce patient a ${aVenir} prestation${aVenir > 1 ? 's' : ''} à venir et ${impayees} prestation${impayees > 1 ? 's' : ''} avec un reste à payer : elles restent visibles partout.`,
-          details: { aVenir, impayees },
         });
       }
     }

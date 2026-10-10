@@ -1,5 +1,6 @@
 // Catalogue de tarifs. Une modification n'a aucun effet sur les prestations déjà saisies (libellé, catégorie et
 // montant figés dans la ligne). Un type de prestation utilisé n'est jamais supprimé : il se désactive.
+// Appelée par Paramètres › Tarifs (public/js/pages/parametres-tarifs.js) et les écrans de saisie (lecture). Écritures non annulables.
 import { randomUUID } from 'node:crypto';
 import { ajouterAuCatalogue, modifierDansCatalogue, supprimerDuCatalogue } from '../../domain/catalogue.js';
 import { ErreurApp } from '../../erreurs.js';

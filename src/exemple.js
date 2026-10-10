@@ -2,6 +2,7 @@
 // = même résultat. Noms de personnages, motifs et tarifs entièrement inventés (aucun lien avec un cabinet réel).
 // Régénérer config/exemple.json :
 //   node --input-type=module -e "import {genererExemple} from './src/exemple.js'; import fs from 'node:fs'; fs.writeFileSync('config/exemple.json', JSON.stringify(genererExemple(), null, 2) + '\n')"
+// Utilisé par scripts/demo.mjs (jeu daté du jour) et les tests. Jamais par l'application réelle.
 import { ajouterJours, ajouterMois, ecartJours, joursDansMois } from './domain/dates.js';
 import { trierRegistre } from './domain/patients.js';
 import { FORMAT, VERSION_COURANTE } from './domain/schema.js';

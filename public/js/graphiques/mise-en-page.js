@@ -1,8 +1,9 @@
 // Mise en page des graphiques en barres : échelles, positions, étiquettes. Module PUR (aucun accès au DOM) : testé avec node --test.
 // Les valeurs (centimes ou entiers) ne sont jamais converties ici ; seules des positions en pixels sont calculées (flottants autorisés,
 // ils ne servent qu'au dessin). Les montants exacts sont affichés par le tableau de valeurs.
+// Utilisé par barres-svg.js et tdb-sections.js ; testé sous Node (tests/front/graphiques.test.js).
 
-const NBSP = ' ';
+const NBSP = '\u00a0';
 const MOIS_COURTS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
 const groupes = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 });
 
@@ -67,14 +68,6 @@ export function disposerColonnes({ largeur, hauteur, marges, valeurs, maxAxe }) 
   return { zone, base, colonnes };
 }
 
-/**
- * Indices des étiquettes d'axe à écrire : une sur `k`, avec k le plus petit entier tel que `k × largeurColonne >= largeurEtiquette`
- * (étiquettes trop serrées sur petit écran ou en vue hebdomadaire). La première est toujours écrite.
- */
-export function etiquettesVisibles(nombre, largeurColonne, largeurEtiquette) {
-  const k = Math.max(1, Math.ceil(largeurEtiquette / Math.max(largeurColonne, 1)));
-  return Array.from({ length: nombre }, (_, i) => i).filter((i) => i % k === 0);
-}
 
 // ------------------------------------------------------------------ Texte de l'axe : encombrement et placement
 

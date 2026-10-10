@@ -1,4 +1,5 @@
 // PATCH /api/parametres : nombre de sauvegardes conservées. La rotation s'applique à la prochaine sauvegarde.
+// Appelée par Paramètres › Sauvegardes. Le réglage est un nombre de JOURS d'historique (7 à 365), pas un nombre de fichiers. Écriture non annulable.
 import { validerParametres } from '../../domain/validation.js';
 import { lireCorpsJson } from '../reponses.js';
 

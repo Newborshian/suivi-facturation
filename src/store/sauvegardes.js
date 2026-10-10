@@ -1,6 +1,8 @@
 // Sauvegardes datées du fichier actif (architecture §7.3) : création, liste, rotation.
 // Nom : `sauvegarde-AAAA-MM-JJ_HHhMMmSSs_<raison>[-n].json`, heure locale. Contenu = copie octet pour octet.
 // La restauration est dans restauration.js et store.js.
+// Appelé par store.js. À ne pas casser : la rotation ne supprime QUE les fichiers de sauvegardes/ dont le nom correspond exactement à
+// MOTIF_NOM ; une nouvelle raison de sauvegarde doit être rangée dans une réserve (RAISONS_*) et avoir un libellé dans public/js/format.js (LIBELLES_RAISON).
 import fsp from 'node:fs/promises';
 import path from 'node:path';
 import { MODE_DOSSIER } from '../droits.js';

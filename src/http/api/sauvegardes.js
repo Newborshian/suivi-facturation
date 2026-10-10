@@ -1,5 +1,6 @@
 // Sauvegardes : liste, sauvegarde manuelle, restauration. Disponibles aussi en mode dégradé
 // (fichier illisible, absent, en conflit) : c'est la sortie de ces situations.
+// Appelée par Paramètres › Sauvegardes, l'écran de mode dégradé (ecran-degrade.js) et le choix de version après un conflit (conflit.js).
 import { ErreurApp } from '../../erreurs.js';
 import { ignorerCorps, lireCorpsJson } from '../reponses.js';
 

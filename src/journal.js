@@ -3,6 +3,7 @@
 // les appelants ne passent que des messages fixes, des codes et des noms d'erreur (voir `decrireErreur`).
 // L'écriture ne doit JAMAIS faire planter l'application : en cas d'échec (dossier non inscriptible, disque plein), repli sur stderr.
 // Écriture synchrone : événements rares, et la ligne doit être sur le disque avant un `process.exit`.
+// Appelé par server.js, le store, le verrou et les scripts (lignes « Lanceur : »). Ajouter une ligne de journal : texte fixe + codes seulement.
 import fs from 'node:fs';
 import path from 'node:path';
 import { MODE_DOSSIER, MODE_FICHIER } from './droits.js';

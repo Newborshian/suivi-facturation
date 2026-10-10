@@ -1,4 +1,8 @@
 // Schéma JSON versionné : version courante, état initial, migrations, contrôle de structure. Module pur.
+// Appelé par le store (chargement, écriture, restauration), archives-lecture.js et exemple.js. À ne pas casser : `controlerStructure` est le
+// filet de sécurité de CHAQUE écriture (un état invalide n'est jamais écrit) ; ses messages ne contiennent aucune valeur des données.
+// Changer le format du fichier : VERSION_COURANTE + 1, une fonction pure MIGRATIONS[ancienne] (copie -> copie), le contrôle de structure,
+// des tests de migration (tests/domain/migration-v1-v2.test.js en exemple) et l'architecture §5.3 ; jamais sans validation de l'utilisatrice.
 import { estDateCivile } from './dates.js';
 import { estMontantPrestation, estMontantVersement } from './money.js';
 import { reconstruireRegistre } from './patients.js';

@@ -1,6 +1,7 @@
 // Composition du graphique du CA avec l'estimation. Module PUR (aucun accès au DOM) : testé avec node --test.
 // Le serveur calcule l'estimation (src/domain/previsions.js) ; ici on ne fait que poser la série « prévu » sur les barres déjà réalisées
 // et fournir les textes. Centimes entiers uniquement.
+// Utilisé par le tableau de bord. Lit seulement `mois[].estimationCentimes`, `courant`, `suffisant` et `fenetre` de /api/indicateurs/prevision.
 import { formatMois } from '../format.js';
 
 /** Ligne de CA d'un mois sans aucune prestation saisie (mois suivants sans ligne). */

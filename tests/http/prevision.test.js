@@ -29,7 +29,7 @@ test('prévision : fichier vide -> 200 « historique insuffisant », 3 mois manq
     assert.equal(r.json.suffisant, false);
     assert.equal(r.json.moisComplets, 0);
     assert.equal(r.json.moisManquants, 3);
-    assert.equal(r.json.base, null);
+    assert.equal('base' in r.json, false, 'détail du calcul : jamais envoyé');
     assert.equal(r.json.premiereEstimationLe, null);
     assert.deepEqual(r.json.mois, []);
   }));
@@ -46,7 +46,7 @@ test('prévision : un seul mois d\'historique -> toujours insuffisant, avec le n
     assert.deepEqual(r.mois, []);
   }));
 
-test('prévision : historique suffisant -> base, mois en cours et 3 suivants ; aucun nom de patient dans la réponse', () =>
+test('prévision : historique suffisant -> mois en cours et 3 suivants (estimation seule) ; aucun nom de patient dans la réponse', () =>
   avecServeur(async (s, a) => {
     await a.post('/api/prestations', saisie('2026-07-01', 12000));
     await a.post('/api/prestations', saisie('2026-08-10', 6000));
@@ -60,12 +60,12 @@ test('prévision : historique suffisant -> base, mois en cours et 3 suivants ; a
     assert.equal(reponse.status, 200);
     const r = reponse.json;
     assert.equal(r.suffisant, true);
-    assert.equal(r.base, 11000);
+    assert.equal('base' in r, false, 'la base (11 000) reste un détail du calcul, vérifié dans tests/domain/previsions.test.js');
     assert.deepEqual(r.mois.map((m) => m.mois), ['2026-10', '2026-11', '2026-12', '2027-01']);
     // 2 octobre : 29 jours restants sur 31 -> 11000 x 29 / 31 = 10290,32 -> 10290
-    assert.deepEqual(r.mois[0], { mois: '2026-10', courant: true, realiseCentimes: 4000, planifieCentimes: 3000, complementEstimeCentimes: 7290, estimationCentimes: 14290 });
+    assert.deepEqual(r.mois[0], { mois: '2026-10', courant: true, estimationCentimes: 14290 }); // 4000 réalisé + max(3000 planifié, 10290)
     assert.equal(r.mois[1].estimationCentimes, 11000);
-    assert.equal(r.mois[1].planifieCentimes, 2000);
+    assert.equal(r.mois[1].planifieCentimes, undefined);
     assert.equal(r.mois[3].estimationCentimes, 11000);
     assert.doesNotMatch(reponse.texte, /Lapin|Pierre/);
 

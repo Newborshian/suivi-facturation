@@ -1,5 +1,6 @@
 // Sélection multiple de la liste des prestations (logique pure, sans DOM : testée sous node).
 // Cocher une case ne redessine que la ligne et la barre de sélection : ces fonctions disent quoi afficher.
+// Utilisé par pages/prestations.js (sélection multiple, « Marquer facturé »).
 import { pluriel } from './format.js';
 
 /** Ajoute (`coche` vrai) ou retire l'identifiant de la sélection (un Set) ; renvoie la même sélection. */

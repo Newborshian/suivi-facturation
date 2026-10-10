@@ -1,4 +1,5 @@
 // Aides à l'accessibilité (logique pure, sans DOM : testée sous node).
+// Utilisé par ui.js (champs de formulaire).
 
 /**
  * Valeur de `aria-describedby` d'un champ : le texte d'aide (s'il existe), puis le message d'erreur quand le champ est en erreur.

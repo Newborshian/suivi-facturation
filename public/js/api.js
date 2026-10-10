@@ -1,4 +1,6 @@
 // Client de l'API locale (même origine). Les erreurs portent le code et le message français du serveur.
+// Utilisé par toutes les pages : SEUL point d'appel du serveur (fetch même origine). Aucune URL externe, jamais de nom de patient dans un chemin
+// (seulement des identifiants opaques). Une erreur réseau devient ErreurApi(0, 'RESEAU') ; une erreur du serveur garde son `code`.
 export class ErreurApi extends Error {
   constructor(status, code, message, champs, details) {
     super(message);

@@ -1,5 +1,9 @@
 // Validation des entrées de l'API (architecture §9). Module pur : lève ErreurApp (400 champ inconnu, 422 règle de saisie).
 // Les montants arrivent en centimes entiers (la conversion « 45,50 » -> 4550 se fait dans le navigateur).
+// Appelé par le domaine (prestations, patients, catalogue) et les routes de lecture (paramètres d'URL). Ajouter un mode de paiement :
+// MODES_PAIEMENT dans schema.js, le message de `mode` ci-dessous, LIBELLES_MODE dans csv.js et public/js/format.js, une icône dans
+// public/js/icones-paiement.js et paiement-libelles.js (PAR_MODE, EN_MODE), les styles (design system), puis les tests qui listent les modes
+// (tests/front/icones-paiement.test.js, paiement-libelles.test.js, tests/qa/e13-paiement.test.js…).
 import { ErreurApp } from '../erreurs.js';
 import { ajouterMois, estDateCivile, estMois, moisDe } from './dates.js';
 import { GRANULARITES, PERIODE_MAX_MOIS, TRANCHES, VUES_CA, nombreMois } from './indicateurs.js';
@@ -36,6 +40,13 @@ class Collecteur {
 function refuserChampsInconnus(corps, autorises, contexte = 'La requête') {
   for (const nom of Object.keys(corps)) {
     if (!autorises.includes(nom)) throw new ErreurApp(400, 'REQUETE_INVALIDE', `${contexte} contient un champ inconnu.`);
+  }
+}
+
+/** Paramètres de requête (URL) : tout nom hors de `autorises` est refusé (400). Partagé par toutes les routes de lecture. */
+export function refuserParametresInconnus(query, autorises) {
+  for (const nom of query.keys()) {
+    if (!autorises.includes(nom)) throw new ErreurApp(400, 'REQUETE_INVALIDE', 'Paramètre de requête inconnu.');
   }
 }
 
@@ -267,10 +278,7 @@ export function validerStatut(corps) {
 
 /** Filtres de GET /api/prestations (paramètres de requête). Paramètre inconnu ou invalide : 400. */
 export function validerFiltres(query) {
-  const connus = ['mois', 'de', 'a', 'patientId', 'statut', 'etat', 'aVenir', 'anciennete'];
-  for (const nom of query.keys()) {
-    if (!connus.includes(nom)) throw new ErreurApp(400, 'REQUETE_INVALIDE', 'Paramètre de requête inconnu.');
-  }
+  refuserParametresInconnus(query, ['mois', 'de', 'a', 'patientId', 'statut', 'etat', 'aVenir', 'anciennete']);
   const invalide = (nom) => new ErreurApp(400, 'REQUETE_INVALIDE', `Paramètre « ${nom} » invalide.`);
   const f = {};
   if (query.has('mois')) {
@@ -311,9 +319,7 @@ export function validerFiltres(query) {
 
 /** Paramètres de GET /api/recap : `mois` (AAAA-MM, défaut = mois en cours) et `vue` ('prestation' par défaut, ou 'versement'). */
 export function validerParametresRecap(query, aujourdHui) {
-  for (const nom of query.keys()) {
-    if (nom !== 'mois' && nom !== 'vue') throw new ErreurApp(400, 'REQUETE_INVALIDE', 'Paramètre de requête inconnu.');
-  }
+  refuserParametresInconnus(query, ['mois', 'vue']);
   const mois = query.has('mois') ? query.get('mois') : aujourdHui.slice(0, 7);
   if (!estMois(mois)) throw new ErreurApp(400, 'REQUETE_INVALIDE', 'Paramètre « mois » invalide (format AAAA-MM).');
   const vue = query.has('vue') ? query.get('vue') : 'prestation';
@@ -414,10 +420,7 @@ export function validerParametres(corps) {
  * -> { de, a, vue?, granularite? }
  */
 export function validerParametresIndicateurs(query, aujourdHui, extras = []) {
-  const autorises = ['de', 'a', ...extras];
-  for (const nom of query.keys()) {
-    if (!autorises.includes(nom)) throw new ErreurApp(400, 'REQUETE_INVALIDE', 'Paramètre de requête inconnu.');
-  }
+  refuserParametresInconnus(query, ['de', 'a', ...extras]);
   const invalide = (nom, detail = 'format AAAA-MM') => new ErreurApp(400, 'REQUETE_INVALIDE', `Paramètre « ${nom} » invalide (${detail}).`);
   const a = query.has('a') ? query.get('a') : moisDe(aujourdHui);
   if (!estMois(a)) throw invalide('a');

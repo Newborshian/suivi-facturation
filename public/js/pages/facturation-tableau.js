@@ -1,5 +1,6 @@
 // Tableau « Facturation du mois » : une ligne par patient, détail dépliable, ligne de total.
 // Construction du DOM par textContent uniquement (dom.js) ; aucune donnée n'est injectée comme HTML.
+// Utilisé par pages/facturation.js seulement.
 import { el } from '/js/dom.js';
 import { modeConnu } from '/js/paiement-libelles.js';
 import { paiementRapide } from '/js/paiement-rapide.js';

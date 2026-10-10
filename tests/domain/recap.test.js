@@ -38,13 +38,13 @@ test('vecteur 1 : 45 + 45 + 35 € dont 45 € versés -> 3 séances, dû 125 �
     ligne(lapin, '2026-10-15', 3500),
   ]);
   const [e] = r.patients;
-  assert.equal(e.nbPrestations, 3);
+  assert.equal(e.lignes.length, 3);
   assert.equal(e.nbSeances, 3);
   assert.equal(e.duCentimes, 12500);
   assert.equal(e.payeCentimes, 4500);
   assert.equal(e.resteCentimes, 8000);
   assert.equal(e.etat, 'partiel');
-  assert.deepEqual(r.total, { nbPatients: 1, nbPrestations: 3, nbSeances: 3, nbAutres: 0, nbAFacturer: 3, nbAVenir: 2, duCentimes: 12500, payeCentimes: 4500, resteCentimes: 8000, tropPercuCentimes: 0, etat: 'partiel' });
+  assert.deepEqual(r.total, { nbPatients: 1, nbSeances: 3, nbAutres: 0, duCentimes: 12500, payeCentimes: 4500, resteCentimes: 8000, tropPercuCentimes: 0, etat: 'partiel' });
 });
 
 test('séances = catégorie « séance » seulement ; bilan et autres prestations comptés à part', () => {
@@ -56,7 +56,7 @@ test('séances = catégorie « séance » seulement ; bilan et autres prestation
   const [e] = r.patients;
   assert.equal(e.nbSeances, 1);
   assert.equal(e.nbAutres, 2);
-  assert.equal(e.nbPrestations, 3);
+  assert.equal(e.lignes.length, 3);
   assert.equal(e.duCentimes, 35500);
 });
 
@@ -132,8 +132,8 @@ test('changement de mois et d\'année : 31/12 et 01/01 ne se mélangent pas ; 29
 
 test('prestation à date future : comptée dans le mois, marquée à venir ; le calcul ne dépend que de « aujourd\'hui » fourni', () => {
   const lignes = [ligne(lapin, '2026-10-02', 4500), ligne(lapin, '2026-10-03', 4500)];
-  assert.equal(recap(lignes).total.nbAVenir, 1);
-  assert.equal(recapMensuel(lignes, { mois: '2026-10', aujourdHui: '2026-10-31' }).total.nbAVenir, 0);
+  assert.equal(recap(lignes).patients[0].lignes.filter((l) => l.aVenir).length, 1);
+  assert.equal(recapMensuel(lignes, { mois: '2026-10', aujourdHui: '2026-10-31' }).patients[0].lignes.filter((l) => l.aVenir).length, 0);
   assert.equal(recap(lignes).patients[0].lignes[1].aVenir, true);
   assert.equal(recap(lignes).total.duCentimes, 9000);
 });
@@ -158,7 +158,7 @@ test('nom affiché = celui de la ligne la plus récente du patient (le renommage
 
 test('à facturer : compte les lignes du mois non facturées ; les facturées n\'y sont pas', () => {
   const r = recap([ligne(lapin, '2026-10-01', 4500, { statut: 'facture' }), ligne(lapin, '2026-10-02', 4500)]);
-  assert.equal(r.patients[0].nbAFacturer, 1);
+  assert.equal(r.patients[0].lignes.filter((l) => l.statut === 'a_facturer').length, 1);
 });
 
 test('centimes entiers : sommes exactes sur de nombreuses petites lignes', () => {
@@ -200,7 +200,7 @@ test('double vue : patient présent seulement par un versement ; trop-perçu inc
   const lignes = [ligne(ours, '2026-08-10', 4500, { versements: [[2000, '2026-10-01'], [3000, '2026-10-20']] })];
   const v = recap(lignes, { vue: 'versement' });
   assert.equal(v.patients.length, 1);
-  assert.equal(v.patients[0].nbPrestations, 0);
+  assert.equal(v.patients[0].nbSeances + v.patients[0].nbAutres, 0);
   assert.equal(v.patients[0].lignes.length, 0);
   assert.equal(v.patients[0].payeCentimes, 5000, 'argent réellement reçu, trop-perçu compris');
   assert.deepEqual(v.patients[0].versements.map((x) => x.date), ['2026-10-01', '2026-10-20']);

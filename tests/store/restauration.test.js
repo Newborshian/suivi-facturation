@@ -63,12 +63,12 @@ test('analyserContenu : valide, illisible, mauvais format, trop récente, incoh�
   for (const texte of ["{ pas du json Lapin", JSON.stringify(doublon)]) assert.doesNotMatch(ko(texte).message, /Lapin|Pierre/);
 });
 
-test('resumerSauvegarde : nombre de prestations, de patients, période et révision', () => {
+test('resumerSauvegarde : nombre de prestations, période et révision', () => {
   const etat = etatTest(7, { revision: 12 });
   const r = resumerSauvegarde(Buffer.from(texteEtat(etat)));
   assert.equal(r.lisible, true);
   assert.equal(r.nombrePrestations, 7);
-  assert.equal(r.nombrePatients, 3);
+  assert.equal(r.nombrePatients, undefined, 'champ retiré : jamais affiché');
   assert.equal(r.revision, 12);
   assert.equal(r.premiereDate, '2026-09-01');
   assert.equal(r.derniereDate, '2026-09-07');
@@ -89,7 +89,6 @@ test('restauration : état actuel sauvegardé AVANT (octet pour octet), puis rem
     async (dossier, store, chemin) => {
       const avant = await fs.readFile(chemin);
       const r = await store.restaurer(SAUV);
-      assert.equal(r.restauree, SAUV);
       assert.equal(r.nombrePrestations, 5);
       assert.equal(r.annulable, true);
       assert.match(r.sauvegardeAvant, /_avant-restauration\.json$/);

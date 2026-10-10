@@ -1,6 +1,7 @@
 // Combobox de recherche de patient (design system §8.10) : deux champs (Nom, Prénom) qui cherchent dans le même registre,
 // motif ARIA 1.2 « combobox avec liste » (le focus ne quitte jamais le champ), une seule indication pour les deux champs.
 // La liste PROPOSE : Entrée valide le formulaire tant qu'aucune option n'est active. Construit par el() / textContent uniquement.
+// Utilisé par le formulaire de prestation (pages/prestations-formulaire.js). La recherche elle-même est dans recherche-patients.js (pur, testé).
 import { el } from '/js/dom.js';
 import { annonceSuggestions, indicationPatient, libelleSuggestion, optionCreer, rechercherPatients } from '/js/recherche-patients.js';
 

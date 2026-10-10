@@ -1,6 +1,8 @@
 // Écran « Facturation du mois » (récapitulatif du mois) : récapitulatif par patient, copiable et imprimable.
 // Le serveur calcule (GET /api/recap) ; ici on affiche. Seul un mois choisi explicitement est retenu dans sessionStorage
 // (jamais de nom de patient) ; la vue n'est jamais retenue.
+// Chargé par index.html. Même organisation que pages/prestations.js (page, zone, proteger, notifier, actualiserBandeaux) mais pas le même
+// code : en cas d'erreur 404/409/503, ici les bandeaux sont relus AVANT de recharger (le mode lecture seule doit être connu avant le rendu).
 import { ErreurApi, appeler, lireEtat } from '/js/api.js';
 import { remplacerSiFichierVide } from '/js/accueil-vide.js';
 import { LIEN_TARIFS, saisieImpossible } from '/js/catalogue-etat.js';

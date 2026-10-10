@@ -1,8 +1,10 @@
 // Lecture et contrôle des sauvegardes avant restauration (architecture §7.4). Pas d'écriture ici.
 // Une sauvegarde est restaurable si elle est du bon format, de version <= courante, migrable et de structure valide.
+// Appelé par store.js (restauration, remise à zéro) et la route GET /api/sauvegardes (via store.sauvegardes).
 import fsp from 'node:fs/promises';
 import path from 'node:path';
 import { FORMAT, MIGRATIONS, VERSION_COURANTE, controlerStructure, migrer } from '../domain/schema.js';
+import { lireJson } from './json.js';
 import { SOUS_DOSSIER_SAUVEGARDES, listerSauvegardes } from './sauvegardes.js';
 
 /**
@@ -12,7 +14,7 @@ import { SOUS_DOSSIER_SAUVEGARDES, listerSauvegardes } from './sauvegardes.js';
 export function analyserContenu(octets, migrations = MIGRATIONS) {
   let donnees;
   try {
-    donnees = JSON.parse(octets.toString('utf8').replace(/^﻿/, ''));
+    donnees = lireJson(octets);
   } catch {
     return { ok: false, code: 'illisible', message: "Cette sauvegarde est abîmée (le fichier n'est pas lisible). Elle ne peut pas être restaurée ; vos données actuelles n'ont pas été touchées." };
   }
@@ -46,9 +48,7 @@ export function resumerSauvegarde(octets, migrations = MIGRATIONS) {
     lisible: true,
     restaurable: true,
     raisonRefus: null,
-    schemaVersion: verdict.schemaVersion,
     nombrePrestations: etat.prestations.length,
-    nombrePatients: etat.patients.length, // registre ; pour une sauvegarde de version 1, registre reconstruit en mémoire par la migration
     premiereDate: dates[0] ?? null,
     derniereDate: dates[dates.length - 1] ?? null,
     revision: etat.revision,

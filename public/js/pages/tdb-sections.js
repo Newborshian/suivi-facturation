@@ -1,5 +1,6 @@
 // Sections du tableau de bord : construisent le DOM à partir des réponses de /api/indicateurs/*. Aucun calcul métier ici :
 // le serveur calcule (centimes entiers), on ne fait que mettre en forme. Textes de données par textContent uniquement.
+// Utilisé par pages/tableau-de-bord.js : une fonction par section (une section en erreur n'empêche pas les autres).
 import { alerte } from '/js/bandeaux.js';
 import { el } from '/js/dom.js';
 import { LIBELLES_SERIES_CA, LIBELLE_A_FACTURER, LIBELLE_SERIE_PREVU, formatDate, formatEuros, formatMois, libelleDontNonFactures, nomLienTranche, pluriel } from '/js/format.js';

@@ -1,6 +1,8 @@
 // Catalogue de tarifs. Fonctions pures appliquées à la copie de travail de l'état (celle que fournit store.muter).
 // Une modification n'a JAMAIS d'effet rétroactif : les prestations déjà saisies gardent leur libellé, leur catégorie et leur montant
 // (figés dans la ligne). Un type de prestation référencé n'est jamais supprimé : il se désactive.
+// Appelé par http/api/catalogue.js à travers store.muter. Ajouter un champ au catalogue : schema.js (controlerStructure), validation.js
+// (validerCatalogue*), ici, puis l'écran public/js/pages/parametres-tarifs.js.
 import { ErreurApp } from '../erreurs.js';
 import { validerCatalogueCreation, validerCatalogueModification } from './validation.js';
 

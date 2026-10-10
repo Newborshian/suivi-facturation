@@ -6,8 +6,10 @@
 //  - 'versement' (trésorerie réelle) : « payé » = Σ des versements DATÉS dans le mois, sur toutes les prestations
 //    (y compris celles d'autres mois), trop-perçu compris. « Dû » reste celui des prestations du mois ; reste, trop-perçu
 //    et état n'ont pas de sens dans cette vue et valent null.
+// Appelé par http/api/recap.js et indicateurs.js (aFacturerGlobal). Le texte copié du récapitulatif est fabriqué dans le navigateur (recap-texte.js).
 import { moisDe } from './dates.js';
 import { enrichir } from './paiement.js';
+import { comparerPatients, estPlusRecente, parDateEtCreation } from './tri.js';
 
 export const VUES = ['prestation', 'versement'];
 export const VUE_DEFAUT = 'prestation';
@@ -19,30 +21,20 @@ export function etatDepuisTotaux({ duCentimes, payeCentimes, resteCentimes }) {
 }
 
 const compteursVides = () => ({
-  nbPrestations: 0,
   nbSeances: 0, // catégorie « seance » uniquement
   nbAutres: 0, // bilans, comptes rendus et autres prestations hors séances
-  nbAFacturer: 0,
-  nbAVenir: 0,
   duCentimes: 0,
   payeCentimes: 0,
   resteCentimes: 0,
   tropPercuCentimes: 0,
 });
 
-/** `a` est-elle plus récente que `b` ? (sert à choisir le nom affiché : celui de la ligne la plus récente) */
-const plusRecente = (a, b) => (a.date !== b.date ? a.date > b.date : a.creeLe >= b.creeLe);
-
-function trier(patients) {
-  return patients.sort((a, b) => a.patient.nom.localeCompare(b.patient.nom, 'fr') || a.patient.prenom.localeCompare(b.patient.prenom, 'fr') || a.patient.id.localeCompare(b.patient.id));
-}
-
-const parDateEtCreation = (x, y) => x.date.localeCompare(y.date) || x.creeLe.localeCompare(y.creeLe) || x.id.localeCompare(y.id);
+/** Groupes du récapitulatif triés comme le registre : nom, prénom, identifiant du patient. */
+const trier = (patients) => patients.sort((a, b) => comparerPatients(a.patient, b.patient));
 
 /**
  * Récapitulatif du mois `mois` (AAAA-MM) pour la vue demandée.
- * -> { mois, vue, patients: [{ patient:{id,nom,prenom}, lignes, versements, nbPrestations, nbSeances, nbAutres, nbAFacturer,
- *      nbAVenir, duCentimes, payeCentimes, resteCentimes, tropPercuCentimes, etat }], total }
+ * -> { mois, vue, patients: [{ patient:{id,nom,prenom}, lignes, versements, nbSeances, nbAutres, duCentimes, payeCentimes, resteCentimes, tropPercuCentimes, etat }], total }
  * `lignes` : prestations du mois (enrichies, triées) ; `versements` : versements du mois (vue 'versement' seulement).
  */
 export function recapMensuel(prestations, { mois, vue = VUE_DEFAUT, aujourdHui }) {
@@ -53,7 +45,7 @@ export function recapMensuel(prestations, { mois, vue = VUE_DEFAUT, aujourdHui }
     if (!e) {
       e = { patient: { id: ligne.patient.id, nom: ligne.patient.nom, prenom: ligne.patient.prenom }, lignes: [], versements: [], reference: ligne, ...compteursVides() };
       parId.set(ligne.patient.id, e);
-    } else if (plusRecente(ligne, e.reference)) {
+    } else if (estPlusRecente(ligne, e.reference)) { // nom affiché : celui de la ligne la plus récente
       e.reference = ligne;
       e.patient = { id: ligne.patient.id, nom: ligne.patient.nom, prenom: ligne.patient.prenom };
     }
@@ -65,11 +57,8 @@ export function recapMensuel(prestations, { mois, vue = VUE_DEFAUT, aujourdHui }
       const l = enrichir(prestation, aujourdHui);
       const e = entree(prestation);
       e.lignes.push(l);
-      e.nbPrestations += 1;
       if (l.categorie === 'seance') e.nbSeances += 1;
       else e.nbAutres += 1;
-      if (l.statut === 'a_facturer') e.nbAFacturer += 1;
-      if (l.aVenir) e.nbAVenir += 1;
       e.duCentimes += l.montantCentimes;
       if (vue === 'prestation') {
         e.payeCentimes += l.payeCentimes;
@@ -99,7 +88,7 @@ export function recapMensuel(prestations, { mois, vue = VUE_DEFAUT, aujourdHui }
 
   const total = { nbPatients: patients.length, ...compteursVides() };
   for (const e of patients) {
-    for (const cle of ['nbPrestations', 'nbSeances', 'nbAutres', 'nbAFacturer', 'nbAVenir', 'duCentimes', 'payeCentimes']) total[cle] += e[cle];
+    for (const cle of ['nbSeances', 'nbAutres', 'duCentimes', 'payeCentimes']) total[cle] += e[cle];
     if (vue === 'prestation') {
       total.resteCentimes += e.resteCentimes;
       total.tropPercuCentimes += e.tropPercuCentimes;

@@ -1,5 +1,6 @@
 // Restauration d'une sauvegarde : tableau de la liste, confirmation avec aperçu, appel de l'API.
 // Utilisé par Paramètres (liste complète), par l'écran « fichier illisible ou absent » et par le dialogue de conflit.
+// Utilisé par Paramètres › Sauvegardes, conflit.js et ecran-degrade.js.
 import { appeler } from '/js/api.js';
 import { el } from '/js/dom.js';
 import { LIBELLES_RAISON, formatDate, formatDateHeure, formatInstant, formatTaille, pluriel } from '/js/format.js';
@@ -84,7 +85,7 @@ export function confirmerRestauration(sauvegarde, texteActuel) {
 }
 
 /**
- * Restaure (la confirmation a déjà été donnée). -> { restauree, sauvegardeAvant, sauvegardeApplication, annulable, nombrePrestations }
+ * Restaure (la confirmation a déjà été donnée). -> { sauvegardeAvant, sauvegardeApplication, annulable, nombrePrestations }
  * `depuisModeDegrade` : décision prise sur l'écran « fichier absent / illisible » ; le serveur refuse (FICHIER_REVENU) si le fichier est revenu.
  */
 export async function restaurerSauvegarde(nom, { depuisModeDegrade = false } = {}) {

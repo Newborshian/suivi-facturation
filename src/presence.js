@@ -6,6 +6,7 @@
 //  - aucune page connectée depuis le démarrage au bout de `premierePageMs` : arrêt ;
 //  - saut d'horloge (mise en veille : plus de `sautMs` entre deux contrôles) : tous les `dernierVu` repartent de « maintenant », aucune échéance ce tour-là.
 // Désactivée (`actif: false`) : les signaux sont validés puis ignorés, jamais d'arrêt.
+// Appelé par server.js (création) et http/api/presence.js (signaux des pages, envoyés par public/js/presence.js).
 
 export const MOTIF_ID = /^[A-Za-z0-9-]{8,64}$/;
 export const ETATS = ['ouverte', 'fermee'];

@@ -1,6 +1,7 @@
 // Prestations et versements. Le serveur calcule (état de paiement, totaux) ;
 // le navigateur affiche. Aucune donnée nominative dans les URL : le filtre sur le patient se fait dans le navigateur.
-import { randomUUID } from 'node:crypto';
+// Appelée par les écrans Prestations et Facturation du mois (et leurs dialogues). Chaque écriture passe par store.muter (file unique) et
+// renvoie { donnees, avertissements, annulation } ; le jeton d'annulation est rejoué par POST /api/annulations/{jeton}.
 import { ErreurApp } from '../../erreurs.js';
 import { enrichir, etatPaiement } from '../../domain/paiement.js';
 import {
@@ -13,16 +14,14 @@ import {
   payerEnTotalite,
   supprimerPrestation,
   supprimerVersement,
-  totaliser,
 } from '../../domain/prestations.js';
 import { validerFiltres } from '../../domain/validation.js';
 import { ignorerCorps, lireCorpsJson, lireCorpsOptionnel } from '../reponses.js';
+import { contexteEcriture, reponseMutation } from './commun.js';
 
 export function routesPrestations(routeur, { store, horloge }) {
-  const contexte = () => ({ aujourdHui: horloge.aujourdHui(), maintenant: horloge.maintenant().toISOString(), nouvelId: randomUUID });
-
-  /** Réponse d'une mutation : { donnees, avertissements, annulation }. `versLigne` met en forme la ligne renvoyée. */
-  const reponseMutation = (r, donnees, status = 200) => ({ status, corps: { donnees, avertissements: r.avertissements, annulation: r.annulation } });
+  const contexte = () => contexteEcriture(horloge);
+  /** Ligne renvoyée après une écriture : la ligne stockée + l'état de paiement calculé (« ligne enrichie »). */
   const ligneEnrichie = (r) => enrichir(r.resultat, horloge.aujourdHui());
 
   routeur.ajouter('GET', '/api/prestations', async (req, res, { requete }) => {
@@ -31,7 +30,7 @@ export function routesPrestations(routeur, { store, horloge }) {
     const aujourdHui = horloge.aujourdHui();
     const lignes = filtrerPrestations(prestations, filtres, aujourdHui, etatPaiement).map((l) => enrichir(l, aujourdHui));
     const moisDisponibles = [...new Set(prestations.map((l) => l.date.slice(0, 7)))].sort();
-    return { corps: { lignes, total: totaliser(lignes), moisDisponibles } };
+    return { corps: { lignes, moisDisponibles } }; // les totaux affichés sont calculés par le navigateur sur les lignes filtrées
   });
 
   routeur.ajouter('GET', '/api/prestations/{id}', async (req, res, { params }) => {

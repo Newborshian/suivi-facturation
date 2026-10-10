@@ -1,6 +1,9 @@
 // Écran « Tableau de bord » (CA, séances, répartition, impayés) : CA par mois empilé, séances, répartition par type, impayés par ancienneté.
 // Le serveur calcule (GET /api/indicateurs/*, centimes entiers) ; ici on dessine. Chaque section se charge seule : une section en erreur
 // n'empêche pas l'affichage des autres. Aucune donnée nominative (ni dans l'URL, ni dans le titre, ni dans le stockage du navigateur).
+// Chargé par tableau-de-bord.html. Comment ajouter une page : copier une page HTML existante (même <head>, même CSP : aucun script ni style
+// en ligne), ajouter l'entrée à la navigation des CINQ pages (un test vérifie qu'elle est identique partout), créer js/pages/<écran>.js sur
+// le modèle de cette page (lireEtat, bandeaux, écran dégradé, puis contenu) et charger presence.js et theme-init.js comme les autres.
 import { ErreurApi, appeler, lireEtat } from '/js/api.js';
 import { afficherBandeaux, alerte } from '/js/bandeaux.js';
 import { el, remplacer } from '/js/dom.js';

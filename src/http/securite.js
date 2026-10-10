@@ -1,4 +1,6 @@
 // Contrôles Host / Sec-Fetch-Site / Origin et en-têtes de sécurité (architecture §10.1 et §10.2).
+// Appelé par serveur.js sur CHAQUE requête. À ne pas casser : sans ces contrôles, une page web ouverte dans le navigateur pourrait lire ou
+// modifier les données (DNS rebinding, requêtes inter-sites). La CSP interdit tout script ou style en ligne dans public/.
 import { ErreurApp } from '../erreurs.js';
 
 export const EN_TETES_SECURITE = {

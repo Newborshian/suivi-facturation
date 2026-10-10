@@ -1,4 +1,6 @@
 // Création d'éléments par textContent uniquement : jamais de HTML construit à partir de données.
+// Utilisé par tous les écrans. À ne pas casser : c'est la protection contre l'injection de code (XSS) ; tout texte venant des données passe
+// par `texte` (textContent) ou un attribut, jamais par du HTML construit (des tests statiques le vérifient).
 import { cleModeDepuisLibelle, iconeMode } from './icones-paiement.js';
 
 // `attributs` : valeur true = attribut booléen présent ; false / null / undefined = absent.

@@ -1,4 +1,5 @@
 // Dates civiles AAAA-MM-JJ (sans heure ni fuseau). Module pur : aucune horloge implicite.
+// Utilisé par tout le domaine et par validation.js. Bornes : années 2000 à 2100 (une date hors bornes est refusée à la saisie et à la lecture).
 
 const RE_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
 const RE_MOIS = /^(\d{4})-(\d{2})$/;

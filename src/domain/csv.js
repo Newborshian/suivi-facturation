@@ -1,11 +1,14 @@
 // Export CSV « tableur français » (architecture §6.8). Module pur.
 // Séparateur `;`, décimale virgule sans séparateur de milliers, dates JJ/MM/AAAA, fins de ligne CRLF, BOM UTF-8
 // (pour qu'Excel reconnaisse les accents), guillemets doublés, protection contre l'injection de formule.
+// Appelé par http/api/export.js. Les libellés (statut, état, catégorie, mode) existent aussi côté navigateur (public/js/format.js) : le front
+// n'importe jamais src/, un libellé changé ici doit l'être là-bas aussi. Ajouter une colonne : entête + cellule dans la même position.
 import { formaterDateFr } from './dates.js';
 import { formaterCentimes } from './money.js';
 import { etatPaiement } from './paiement.js';
+import { parDateEtCreation } from './tri.js';
 
-export const BOM = '﻿';
+export const BOM = '\uFEFF';
 export const SEPARATEUR = ';';
 export const FIN_DE_LIGNE = '\r\n';
 
@@ -42,7 +45,7 @@ export const ENTETES_VERSEMENTS = ['prestation_id', 'date_prestation', 'nom', 'p
 
 /** Une ligne par prestation, triée par date puis création. Montants en euros avec virgule. */
 export function csvPrestations(prestations) {
-  const triees = [...prestations].sort((a, b) => a.date.localeCompare(b.date) || a.creeLe.localeCompare(b.creeLe) || a.id.localeCompare(b.id));
+  const triees = [...prestations].sort(parDateEtCreation);
   return serialiserCsv(
     ENTETES_PRESTATIONS,
     triees.map((l) => {

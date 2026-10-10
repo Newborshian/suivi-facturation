@@ -1,6 +1,7 @@
 // Premier démarrage (fichier de données vide, aucune prestation) : un accueil explicite à la place du message « aucune prestation
 // ce mois-ci », sans jeu d'exemple. Le nombre total de prestations vient de GET /api/etat (aucun nom, aucun montant).
 // Tant que le catalogue est vide (ou entièrement désactivé), l'accueil guide en deux étapes : définir les prestations, puis les saisir.
+// Utilisé par les écrans Facturation du mois et Prestations.
 import { lireEtat } from '/js/api.js';
 import { LIEN_TARIFS, guideCatalogue } from '/js/catalogue-etat.js';
 import { el } from '/js/dom.js';

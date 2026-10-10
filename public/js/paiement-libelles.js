@@ -1,5 +1,6 @@
 // Textes du paiement en un clic et du choix du mode (design system §5.14). Module PUR (aucun accès au DOM) : testé avec node --test.
 // Chaque bouton annonce le verbe, le montant exact et le nom complet du mode, puis la prestation concernée.
+// Utilisé par les écrans de paiement (prestations, facturation, dialogues, paiement-rapide.js, choix-mode.js).
 import { LIBELLES_MODE, formatDate, formatEuros } from './format.js';
 
 /** Les cinq modes, dans l'ordre fixe de l'interface (carte bancaire, chèque, espèces, virement, autre). */

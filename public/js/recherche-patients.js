@@ -1,6 +1,8 @@
 // Recherche d'un patient enregistré pendant la frappe (saisie assistée et page Patients). Module PUR (aucun accès au DOM) : testé avec node --test.
 // Le registre est la liste renvoyée par GET /api/patients : [{ id, nom, prenom, actif, nombrePrestations, dernierePrestation, homonyme, supprimable }].
 // Jamais de nom dans une URL ni dans un stockage : tout se passe en mémoire, dans la page.
+// Utilisé par combobox-patient.js, pages/patients.js et patients-dialogues.js. `clePatient` doit rester identique à celle du serveur
+// (src/domain/patients.js) : un test croisé le vérifie.
 import { formatDate, normaliserRecherche, pluriel } from './format.js';
 
 export const LIMITE_SUGGESTIONS = 8;

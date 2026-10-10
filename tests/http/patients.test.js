@@ -200,7 +200,8 @@ test('PATCH actif : archiver / réactiver (idempotent), prestations conservées,
     assert.equal(r.status, 200);
     const av = r.json.avertissements.find((x) => x.code === 'PATIENT_ARCHIVE_EN_COURS');
     assert.ok(av);
-    assert.deepEqual(av.details, { aVenir: 1, impayees: 1 });
+    assert.match(av.message, /1 prestation à venir et 1 prestation avec un reste à payer/);
+    assert.equal(av.details, undefined);
     assert.equal((await a.get('/api/prestations')).json.lignes.length, 1, 'les prestations restent visibles');
     assert.equal((await a.get('/api/recap?mois=2026-10')).status, 200);
   }));

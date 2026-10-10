@@ -37,7 +37,7 @@ Les tests utilisent des dossiers temporaires sous `.tmp/` et ne touchent jamais 
 4. Mettre à jour la documentation concernée (`docs/`, `README.md`).
 5. Ouvrir une demande de fusion en décrivant ce qui change et comment vous l'avez vérifié.
 
-La conception du projet est décrite dans `docs/architecture.md` (modules, format des données, API) et `docs/design-system.md` (interface).
+La conception du projet est décrite dans `docs/architecture.md` (modules, format des données, API) et `docs/design-system.md` (interface). Pour s'y retrouver avant de modifier le code (carte des modules, chemin d'une écriture, pièges, vérifications avant de livrer) : [docs/guide-developpeur.md](docs/guide-developpeur.md).
 
 ## Sécurité
 

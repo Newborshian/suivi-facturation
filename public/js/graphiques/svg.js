@@ -1,5 +1,6 @@
 // Création d'éléments SVG par createElementNS : jamais de HTML construit à partir de données (CSP stricte).
 // L'espace de noms SVG est un identifiant, pas une adresse réseau (rien n'est chargé).
+// Utilisé par barres-svg.js, icones-paiement.js et tdb-sections.js.
 const NS = 'http://www.w3.org/2000/svg';
 
 /** `attributs` : valeur false / null / undefined = attribut absent ; tout est passé par setAttribute (jamais d'attribut de style). */

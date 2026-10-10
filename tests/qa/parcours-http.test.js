@@ -177,7 +177,7 @@ test('suppression d\'une prestation : sauvegarde « avant-suppression » créée
     await a.post(`/api/prestations/${c.id}/payer-totalite`, { mode: 'carte' });
     const sup = await a.del(`/api/prestations/${c.id}`);
     assert.equal(sup.status, 200);
-    assert.equal(sup.json.donnees.versementsSupprimes, 1);
+    assert.deepEqual(sup.json.donnees, { id: c.id });
     assert.ok((await sauvegardes(s)).some((n) => n.includes('avant-suppression')));
     const sauvegarde = (await sauvegardes(s)).find((n) => n.includes('avant-suppression'));
     const contenu = JSON.parse(await fs.readFile(path.join(s.dossier, 'sauvegardes', sauvegarde), 'utf8'));
@@ -221,7 +221,7 @@ test('cohérence HTTP : le « dû » de /api/recap = le total du mois de /api/in
     const oct = ca.mois.find((m) => m.mois === '2026-10');
     assert.equal(recap.total.duCentimes, 33000);
     assert.equal(recap.total.duCentimes, oct.totalCentimes);
-    assert.equal(recap.total.duCentimes, liste.total.montantCentimes);
+    assert.equal(recap.total.duCentimes, liste.lignes.reduce((t, l) => t + l.montantCentimes, 0));
     assert.equal(recap.total.payeCentimes, 27000);
     assert.equal(oct.payeCentimes + oct.attenteCentimes + oct.aFacturerCentimes + oct.aVenirCentimes, oct.totalCentimes);
     const synthese = (await a.get('/api/indicateurs/synthese')).json;

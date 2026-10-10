@@ -2,6 +2,7 @@
 // la restauration d'une sauvegarde est la sortie (le fichier actuel est conservé). Le fichier actuel n'est jamais écrasé sans copie préalable.
 // Le fichier est relu à chaque affichage, au clic sur « Réessayer » et juste avant (puis au moment) de restaurer : s'il est revenu
 // lisible (synchronisation terminée), on le dit et on propose de le reprendre au lieu de l'écraser.
+// Utilisé par toutes les pages quand /api/etat signale un mode dégradé (fichier absent, illisible, migration en échec).
 import { ErreurApi, appeler, lireEtat } from '/js/api.js';
 import { alerte } from '/js/bandeaux.js';
 import { el, remplacer } from '/js/dom.js';

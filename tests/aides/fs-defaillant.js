@@ -1,4 +1,5 @@
 // fs simulé : délègue au vrai fs/promises mais peut refuser rename un nombre de fois donné (verrou Windows).
+// Sert à vérifier qu'un disque ou un fichier indisponible ne fait jamais perdre de données (tests/store/).
 import fsp from 'node:fs/promises';
 
 /** fs simulé : tant que `etat.bloque` est vrai, le dossier sauvegardes/ est inaccessible (création refusée). */

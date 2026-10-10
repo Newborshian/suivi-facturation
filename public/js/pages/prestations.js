@@ -1,6 +1,8 @@
 // Écran « Prestations » : ajout rapide, liste filtrable, statut et paiement en un clic, sélection multiple.
 // Le serveur calcule (état de paiement, totaux par ligne) ; ici on affiche, on filtre localement et on appelle l'API.
 // Le filtre sur le patient reste dans le navigateur : aucun nom dans l'URL, ni dans le stockage du navigateur.
+// Chargé par prestations.html. `page` = état de l'écran ; `proteger(action)` = une seule action à la fois, toute erreur devient un message ;
+// `notifier` = message avec bouton « Annuler » quand le serveur renvoie un jeton d'annulation. Facturation du mois et Patients suivent le même modèle.
 import { ErreurApi, appeler, lireEtat } from '/js/api.js';
 import { remplacerSiFichierVide } from '/js/accueil-vide.js';
 import { afficherBandeaux, alerte } from '/js/bandeaux.js';

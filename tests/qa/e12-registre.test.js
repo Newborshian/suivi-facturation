@@ -102,8 +102,7 @@ test('migration d\'une copie v1 : sauvegarde « avant-migration » identique oct
     assert.deepEqual(liste.filter((p) => p.homonyme).map((p) => p.id).sort(), ['pb', 'pc'], 'les deux homonymes assumés sont marqués');
     assert.deepEqual((await a.get('/api/etat')).json.avertissements, [], 'aucun avertissement d\'incohérence après migration');
     const resume = (await a.get('/api/sauvegardes')).json.sauvegardes.find((x) => x.raison === 'avant-migration');
-    assert.equal(resume.schemaVersion, 1);
-    assert.equal(resume.nombrePatients, 6, 'nombre de patients d\'une sauvegarde v1 : reconstruit depuis ses lignes');
+    assert.equal(resume.restaurable, true, 'la sauvegarde v1 « avant-migration » est lisible et restaurable');
   } finally {
     await s.arreter();
   }
@@ -284,7 +283,7 @@ test('registre : renommage propagé aux prestations, annulation, casse sans conf
     const arch = await a.patch(`/api/patients/${id}`, { actif: false });
     assert.equal(arch.status, 200);
     const w = arch.json.avertissements.find((x) => x.code === 'PATIENT_ARCHIVE_EN_COURS');
-    assert.deepEqual(w.details, { aVenir: 1, impayees: 3 });
+    assert.match(w.message, /1 prestation à venir et 3 prestations avec un reste à payer/);
     const encore = await a.patch(`/api/patients/${id}`, { actif: false });
     assert.equal(encore.status, 200);
     assert.deepEqual(encore.json.avertissements, [], 'deuxième archivage : rien ne change, aucune erreur');

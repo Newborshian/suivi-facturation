@@ -1,4 +1,7 @@
 // Serveur HTTP : écoute sur 127.0.0.1 UNIQUEMENT. Chaîne : en-têtes -> contrôles de sécurité -> API | statique.
+// Créé par server.js (et par tests/aides/serveur-aide.js). Une requête : en-têtes de sécurité, controlerRequete (Host, Sec-Fetch-Site, Origin,
+// méthode), puis /api/* -> routeur, sinon fichier de public/. À ne pas casser : ADRESSE_ECOUTE reste 127.0.0.1 ; aucune erreur ne doit
+// envoyer de pile ni de message technique au navigateur (enErreurHttp) ; le journal ne reçoit jamais le message d'une erreur.
 import http from 'node:http';
 import path from 'node:path';
 import { ErreurApp } from '../erreurs.js';
@@ -39,9 +42,9 @@ const nettoyerPourJournal = (texte) => texte.replace(/[^\x20-\x7e]/g, '?').slice
  * `evenements` = journal d'événements (src/journal.js) : seules les erreurs 5xx y sont écrites, jamais les requêtes normales.
  * `demanderArret()` est appelée après l'envoi de la réponse de POST /api/arreter.
  */
-export function creerServeur({ store, config, horloge, version, racinePublic = path.join(RACINE_PROJET, 'public'), journal = console.log, evenements = journalNul, demanderArret, presence, ajouterRoutes } = {}) {
+export function creerServeur({ store, config, horloge, racinePublic = path.join(RACINE_PROJET, 'public'), journal = console.log, evenements = journalNul, demanderArret, presence, ajouterRoutes } = {}) {
   const routeur = creerRouteur();
-  enregistrerRoutesApi(routeur, { store, config, horloge, version, demanderArret, presence, evenements });
+  enregistrerRoutesApi(routeur, { store, config, horloge, demanderArret, presence, evenements });
   if (ajouterRoutes) ajouterRoutes(routeur);
 
   let server;

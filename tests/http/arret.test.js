@@ -58,7 +58,7 @@ test('/api/arreter : GET et autres méthodes refusés (405) ; /api/sante inchang
     assert.equal((await s.requete({ methode: 'PATCH', chemin: '/api/arreter', headers: origine(s), corps: '{}' })).status, 405);
     const sante = await s.requete({ chemin: '/api/sante' });
     assert.equal(sante.status, 200);
-    assert.deepEqual(sante.json, { ok: true, application: 'suivi-facturation', version: '0.0.0-test', pid: process.pid });
+    assert.deepEqual(sante.json, { ok: true, application: 'suivi-facturation', pid: process.pid });
   } finally {
     await s.arreter();
   }

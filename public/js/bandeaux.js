@@ -1,4 +1,5 @@
 // Bandeaux d'état communs à toutes les pages (mode dégradé, lecture seule, conflit, sauvegarde en échec…).
+// Utilisé par toutes les pages (zone #bandeaux) et par presence.js. Les textes viennent de /api/etat ou sont fixes : jamais de donnée de patient.
 import { ouvrirDialogueConflit } from '/js/conflit.js';
 import { el, remplacer } from '/js/dom.js';
 import { formatInstant } from '/js/format.js';

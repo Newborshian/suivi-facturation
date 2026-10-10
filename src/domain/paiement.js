@@ -1,4 +1,6 @@
 // État de paiement calculé (jamais stocké) : architecture §6.2. Module pur, centimes entiers.
+// Utilisé partout où un état de paiement est affiché ou compté (routes, récapitulatif, indicateurs, CSV). Changer la règle « payé / partiel /
+// non payé » ici change tous les écrans et l'export : mettre à jour tests/domain/paiement.test.js et l'architecture §6.2.
 
 /**
  * -> { verseCentimes, payeCentimes, resteCentimes, tropPercuCentimes, etat }

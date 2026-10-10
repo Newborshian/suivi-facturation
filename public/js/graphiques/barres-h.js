@@ -1,6 +1,7 @@
 // Barres horizontales HTML/CSS (répartition par type, impayés par ancienneté : design-system §6.5).
 // Le texte (libellé, montant, pourcentage) porte l'information ; la barre n'est qu'un renfort. La largeur passe par la variable CSS
 // --part posée en CSSOM (setProperty) : aucun attribut style, compatible avec style-src 'self'.
+// Utilisé par le tableau de bord (pages/tdb-sections.js).
 import { el } from '/js/dom.js';
 
 /**

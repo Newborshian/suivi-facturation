@@ -1,12 +1,16 @@
 // Opérations sur les prestations, appliquées à une COPIE de travail de l'état (celle que fournit store.muter).
 // Fonctions sans E/S : l'horloge et les identifiants arrivent par `ctx` = { aujourdHui, maintenant (ISO), nouvelId }.
 // Chaque fonction modifie `etat` et renvoie { resultat, avertissements }.
+// Appelé par http/api/prestations.js à travers store.muter. Ajouter un champ à une prestation : schema.js (controlerStructure, puis une migration
+// si le champ devient obligatoire), validation.js (CHAMPS_LIGNE et validerCreation/validerModification), creerPrestation/modifierPrestation ici,
+// csv.js si le champ doit être exporté, puis le formulaire (public/js/pages/prestations-formulaire.js) et les tests.
 import { ErreurApp } from '../erreurs.js';
 import { formaterDateFr } from './dates.js';
 import { ancienneteJours, compteDansImpayes, trancheAnciennete } from './indicateurs.js';
 import { formaterCentimes } from './money.js';
 import { etatPaiement } from './paiement.js';
 import { assurerAuRegistre, clePatient, renommerPatient, resoudrePatient } from './patients.js';
+import { parDateEtCreation } from './tri.js';
 import { validerCreation, validerModification, validerPayerTotalite, validerStatut, validerVersement } from './validation.js';
 
 const euros = (centimes) => `${formaterCentimes(centimes)} €`;
@@ -110,7 +114,7 @@ export function modifierPrestation(etat, id, corps, ctx) {
 export function supprimerPrestation(etat, id) {
   const ligne = trouverLigne(etat, id);
   etat.prestations.splice(etat.prestations.indexOf(ligne), 1);
-  return { resultat: { id, versementsSupprimes: ligne.versements.length }, avertissements: [] };
+  return { resultat: { id }, avertissements: [] };
 }
 
 /** Passe plusieurs lignes à `facture` (date de facturation = `date` ou aujourd'hui) ou à `a_facturer` (date effacée). */
@@ -243,17 +247,5 @@ export function filtrerPrestations(prestations, filtres, aujourdHui, etatDe) {
       if (anciennete !== undefined && (!compteDansImpayes(l, aujourdHui) || etatDe(l).resteCentimes <= 0 || trancheAnciennete(ancienneteJours(l, aujourdHui)) !== anciennete)) return false;
       return true;
     })
-    .sort((x, y) => x.date.localeCompare(y.date) || x.creeLe.localeCompare(y.creeLe) || x.id.localeCompare(y.id));
-}
-
-/** Totaux d'une liste de lignes enrichies. */
-export function totaliser(lignes) {
-  const t = { nombre: lignes.length, montantCentimes: 0, payeCentimes: 0, resteCentimes: 0, tropPercuCentimes: 0 };
-  for (const l of lignes) {
-    t.montantCentimes += l.montantCentimes;
-    t.payeCentimes += l.payeCentimes;
-    t.resteCentimes += l.resteCentimes;
-    t.tropPercuCentimes += l.tropPercuCentimes;
-  }
-  return t;
+    .sort(parDateEtCreation);
 }

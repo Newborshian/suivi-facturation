@@ -1,6 +1,8 @@
 // Indicateurs du tableau de bord (CA, séances, répartition, impayés). Module pur : centimes entiers, aucune horloge implicite, aucune E/S.
 // Formules : architecture §6.6 (CA par mois, vue par date de versement, séances, impayés, répartition).
 // Hors de ce module : la prévision (previsions.js) ; les archives et les patients actifs ne sont pas encore calculés.
+// Appelé par http/api/indicateurs.js (et validation.js pour les constantes). Changer une règle de calcul : modifier la fonction, ses tests
+// (tests/domain/indicateurs.test.js, tests/qa/coherence.test.js) et l'architecture §6.6. Les tranches TRANCHES sont envoyées au front par /api/etat.
 import { ajouterJours, ajouterMois, ecartJours, joursDansMois, lundiDeSemaine, moisDe, semaineIso } from './dates.js';
 import { etatPaiement } from './paiement.js';
 
@@ -148,7 +150,7 @@ function repartirPourMille(types, totalCentimes) {
  * Libellé = libellé actuel du catalogue ; à défaut, celui de la ligne la plus récente (un type renommé reste un seul groupe).
  * `partPourMille` : part en ‰, entier, calculée en entiers par la méthode du plus fort reste : les parts somment exactement 1000
  * (0 si le total est nul) ; à reste égal, le type placé en premier dans le tri l'emporte. Les montants somment exactement au total.
- * Tri : CA décroissant, puis libellé. -> { de, a, totalCentimes, nombre, types: [{ prestationId, libelle, categorie, nombre, caCentimes, partPourMille }] }
+ * Tri : CA décroissant, puis libellé. -> { de, a, totalCentimes, nombre, types: [{ prestationId, libelle, nombre, caCentimes, partPourMille }] }
  */
 export function repartition(prestations, { de, a, catalogue = [] }) {
   const groupes = new Map();
@@ -156,10 +158,10 @@ export function repartition(prestations, { de, a, catalogue = [] }) {
     if (!dansPeriode(p.date, de, a)) continue;
     let g = groupes.get(p.prestationId);
     if (!g) {
-      g = { prestationId: p.prestationId, libelle: p.libelle, categorie: p.categorie, nombre: 0, caCentimes: 0, recente: p.date };
+      g = { prestationId: p.prestationId, libelle: p.libelle, nombre: 0, caCentimes: 0, recente: p.date };
       groupes.set(p.prestationId, g);
     }
-    if (p.date > g.recente) Object.assign(g, { recente: p.date, libelle: p.libelle, categorie: p.categorie });
+    if (p.date > g.recente) Object.assign(g, { recente: p.date, libelle: p.libelle });
     g.nombre += 1;
     g.caCentimes += p.montantCentimes;
   }
@@ -200,12 +202,12 @@ export const compteDansImpayes = (prestation, aujourdHui) => prestation.date <= 
  * Reste à encaisser : prestations dont le reste à payer est > 0 et qui comptent dans les impayés (voir `compteDansImpayes` : une
  * prestation à venir NON facturée n'est pas un impayé, une prestation à venir déjà facturée en est un). Séparées en « facturées » (à relancer, ancienneté depuis la facturation) et « non facturées » (à facturer d'abord : pas de
  * relance, ancienneté depuis la date de prestation). Le trop-perçu n'est jamais compensé : une ligne sans reste n'apparaît pas.
- * -> { totalResteCentimes, nombre, resteFactureCentimes, resteNonFactureCentimes, factures: [tranche], nonFactures: [tranche] }
+ * -> { totalResteCentimes, nombre, resteNonFactureCentimes, factures: [tranche], nonFactures: [tranche] }
  *    tranche = { tranche, libelle, nombre, resteCentimes }
  */
 export function impayes(prestations, aujourdHui) {
   const creer = () => TRANCHES.map((t) => ({ tranche: t.id, libelle: t.libelle, nombre: 0, resteCentimes: 0 }));
-  const sortie = { totalResteCentimes: 0, nombre: 0, resteFactureCentimes: 0, resteNonFactureCentimes: 0, factures: creer(), nonFactures: creer() };
+  const sortie = { totalResteCentimes: 0, nombre: 0, resteNonFactureCentimes: 0, factures: creer(), nonFactures: creer() };
   for (const p of prestations) {
     if (!compteDansImpayes(p, aujourdHui)) continue;
     const { resteCentimes } = etatPaiement(p);
@@ -214,7 +216,7 @@ export function impayes(prestations, aujourdHui) {
     const t = (facture ? sortie.factures : sortie.nonFactures).find((x) => x.tranche === trancheAnciennete(ancienneteJours(p, aujourdHui)));
     t.nombre += 1;
     t.resteCentimes += resteCentimes;
-    sortie[facture ? 'resteFactureCentimes' : 'resteNonFactureCentimes'] += resteCentimes;
+    if (!facture) sortie.resteNonFactureCentimes += resteCentimes;
     sortie.totalResteCentimes += resteCentimes;
     sortie.nombre += 1;
   }

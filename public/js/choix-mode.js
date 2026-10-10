@@ -1,5 +1,6 @@
 // Choix du mode de paiement dans un dialogue (design system §5.14) : cinq boutons à choix unique, de vrais <input type="radio">
 // enveloppés dans des <label> (un seul arrêt de tabulation, flèches pour changer, « 2 sur 5 » annoncé par les lecteurs d'écran).
+// Utilisé par le dialogue de versement (pages/prestations-dialogues.js). Ordre des modes : MODES de paiement-libelles.js.
 import { el } from './dom.js';
 import { LIBELLES_MODE } from './format.js';
 import { iconeMode } from './icones-paiement.js';

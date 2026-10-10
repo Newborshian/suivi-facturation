@@ -1,7 +1,9 @@
 // Empreinte du fichier actif et résumé d'une version, pour la détection de conflit de synchro
 // (niveau minimal, architecture §7.6). Les copies de conflit créées par un client de synchronisation ne sont pas détectées ; l'écran de résolution existe (public/js/conflit.js).
+// Appelé par store.js (contrôle avant chaque écriture et à chaque GET /api/etat).
 import { createHash } from 'node:crypto';
 import path from 'node:path';
+import { lireJson } from './json.js';
 import { SOUS_DOSSIER_SAUVEGARDES, instantSauvegarde, listerSauvegardes } from './sauvegardes.js';
 
 export function sha256(octets) {
@@ -15,7 +17,7 @@ export function empreinteDe(stat, octets) {
 /** Chiffres comparables d'une version (nombre de prestations, révision, date de dernière modification). */
 export function resumerVersion(octets) {
   try {
-    const donnees = JSON.parse(octets.toString('utf8').replace(/^﻿/, ''));
+    const donnees = lireJson(octets);
     return {
       lisible: true,
       nombrePrestations: Array.isArray(donnees.prestations) ? donnees.prestations.length : null,

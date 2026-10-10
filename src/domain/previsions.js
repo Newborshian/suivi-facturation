@@ -4,6 +4,7 @@
 // Grandeur prévue = CA DÛ : la somme des MONTANTS (`montantCentimes`) des prestations, par date de prestation, tous statuts confondus.
 // Jamais un reste à payer (`aVenirCentimes` de caMensuel) : les versements, acomptes compris, ne changent donc rien ici, et une
 // prestation à venir déjà facturée n'est comptée qu'une fois (dans le « planifié »).
+// Appelé par http/api/indicateurs.js (route prevision, qui n'envoie au navigateur que l'estimation de chaque mois).
 import { ajouterMois, joursDansMois, moisDe } from './dates.js';
 import { listerMois, nombreMois } from './indicateurs.js';
 
@@ -14,6 +15,9 @@ export const HORIZON_MOIS = 3; // mois suivants estimés
 export function diviserArrondi(numerateur, denominateur) {
   return Math.floor((2 * numerateur + denominateur) / (2 * denominateur));
 }
+
+/** Premier mois COMPLET d'activité : le mois de la plus ancienne prestation si elle est datée du 1er, sinon le mois suivant. */
+const premierMoisComplet = (plusAncienne) => (plusAncienne.endsWith('-01') ? moisDe(plusAncienne) : moisDe(ajouterMois(`${moisDe(plusAncienne)}-01`, 1)));
 
 /**
  * Historique disponible : nombre de mois COMPLETS entre la plus ancienne prestation et le mois précédant le mois en cours (le mois en
@@ -27,8 +31,7 @@ export function historique(prestations, aujourdHui, fenetre = FENETRE_MOIS) {
   let moisComplets = 0;
   if (plusAncienne !== null) {
     const dernierComplet = moisDe(ajouterMois(`${moisDe(aujourdHui)}-01`, -1));
-    const premierComplet = plusAncienne.endsWith('-01') ? moisDe(plusAncienne) : moisDe(ajouterMois(`${moisDe(plusAncienne)}-01`, 1));
-    moisComplets = Math.max(0, nombreMois(premierComplet, dernierComplet));
+    moisComplets = Math.max(0, nombreMois(premierMoisComplet(plusAncienne), dernierComplet));
   }
   return { plusAncienne, moisComplets, moisManquants: Math.max(0, fenetre - moisComplets) };
 }
@@ -41,8 +44,7 @@ export function historique(prestations, aujourdHui, fenetre = FENETRE_MOIS) {
  */
 export function premiereEstimation(plusAncienne, fenetre = FENETRE_MOIS) {
   if (plusAncienne === null || plusAncienne === undefined) return null;
-  const premierComplet = plusAncienne.endsWith('-01') ? moisDe(plusAncienne) : moisDe(ajouterMois(`${moisDe(plusAncienne)}-01`, 1));
-  return ajouterMois(`${premierComplet}-01`, fenetre);
+  return ajouterMois(`${premierMoisComplet(plusAncienne)}-01`, fenetre);
 }
 
 /**
@@ -67,21 +69,21 @@ export function previsions(prestations, { aujourdHui, fenetre = FENETRE_MOIS, ho
   }
 
   const courant = moisDe(aujourdHui);
-  const premierComplet = moisDe(ajouterMois(`${courant}-01`, -fenetre));
+  const premierMoisFenetre = moisDe(ajouterMois(`${courant}-01`, -fenetre));
   const dernierComplet = moisDe(ajouterMois(`${courant}-01`, -1));
   const dernierEstime = moisDe(ajouterMois(`${courant}-01`, horizon));
 
   const totaux = new Map(); // mois -> { realise, planifie } (montants dus)
   for (const p of prestations) {
     const m = moisDe(p.date);
-    if (m < premierComplet || m > dernierEstime) continue;
+    if (m < premierMoisFenetre || m > dernierEstime) continue;
     const t = totaux.get(m) ?? { realise: 0, planifie: 0 };
     t[p.date > aujourdHui ? 'planifie' : 'realise'] += p.montantCentimes;
     totaux.set(m, t);
   }
   const de = (m) => totaux.get(m) ?? { realise: 0, planifie: 0 };
 
-  const sommeHistorique = listerMois(premierComplet, dernierComplet).reduce((s, m) => s + de(m).realise + de(m).planifie, 0); // un mois complet est déjà passé : planifie = 0
+  const sommeHistorique = listerMois(premierMoisFenetre, dernierComplet).reduce((s, m) => s + de(m).realise + de(m).planifie, 0); // un mois complet est déjà passé : planifie = 0
   const base = diviserArrondi(sommeHistorique, fenetre);
   sortie.base = base;
 

@@ -12,10 +12,10 @@ import {
   payerEnTotalite,
   supprimerPrestation,
   supprimerVersement,
-  totaliser,
 } from '../../src/domain/prestations.js';
 import { creerEtatInitial } from '../../src/domain/schema.js';
 import { validerFiltres } from '../../src/domain/validation.js';
+import { totaliserLignes } from '../../public/js/format.js';
 
 let compteur = 0;
 const ctx = (aujourdHui = '2026-10-02', maintenant = '2026-10-02T09:14:03.000Z') => ({ aujourdHui, maintenant, nouvelId: () => `id-${++compteur}` });
@@ -152,12 +152,12 @@ test('modification du patient : changement de nom -> autre patient ; simple corr
   assert.equal(autre.resultat.patient.id, b.patient.id);
 });
 
-test('suppression : ligne et versements supprimés, nombre de versements renvoyé ; absente -> 404', () => {
+test('suppression : ligne et versements supprimés, identifiant renvoyé ; absente -> 404', () => {
   const etat = etatVide();
   const l = creer(etat);
   ajouterVersement(etat, l.id, { montantCentimes: 1000, date: '2026-10-02', mode: 'cheque' }, ctx());
   ajouterVersement(etat, l.id, { montantCentimes: 500, date: '2026-10-02', mode: 'cheque' }, ctx());
-  assert.deepEqual(supprimerPrestation(etat, l.id).resultat, { id: l.id, versementsSupprimes: 2 });
+  assert.deepEqual(supprimerPrestation(etat, l.id).resultat, { id: l.id });
   assert.equal(etat.prestations.length, 0);
   assert.equal(erreur(() => supprimerPrestation(etat, l.id)).status, 404);
 });
@@ -317,14 +317,14 @@ test('filtres : paramètre inconnu ou invalide -> 400', () => {
   }
 });
 
-test('totaux : somme exacte en centimes (montant = payé + reste)', () => {
+test('totaux (calculés par le navigateur sur les lignes enrichies du serveur) : somme exacte en centimes (montant = payé + reste)', () => {
   const etat = etatVide();
   const a = creer(etat, { montantCentimes: 4500 });
   creer(etat, { montantCentimes: 3500, patient: { nom: 'Ours', prenom: 'Baloo' } });
   ajouterVersement(etat, a.id, { montantCentimes: 2000, date: '2026-10-02', mode: 'cheque' }, ctx());
   const lignes = etat.prestations.map((l) => ({ ...l, ...etatPaiement(l) }));
-  const t = totaliser(lignes);
-  assert.deepEqual(t, { nombre: 2, montantCentimes: 8000, payeCentimes: 2000, resteCentimes: 6000, tropPercuCentimes: 0 });
+  const t = totaliserLignes(lignes);
+  assert.deepEqual(t, { nombre: 2, montantCentimes: 8000, payeCentimes: 2000, resteCentimes: 6000 });
   assert.equal(t.montantCentimes, t.payeCentimes + t.resteCentimes);
 });
 

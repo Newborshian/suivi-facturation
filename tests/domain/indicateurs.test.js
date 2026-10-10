@@ -276,7 +276,7 @@ test('impayés : facturées (depuis la facturation) et non facturées (depuis la
   );
   assert.deepEqual(r.factures.map((t) => [t.tranche, t.nombre, t.resteCentimes]), [['0-29', 1, 3000], ['30-59', 1, 4500], ['60-89', 0, 0], ['90-plus', 0, 0]]);
   assert.deepEqual(r.nonFactures.map((t) => [t.tranche, t.nombre, t.resteCentimes]), [['0-29', 1, 3500], ['30-59', 0, 0], ['60-89', 0, 0], ['90-plus', 1, 3500]]);
-  assert.deepEqual([r.resteFactureCentimes, r.resteNonFactureCentimes, r.totalResteCentimes, r.nombre], [7500, 7000, 14500, 4]);
+  assert.deepEqual([r.totalResteCentimes - r.resteNonFactureCentimes, r.resteNonFactureCentimes, r.totalResteCentimes, r.nombre], [7500, 7000, 14500, 4]);
   assert.equal(r.factures.reduce((s, t) => s + t.resteCentimes, 0) + r.nonFactures.reduce((s, t) => s + t.resteCentimes, 0), r.totalResteCentimes);
   entierPartout(r);
 });
@@ -359,7 +359,7 @@ test('prestation à venir déjà facturée : « attente » (reste à payer, acom
   // « Reste à encaisser » = facturé en attente + à facturer (échus) de tous les mois ; l'à venir non facturé n'y est pas
   const imp = impayes(lignes, A);
   assert.equal(imp.totalResteCentimes, r.mois.reduce((t, m) => t + m.attenteCentimes + m.aFacturerCentimes, 0));
-  assert.equal(imp.resteFactureCentimes, r.mois.reduce((t, m) => t + m.attenteCentimes, 0));
+  assert.equal(imp.totalResteCentimes - imp.resteNonFactureCentimes, r.mois.reduce((t, m) => t + m.attenteCentimes, 0));
   assert.equal(imp.resteNonFactureCentimes, r.mois.reduce((t, m) => t + m.aFacturerCentimes, 0));
   entierPartout([r, imp]);
 });
@@ -371,7 +371,7 @@ test('impayés : une prestation à venir déjà facturée compte (ancienneté de
     ligne('2026-10-22', 4500, { statut: 'facture', factureLe: '2026-10-01', versements: [[4500, '2026-10-01']] }),
   ];
   const r = impayes(lignes, A);
-  assert.deepEqual([r.nombre, r.totalResteCentimes, r.resteFactureCentimes, r.resteNonFactureCentimes], [1, 3000, 3000, 0]);
+  assert.deepEqual([r.nombre, r.totalResteCentimes, r.resteNonFactureCentimes], [1, 3000, 0]);
   assert.deepEqual(r.factures.map((t) => t.nombre), [0, 1, 0, 0]);
   const f = (filtres) => filtrerPrestations(lignes, filtres, A, etatPaiement);
   assert.equal(f({ anciennete: '30-59', statut: 'facture' }).length, 1);

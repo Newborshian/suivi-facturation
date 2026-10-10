@@ -1,5 +1,9 @@
 // Configuration : variables d'environnement (éventuellement chargées depuis .env par `process.loadEnvFile` dans src/server.js, ou `--env-file` du lanceur).
 // L'adresse d'écoute n'est PAS configurable : toujours 127.0.0.1 (voir http/serveur.js).
+// Appelé par server.js, verrou.js et les scripts (choisir-dossier.mjs, demo.mjs). Aucune écriture, sauf la création du dossier de données par défaut.
+// À ne pas casser : les refus (dossier de données, journal, verrous dans public/, src/ ou le projet hors data/ et .tmp/) protègent
+// les données de santé contre une publication par erreur. Ajouter une variable ERGO_* : la lire dans lireConfig, la valider (ErreurConfig,
+// code de sortie 2), la documenter dans scripts/env.exemple et l'architecture §13.1.
 import fs from 'node:fs';
 import fsp from 'node:fs/promises';
 import path from 'node:path';
@@ -84,7 +88,8 @@ export function lireArretAuto(env = process.env) {
   };
 }
 
-function estDans(parent, enfant) {
+/** `enfant` est-il `parent` lui-même ou un chemin sous `parent` ? (comparaison de chemins, sans accès disque) */
+export function estDans(parent, enfant) {
   const rel = path.relative(parent, enfant);
   return rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel));
 }

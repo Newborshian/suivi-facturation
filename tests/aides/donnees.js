@@ -1,4 +1,5 @@
 // Données factices (aucune donnée réelle) pour les tests de restauration, d'export et de catalogue.
+// etatTest(n) : état de version courante avec n prestations factices ; etatV1 / enV1 : équivalents en version 1 pour les tests de migration.
 import { reconstruireRegistre } from '../../src/domain/patients.js';
 import { etatInitialTest } from './catalogue-test.js';
 

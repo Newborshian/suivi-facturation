@@ -1,5 +1,6 @@
 // État du catalogue de prestations et textes du guide qui en découle (logique pure, sans DOM : testée sous node).
 // Un fichier de données neuf a un catalogue VIDE : rien ne peut être saisi tant qu'aucune prestation active n'est définie.
+// Utilisé par Prestations, Facturation du mois, Paramètres › Tarifs et accueil-vide.js.
 
 export const LIEN_TARIFS = '/parametres.html#tarifs';
 

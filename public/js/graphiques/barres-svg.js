@@ -1,6 +1,7 @@
 // Graphique en barres empilées en SVG fait maison (docs/design-system.md §6) : légende, motifs, info-bulle, tableau de valeurs.
 // Tout est créé par createElementNS / textContent (jamais de HTML construit à partir de données). Les positions viennent de mise-en-page.js (pur).
 // Les couleurs et motifs sont portés par le CSS (data-serie) ; seuls les <pattern> et leur référence fill="url(#…)" sont posés ici.
+// Utilisé par le tableau de bord (pages/tdb-sections.js). Dessin en SVG construit par svg.js (createElementNS), jamais par du texte HTML.
 import { el } from '/js/dom.js';
 import { DECALAGE_ETIQUETTE, ECART_GRADUATION, INTERLIGNE, disposerColonnes, echelle, etiquettesVisiblesParLargeur, largeurTexte, margesGraphique, positionEtiquette } from '/js/graphiques/mise-en-page.js';
 import { svg } from '/js/graphiques/svg.js';

@@ -1,6 +1,7 @@
 // Texte copiable du récapitulatif : colonnes séparées par des tabulations (collable dans un tableur ou un éditeur).
 // Module PUR (aucun accès au DOM). C'est LE SEUL endroit à ajuster quand l’utilisatrice aura précisé les colonnes attendues par son
 // outil de facturation : colonnes par défaut, titres, ordre, séparateur, ligne d'en-tête, ligne de total.
+// Utilisé par pages/facturation.js (boutons « Copier »).
 import { formatDate, formatMontantSaisie, nomPatient } from './format.js';
 
 export const SEPARATEUR = '\t';

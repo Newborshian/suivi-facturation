@@ -1,4 +1,5 @@
 // Périodes proposées par le tableau de bord. Module PUR : un choix + la date du jour (donnée par le serveur) -> mois de début et de fin.
+// Utilisé par le tableau de bord (sélecteur de période).
 import { moisPlusN } from './format.js';
 
 export const PERIODES = [

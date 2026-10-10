@@ -1,6 +1,7 @@
 // Possibilité d'écrire selon l'état de l'application (logique pure, sans DOM : testée sous node).
 // Fichier créé par une version plus récente (lecture seule), conflit de synchronisation non résolu ou mode dégradé : le serveur refuse
 // toute écriture. L'interface désactive donc les boutons et champs d'écriture et dit pourquoi, au lieu de laisser un clic échouer.
+// Utilisé par Prestations, Facturation du mois, Patients et Paramètres. Changer la règle ici la change sur les quatre écrans.
 
 /** Vrai si l'application accepte des modifications (même règle que l'écran Facturation du mois). */
 export const ecritureAutorisee = (etat) => !(etat?.lectureSeule || etat?.conflit || etat?.modeDegrade);

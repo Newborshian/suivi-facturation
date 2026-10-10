@@ -1,5 +1,6 @@
 // Éléments d'interface communs : messages éphémères (toasts) et boîtes de dialogue natives <dialog>.
 // Aucune donnée n'est insérée autrement que par textContent (voir dom.js).
+// Utilisé par tous les écrans (messages éphémères « toasts », dialogues <dialog> natifs, champs de formulaire avec aide et erreur).
 import { descriptionChamp } from '/js/accessibilite.js';
 import { el } from '/js/dom.js';
 

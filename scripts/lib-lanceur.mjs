@@ -1,6 +1,7 @@
 // Fonctions communes aux scripts du lanceur (lancer-silencieux.mjs, arreter.mjs, outils-lanceur.mjs, suivi.mjs).
 // Aucune dépendance, aucun accès réseau hors de cet ordinateur (127.0.0.1 uniquement). Fonctionne sous Windows, Linux et macOS.
 // Ce module ne fait rien à l'import : il ne contient que des fonctions.
+// À ne pas casser : arrêt d'un processus par son PID seulement (jamais par nom), et seulement après vérification que c'est bien `node`.
 import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';

@@ -1,4 +1,5 @@
 // Serveur statique de public/ : liste blanche d'extensions, refus de tout chemin suspect (path traversal).
+// Appelé par serveur.js pour tout GET/HEAD hors /api. Ajouter un type de fichier servi : TYPES_MIME (liste blanche) ; rien d'autre.
 import fsp from 'node:fs/promises';
 import path from 'node:path';
 import { ErreurApp } from '../erreurs.js';
@@ -46,7 +47,8 @@ export function segmentsSurs(cheminBrut) {
   return segments;
 }
 
-function estDans(parent, enfant) {
+/** `enfant` est-il STRICTEMENT sous `parent` (jamais `parent` lui-même) ? Différent de estDans (config.js), qui accepte l'égalité. */
+function estStrictementDans(parent, enfant) {
   const rel = path.relative(parent, enfant);
   return rel !== '' && !rel.startsWith('..') && !path.isAbsolute(rel);
 }
@@ -66,7 +68,7 @@ export async function servirStatique(req, res, cheminBrut, racine, { fs = fsp } 
   } catch {
     throw introuvable();
   }
-  if (!estDans(racineReelle, reel)) throw introuvable();
+  if (!estStrictementDans(racineReelle, reel)) throw introuvable();
 
   let contenu;
   try {

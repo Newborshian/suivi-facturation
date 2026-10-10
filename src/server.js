@@ -1,4 +1,7 @@
 // Point d'entrée : configuration -> contrôle du dossier -> stockage -> serveur sur 127.0.0.1.
+// Lancé par `npm start`, les lanceurs (scripts/lancer-silencieux.mjs) et la démonstration (scripts/demo.mjs, qui l'importe).
+// Ordre de démarrage détaillé : architecture §8.1. À ne pas casser : le verrou d'instance est pris AVANT tout accès au dossier de données,
+// et les codes de sortie (2 configuration, 3 déjà lancée, 4 bloquée) sont lus par les lanceurs.
 import fs from 'node:fs';
 import fsp from 'node:fs/promises';
 import path from 'node:path';
@@ -106,7 +109,7 @@ async function main() {
       arreter('arrêt automatique');
     },
   });
-  const app = creerServeur({ store, config, horloge, version, evenements: journal, presence, demanderArret: () => arreter('bouton Quitter') });
+  const app = creerServeur({ store, config, horloge, evenements: journal, presence, demanderArret: () => arreter('bouton Quitter') });
 
   let port;
   try {

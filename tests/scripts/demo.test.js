@@ -15,7 +15,7 @@ import {
   SOUS_DOSSIERS,
   creerDossierDemo,
   dateReferenceDuJeu,
-  demoTouheLesDonneesReelles,
+  demoToucheLesDonneesReelles,
   ecrireJeuDemo,
   estDossierOrdinaire,
   jeuDuJour,
@@ -60,12 +60,12 @@ test('garde-fou : refus si le dossier de démonstration est identique au dossier
     fs.mkdirSync(path.join(reel, 'sous'), { recursive: true });
     const autre = path.join(tmp, 'autre');
     fs.mkdirSync(autre);
-    assert.equal(demoTouheLesDonneesReelles(reel, reel), true, 'identique');
-    assert.equal(demoTouheLesDonneesReelles(path.join(reel, 'sous'), reel), true, 'la démonstration est dans le dossier réel');
-    assert.equal(demoTouheLesDonneesReelles(tmp, reel), true, 'la démonstration contient le dossier réel');
-    assert.equal(demoTouheLesDonneesReelles(autre, reel), false, 'dossiers sans rapport');
-    assert.equal(demoTouheLesDonneesReelles(path.join(tmp, 'reel2'), reel), false, 'même début de nom, pas le même dossier');
-    assert.equal(demoTouheLesDonneesReelles(path.join(autre, 'absent'), reel), false, 'chemin inexistant sans rapport');
+    assert.equal(demoToucheLesDonneesReelles(reel, reel), true, 'identique');
+    assert.equal(demoToucheLesDonneesReelles(path.join(reel, 'sous'), reel), true, 'la démonstration est dans le dossier réel');
+    assert.equal(demoToucheLesDonneesReelles(tmp, reel), true, 'la démonstration contient le dossier réel');
+    assert.equal(demoToucheLesDonneesReelles(autre, reel), false, 'dossiers sans rapport');
+    assert.equal(demoToucheLesDonneesReelles(path.join(tmp, 'reel2'), reel), false, 'même début de nom, pas le même dossier');
+    assert.equal(demoToucheLesDonneesReelles(path.join(autre, 'absent'), reel), false, 'chemin inexistant sans rapport');
   });
 });
 
@@ -76,7 +76,7 @@ test('garde-fou : comparaison sur chemins réels (un lien vers le dossier réel 
     const lien = path.join(tmp, 'lien');
     if (!creerLienDossier(reel, lien)) return; // création de lien refusée par le système : le refus des liens est couvert plus bas
     try {
-      assert.equal(demoTouheLesDonneesReelles(lien, reel), true);
+      assert.equal(demoToucheLesDonneesReelles(lien, reel), true);
     } finally {
       retirerLien(lien);
     }

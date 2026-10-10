@@ -1,7 +1,9 @@
 // Formats français et conversions de saisie. Module PUR (aucun accès au DOM) : testé avec node --test.
 // Les montants sont des centimes entiers ; aucune division flottante n'est utilisée pour l'affichage.
+// Utilisé par presque tous les modules. Les libellés (LIBELLES_*) existent aussi côté serveur pour l'export CSV (src/domain/csv.js) : le
+// navigateur n'importe jamais src/, un libellé changé ici doit l'être là-bas aussi. Montants : toujours des centimes entiers.
 
-const NBSP = ' ';
+const NBSP = '\u00a0';
 const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
 const groupes = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 });
 
@@ -28,7 +30,7 @@ export function formatMontantSaisie(centimes) {
  * -> { ok: true, centimes } | { ok: false, raison: 'vide' | 'invalide' }. Refuse le négatif, plus de 2 décimales, les lettres.
  */
 export function lireMontant(texte) {
-  const brut = String(texte ?? '').replace(/[\s  ]/g, '').replace(/€$/, '');
+  const brut = String(texte ?? '').replace(/[\s\u00a0\u202f]/g, '').replace(/€$/, '');
   if (brut === '') return { ok: false, raison: 'vide' };
   const m = /^(\d{1,9})(?:[.,](\d{1,2}))?$/.exec(brut);
   if (!m) return { ok: false, raison: 'invalide' };
@@ -59,7 +61,7 @@ export function formatMois(mois) {
 export function normaliserRecherche(texte) {
   return String(texte ?? '')
     .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
+    .replace(/[\u0300-\u036f]/g, '')
     .toLocaleLowerCase('fr')
     .replace(/\s+/g, ' ')
     .trim();
@@ -112,12 +114,6 @@ export function moisPlusN(mois, n) {
 export function libelleTranche(tranches, id) {
   const t = (Array.isArray(tranches) ? tranches : []).find((x) => x?.id === id);
   return t ? t.libelle.charAt(0).toLowerCase() + t.libelle.slice(1) : null;
-}
-
-/** Montant du dernier versement d'une prestation renvoyée par le serveur (ce qui vient d'être enregistré), sinon `repli`. */
-export function montantDernierVersement(prestation, repli) {
-  const m = prestation?.versements?.at(-1)?.montantCentimes;
-  return Number.isSafeInteger(m) ? m : repli;
 }
 
 // Libellés du tableau de bord (« à facturer » et « reste à payer ») : deux notions distinctes, jamais le même mot pour les deux.

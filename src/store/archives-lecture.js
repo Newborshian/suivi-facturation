@@ -1,8 +1,10 @@
 // Lecture simple des archives annuelles `archive-AAAA.json` du dossier de données (export, vérification du catalogue).
 // Lecture seule. La gestion complète des archives (création, cache, désarchivage) viendra plus tard (futur module archives.js).
+// Appelé par les routes catalogue, patients et export. Jamais d'écriture : une archive n'est ni migrée ni réécrite (architecture §5.4).
 import fsp from 'node:fs/promises';
 import path from 'node:path';
 import { FORMAT, VERSION_COURANTE, controlerStructure } from '../domain/schema.js';
+import { lireJson } from './json.js';
 
 const MOTIF_ARCHIVE = /^archive-(\d{4})\.json$/;
 export const FORMAT_ARCHIVE = 'suivi-facturation-archive';
@@ -33,7 +35,7 @@ export async function lireArchives(dossier, { fs = fsp, journal = null } = {}) {
     const m = MOTIF_ARCHIVE.exec(nom);
     if (!m) continue;
     try {
-      const donnees = JSON.parse((await fs.readFile(path.join(dossier, nom), 'utf8')).replace(/^﻿/, ''));
+      const donnees = lireJson(await fs.readFile(path.join(dossier, nom)));
       if (donnees?.format !== FORMAT_ARCHIVE || !Array.isArray(donnees.prestations)) throw new Error('format');
       if (!structureValide(donnees.prestations)) throw new Error('structure');
       archives[m[1]] = donnees;

@@ -1,4 +1,5 @@
 // Règles pures de l'écran « Facturation du mois » (aucun accès au DOM : testables avec node --test).
+// Utilisé par Facturation du mois et Prestations (même règle « les prestations à venir restent à facturer »).
 
 /** Lignes de toutes les entrées patient d'un récapitulatif. */
 export const toutesLesLignes = (entrees) => entrees.flatMap((e) => e.lignes);

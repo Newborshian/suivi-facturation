@@ -1,5 +1,6 @@
 // Génère logo.svg, logo-512.png et suivi-facturation.ico (aucune dépendance).
 // Usage : node scripts/icone/generer-icone.mjs   (résultat reproductible)
+// Outil de développement : n'est pas utilisé par l'application ni par les lanceurs.
 import { writeFileSync } from 'node:fs';
 import { deflateSync } from 'node:zlib';
 import { dirname, join } from 'node:path';

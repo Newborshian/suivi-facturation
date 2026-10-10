@@ -1,6 +1,7 @@
 // Présence de la page : signale au serveur que cet onglet est ouvert (toutes les 15 s) puis fermé (sendBeacon), pour l'arrêt automatique.
 // Chargé par toutes les pages. Aucune donnée de patient : seulement un identifiant de page aléatoire. Les erreurs de réseau sont ignorées,
 // sauf deux échecs de suite : le serveur est alors arrêté, la page l'explique une seule fois et n'envoie plus rien.
+// Chargé par les cinq pages et importé par pages/parametres.js (arrêt des battements au clic sur « Quitter »).
 import { alerte } from '/js/bandeaux.js';
 import { el } from '/js/dom.js';
 

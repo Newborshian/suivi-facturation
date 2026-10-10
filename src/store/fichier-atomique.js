@@ -1,6 +1,8 @@
 // Écriture atomique : fichier temporaire (même dossier) -> fsync -> rename de remplacement.
 // Sous Windows, rename échoue (EPERM/EBUSY/EACCES) si un autre programme tient le fichier
 // (client de synchro, antivirus) : nouvelles tentatives avec attentes croissantes.
+// Appelé par store.js (fichier actif) et sauvegardes.js. À ne pas casser : écrire DIRECTEMENT dans le fichier final (writeFile) peut le laisser
+// à moitié écrit en cas de coupure ; toujours passer par ecrireAtomique. Les motifs de nettoyage ne doivent jamais viser un autre fichier.
 import fsp from 'node:fs/promises';
 import path from 'node:path';
 import { MODE_FICHIER } from '../droits.js';

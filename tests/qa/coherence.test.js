@@ -29,12 +29,12 @@ for (const [index, lignes] of jeux.entries()) {
       // somme des barres (+ reste à venir non facturé, hors barres) = dû
       assert.equal(m.payeCentimes + m.attenteCentimes + m.aFacturerCentimes + m.aVenirCentimes, m.totalCentimes, `${m.mois} : somme des segments = dû`);
       assert.equal(t.tropPercuCentimes, m.tropPercuCentimes, `${m.mois} : trop-perçu identique`);
-      assert.equal(t.nbPrestations, m.nombre, `${m.mois} : nombre de prestations identique`);
+      assert.equal(t.nbSeances + t.nbAutres, m.nombre, `${m.mois} : nombre de prestations identique`);
       // par patient : dû = payé + reste, et la somme des patients = total
       let sommeDu = 0;
       for (const p of recap.patients) {
         assert.equal(p.duCentimes, p.payeCentimes + p.resteCentimes, `${m.mois} / patient`);
-        assert.equal(p.nbPrestations, p.nbSeances + p.nbAutres);
+        assert.equal(p.lignes.length, p.nbSeances + p.nbAutres);
         sommeDu += p.duCentimes;
       }
       assert.equal(sommeDu, t.duCentimes);
@@ -49,7 +49,7 @@ for (const [index, lignes] of jeux.entries()) {
       const recap = recapMensuel(lignes, { mois: p.periode, aujourdHui: AUJOURDHUI });
       assert.equal(recap.total.nbSeances, p.total, `${p.periode} : séances`);
       assert.equal(recap.total.nbAutres, p.autres, `${p.periode} : autres prestations`);
-      assert.equal(recap.total.nbSeances + recap.total.nbAutres, recap.total.nbPrestations);
+      assert.equal(recap.total.nbSeances + recap.total.nbAutres, recap.patients.reduce((n, e) => n + e.lignes.length, 0));
     }
   });
 
@@ -63,7 +63,7 @@ for (const [index, lignes] of jeux.entries()) {
     const imp = impayes(lignes, AUJOURDHUI);
     const somme = (tr) => tr.reduce((s, t) => s + t.resteCentimes, 0);
     assert.equal(somme(imp.factures) + somme(imp.nonFactures), imp.totalResteCentimes);
-    assert.equal(imp.resteFactureCentimes + imp.resteNonFactureCentimes, imp.totalResteCentimes);
+    assert.equal(somme(imp.factures) + imp.resteNonFactureCentimes, imp.totalResteCentimes);
     // recalcul indépendant : reste > 0 et (date échue ou facturée)
     const direct = lignes.filter((l) => (l.date <= AUJOURDHUI || l.statut === 'facture') && etatPaiement(l).resteCentimes > 0).reduce((s, l) => s + etatPaiement(l).resteCentimes, 0);
     assert.equal(imp.totalResteCentimes, direct);

@@ -211,7 +211,8 @@ test('archiver / réactiver : idempotent, prestations intactes ; avertissement a
   const r = modifierPatient(e, 'p1', { actif: false }, ctx());
   assert.equal(e.patients[0].actif, false);
   assert.equal(r.avertissements[0].code, 'PATIENT_ARCHIVE_EN_COURS');
-  assert.deepEqual(r.avertissements[0].details, { aVenir: 1, impayees: 2 });
+  assert.match(r.avertissements[0].message, /1 prestation à venir et 2 prestations avec un reste à payer/);
+  assert.equal(r.avertissements[0].details, undefined, 'les nombres sont dans le message : aucun champ « details »');
   assert.deepEqual(e.prestations, lignesAvant, 'les prestations ne bougent pas');
   assert.deepEqual(modifierPatient(e, 'p1', { actif: false }, ctx()).avertissements, [], 'déjà archivé : rien');
   assert.equal(modifierPatient(e, 'p1', { actif: true }, ctx()).resultat.patient.actif, true);

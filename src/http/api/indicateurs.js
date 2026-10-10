@@ -1,11 +1,11 @@
 // Indicateurs du tableau de bord : GET /api/indicateurs/{synthese|ca-mensuel|seances|repartition|impayes|prevision}.
 // Endpoints séparés (architecture §9.2) pour qu'une section en erreur n'empêche pas l'affichage des autres. Le serveur calcule
 // (centimes entiers) ; le navigateur dessine. Paramètres : mois AAAA-MM (de, a), vue, granularite : aucun nom de patient dans l'URL.
+// Appelée par le tableau de bord (public/js/pages/tableau-de-bord.js et tdb-sections.js), une requête par section.
 import { aFacturerGlobal } from '../../domain/recap.js';
 import { caMensuel, impayes, repartition, seances } from '../../domain/indicateurs.js';
 import { previsions } from '../../domain/previsions.js';
-import { validerParametresIndicateurs } from '../../domain/validation.js';
-import { ErreurApp } from '../../erreurs.js';
+import { refuserParametresInconnus, validerParametresIndicateurs } from '../../domain/validation.js';
 
 export function routesIndicateurs(routeur, { store, horloge }) {
   const route = (chemin, extras, calculer) =>
@@ -24,10 +24,13 @@ export function routesIndicateurs(routeur, { store, horloge }) {
   // Prévision (architecture §6.7) : aucun paramètre (mois en cours = jour du serveur), aucun nom de patient. Historique insuffisant :
   // 200 avec `suffisant: false` et `moisManquants` (ce n'est pas une erreur : l'écran l'explique).
   routeur.ajouter('GET', '/api/indicateurs/prevision', async (req, res, { requete }) => {
-    for (const _ of requete.query.keys()) throw new ErreurApp(400, 'REQUETE_INVALIDE', 'Paramètre de requête inconnu.');
+    refuserParametresInconnus(requete.query, []);
     const aujourdHui = horloge.aujourdHui();
     const { prestations } = store.lire();
-    return { corps: previsions(prestations, { aujourdHui }) };
+    // Le domaine détaille le calcul (base, réalisé, planifié, complément : vérifiés par tests/domain/previsions.test.js) ;
+    // l'écran ne lit que l'estimation de chaque mois : seuls ces champs sont envoyés.
+    const { base, mois, ...prevision } = previsions(prestations, { aujourdHui });
+    return { corps: { ...prevision, mois: mois.map(({ mois: m, courant, estimationCentimes }) => ({ mois: m, courant, estimationCentimes })) } };
   });
 
   // Les quatre indicateurs de tête : tous sur le MOIS EN COURS (de et a ignorés), pour ne pas dépendre de la période choisie.

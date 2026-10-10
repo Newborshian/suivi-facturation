@@ -1,6 +1,7 @@
 // Groupe de boutons « Payer » (design system §5.14) : un bouton par mode, un clic enregistre le reste à payer avec ce mode.
 // Même HTML à toutes les largeurs : la variante compacte (≤ 768 px) est choisie par le CSS seul ; ici on gère le clic, aria-expanded,
 // Échap, le focus et l'état « en cours » (aria-busy + boutons désactivés : un seul versement par clic).
+// Utilisé par les écrans Prestations et Facturation du mois. Le montant payé est celui du SERVEUR au moment de l'écriture (payer-totalite).
 import { el } from './dom.js';
 import { iconeMode } from './icones-paiement.js';
 import { LIBELLES_MODE } from './format.js';

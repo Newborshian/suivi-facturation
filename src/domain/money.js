@@ -1,4 +1,6 @@
 // Argent en centimes entiers, jamais en flottants. Module pur.
+// Utilisé par validation.js, schema.js et csv.js. Règle du projet : un montant est un entier de centimes (4550 = 45,50 €), du stockage à
+// l'affichage ; la conversion texte <-> centimes se fait seulement dans le navigateur (format.js) et à l'export (formaterCentimes).
 
 export const MONTANT_PRESTATION_MAX = 10_000_000; // 100 000 EUR : garde-fou contre les fautes de frappe
 export const MONTANT_VERSEMENT_MAX = 10_000_000;
@@ -16,9 +18,6 @@ export function estMontantPrestation(valeur) {
 export function estMontantVersement(valeur) {
   return entierDans(valeur, 1, MONTANT_VERSEMENT_MAX);
 }
-
-/** Tarif de catalogue : mêmes bornes qu'une prestation. */
-export const estTarif = estMontantPrestation;
 
 /**
  * Centimes -> texte sans séparateur de milliers, virgule décimale ("1250,50"),

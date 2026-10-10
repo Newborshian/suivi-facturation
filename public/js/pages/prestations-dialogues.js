@@ -1,6 +1,7 @@
 // Dialogues de l'écran Prestations : versement, homonymes, renommage, modification.
 // `ctx` (fourni par la page) : { catalogue, aujourdHui, dernierMode (lecture/écriture), ecriture, explication, notifier({texte, avertissements, annulation}) }.
 // `ctx.ecriture` faux (lecture seule, conflit, mode dégradé) : les boutons d'écriture des dialogues sont désactivés et la raison est affichée.
+// Utilisé par les écrans Prestations et Facturation du mois (versement, modification, choix entre homonymes, renommage).
 import { ErreurApi, appeler } from '/js/api.js';
 import { creerChoixMode } from '/js/choix-mode.js';
 import { el } from '/js/dom.js';

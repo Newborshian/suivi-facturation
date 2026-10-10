@@ -8,7 +8,6 @@ import {
   TAILLE_TEXTE,
   disposerColonnes,
   echelle,
-  etiquettesVisibles,
   etiquettesVisiblesParLargeur,
   formatEurosCourt,
   largeurTexte,
@@ -72,14 +71,6 @@ test('disposerColonnes : aucune colonne, zone minuscule -> pas de valeur non num
   const r = disposerColonnes({ largeur: 10, hauteur: 10, marges: { haut: 20, droite: 10, bas: 40, gauche: 50 }, valeurs: [], maxAxe: 100 });
   assert.equal(r.colonnes.length, 0);
   assert.ok(r.zone.largeur >= 1 && r.zone.hauteur >= 1);
-});
-
-test('etiquettesVisibles : une étiquette sur k selon la place disponible ; la première toujours écrite', () => {
-  assert.deepEqual(etiquettesVisibles(12, 58, 44), Array.from({ length: 12 }, (_, i) => i));
-  assert.deepEqual(etiquettesVisibles(12, 20, 44), [0, 3, 6, 9]);
-  assert.deepEqual(etiquettesVisibles(53, 6, 30), Array.from({ length: 11 }, (_, i) => i * 5));
-  assert.deepEqual(etiquettesVisibles(0, 10, 30), []);
-  assert.equal(etiquettesVisibles(3, 0, 30)[0], 0);
 });
 
 test('formats courts : euros entiers avec espace insécable, mois abrégés, semaines', () => {

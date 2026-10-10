@@ -1,6 +1,7 @@
 // Paramètres › Tarifs : modifier, désactiver ou ajouter une prestation du catalogue.
 // Un nouveau tarif ne s'applique qu'aux prochaines saisies : les prestations déjà enregistrées gardent libellé, catégorie et montant.
 // Une prestation n'est jamais supprimée depuis l'écran : elle se désactive (l'historique la référence).
+// Utilisé par pages/parametres.js (section Tarifs).
 import { ErreurApi, appeler } from '/js/api.js';
 import { CATEGORIE_PAR_DEFAUT, messageTarifsVide } from '/js/catalogue-etat.js';
 import { el } from '/js/dom.js';

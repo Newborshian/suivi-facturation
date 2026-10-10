@@ -9,7 +9,6 @@ import {
   formatTaille,
   LIBELLES_CATEGORIE,
   libelleTranche,
-  montantDernierVersement,
   LIBELLES_RAISON,
   formatEuros,
   formatMois,
@@ -152,15 +151,6 @@ test('LIBELLES_RAISON ne contient que des raisons que le serveur peut produire',
   const { RAISONS_CONSERVEES, RAISONS_OPERATION, RAISONS_QUOTIDIENNES } = await import('../../src/store/sauvegardes.js');
   const connues = new Set([...RAISONS_QUOTIDIENNES, ...RAISONS_OPERATION, ...RAISONS_CONSERVEES]);
   for (const raison of Object.keys(LIBELLES_RAISON)) assert.ok(connues.has(raison), `raison inconnue du serveur : ${raison}`);
-});
-
-test('montantDernierVersement : le montant réellement enregistré (dernier versement renvoyé), sinon le repli', () => {
-  const prestation = { versements: [{ montantCentimes: 1000 }, { montantCentimes: 3200 }] };
-  assert.equal(montantDernierVersement(prestation, 4500), 3200, 'le reste connu de la page (4500) ne doit pas être annoncé');
-  assert.equal(formatEuros(montantDernierVersement(prestation, 4500)), formatEuros(3200));
-  assert.equal(montantDernierVersement({ versements: [] }, 4500), 4500);
-  assert.equal(montantDernierVersement(undefined, 4500), 4500);
-  assert.equal(montantDernierVersement({ versements: [{ montantCentimes: 'x' }] }, 4500), 4500);
 });
 
 test('libelleTranche : texte après « depuis » tiré de la liste du serveur ; identifiant inconnu -> null', () => {

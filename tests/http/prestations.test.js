@@ -110,11 +110,12 @@ test('GET /api/prestations : filtres mois, statut, état ; total exact en centim
     const tout = (await a.get('/api/prestations')).json;
     assert.deepEqual(tout.lignes.map((l) => l.date), ['2026-09-14', '2026-10-05', '2026-10-20'], 'tri par date');
     assert.deepEqual(tout.moisDisponibles, ['2026-09', '2026-10']);
-    assert.deepEqual(tout.total, { nombre: 3, montantCentimes: 12500, payeCentimes: 1000, resteCentimes: 11500, tropPercuCentimes: 0 });
+    assert.equal(tout.total, undefined, 'totaux calculés par le navigateur sur les lignes filtrées');
+    assert.deepEqual([tout.lignes.reduce((t, l) => t + l.montantCentimes, 0), tout.lignes.reduce((t, l) => t + l.payeCentimes, 0), tout.lignes.reduce((t, l) => t + l.resteCentimes, 0)], [12500, 1000, 11500]);
 
     const octobre = (await a.get('/api/prestations?mois=2026-10')).json;
     assert.equal(octobre.lignes.length, 2);
-    assert.equal(octobre.total.montantCentimes, 8000);
+    assert.equal(octobre.lignes.reduce((t, l) => t + l.montantCentimes, 0), 8000);
     assert.equal(octobre.lignes[1].aVenir, true);
     assert.equal((await a.get('/api/prestations?statut=facture')).json.lignes[0].id, l1.id);
     assert.deepEqual((await a.get('/api/prestations?etat=partiel')).json.lignes.map((l) => l.id), [l2.id]);
@@ -164,7 +165,7 @@ test('DELETE : sauvegarde « avant-suppression » puis suppression ; 404 si abse
     await a.post(`/api/prestations/${l.id}/versements`, { montantCentimes: 1000, date: '2026-10-02', mode: 'cheque' });
     const r = await a.del(`/api/prestations/${l.id}`);
     assert.equal(r.status, 200);
-    assert.deepEqual(r.json.donnees, { id: l.id, versementsSupprimes: 1 });
+    assert.deepEqual(r.json.donnees, { id: l.id });
     assert.equal((await disque(s)).prestations.length, 0);
     const sauvegardes = (await a.get('/api/sauvegardes')).json.sauvegardes;
     const avant = sauvegardes.find((x) => x.raison === 'avant-suppression');
@@ -346,18 +347,18 @@ test('PATCH : le contrôle « modifiée ailleurs » compare le vrai modifieLe (h
   );
 });
 
-test('GET /api/etat : date du jour, dernière sauvegarde, dernier mode ; GET /api/sauvegardes : liste sans contenu', () =>
+test('GET /api/etat : date du jour, dernier mode ; GET /api/sauvegardes : liste sans contenu', () =>
   avecServeur(async (s, a) => {
     await a.post('/api/prestations', saisie());
     const e = (await a.get('/api/etat')).json;
     assert.equal(e.aujourdHui, '2026-10-02');
-    assert.match(e.derniereSauvegarde, /^sauvegarde-2026-10-02_09h14m03s_quotidienne\.json$/);
+    assert.equal(e.derniereSauvegarde, undefined, 'champ retiré : jamais lu par l\'écran');
     assert.equal(e.dernierModePaiement, null);
     assert.deepEqual(e.avertissements, []);
     const l = (await a.get('/api/sauvegardes')).json.sauvegardes;
     assert.equal(l.length, 1);
     // Résumé de chaque sauvegarde (nombre de prestations, période…) mais jamais le contenu ni un nom de patient.
-    assert.deepEqual(Object.keys(l[0]).sort(), ['derniereDate', 'heure', 'jour', 'lisible', 'majLe', 'nom', 'nombrePatients', 'nombrePrestations', 'premiereDate', 'raison', 'raisonRefus', 'reserve', 'restaurable', 'revision', 'schemaVersion', 'tailleOctets']);
+    assert.deepEqual(Object.keys(l[0]).sort(), ['derniereDate', 'heure', 'jour', 'lisible', 'majLe', 'nom', 'nombrePrestations', 'premiereDate', 'raison', 'raisonRefus', 'reserve', 'restaurable', 'revision', 'tailleOctets']);
     assert.ok(l[0].tailleOctets > 0);
     assert.equal(l[0].nombrePrestations, 0, 'la sauvegarde quotidienne est faite avant la 1re saisie');
     assert.ok(!JSON.stringify(l).includes('Lapin'));

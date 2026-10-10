@@ -1,4 +1,5 @@
 // Réponses JSON, erreurs au format unique (architecture §9.1 et §9.3) et lecture de corps bornée.
+// Utilisé par toutes les routes. À ne pas casser : le corps est toujours lu jusqu'au bout (sinon le client ne reçoit pas l'erreur), et borné à 1 Mo.
 import { ErreurApp } from '../erreurs.js';
 
 export const LIMITE_CORPS = 1024 * 1024; // 1 Mo

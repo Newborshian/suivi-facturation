@@ -54,7 +54,7 @@ test('GET /api/recap : vecteur 1 de bout en bout (3 prestations, un versement) ;
     await a.post('/api/prestations/statut', { ids: e.lignes.map((l) => l.id), statut: 'facture' });
     const apres = (await a.get('/api/recap?mois=2026-10')).json;
     assert.equal(apres.aFacturer.nombre, 0);
-    assert.equal(apres.patients[0].nbAFacturer, 0);
+    assert.equal(apres.patients[0].lignes.filter((l) => l.statut === 'a_facturer').length, 0);
   }));
 
 test('GET /api/recap : double vue, mois précédent, mois d\'une autre année vide, mois proposés', () =>

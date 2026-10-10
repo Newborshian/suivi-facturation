@@ -1,15 +1,15 @@
 // Export : GET /api/export?format=json|csv&contenu=prestations|versements. Téléchargement daté, jamais mis en cache.
 // Les fichiers contiennent des données de santé en clair : l'interface le rappelle avant le téléchargement.
+// Appelée par Paramètres › Export (public/js/pages/parametres.js, via api.js `telecharger`). Le fichier exporté n'est jamais restaurable par l'application.
 import { ErreurApp } from '../../erreurs.js';
 import { csvPrestations, csvVersements } from '../../domain/csv.js';
+import { refuserParametresInconnus } from '../../domain/validation.js';
 import { lireArchives, prestationsCombinees } from '../../store/archives-lecture.js';
 
 export const FORMAT_EXPORT = 'suivi-facturation-export';
 
 function lireParametres(query) {
-  for (const nom of query.keys()) {
-    if (nom !== 'format' && nom !== 'contenu') throw new ErreurApp(400, 'REQUETE_INVALIDE', 'Paramètre de requête inconnu.');
-  }
+  refuserParametresInconnus(query, ['format', 'contenu']);
   const format = query.get('format') ?? 'json';
   if (format !== 'json' && format !== 'csv') throw new ErreurApp(400, 'REQUETE_INVALIDE', 'Paramètre « format » invalide (json ou csv).');
   const contenu = query.get('contenu') ?? 'prestations';

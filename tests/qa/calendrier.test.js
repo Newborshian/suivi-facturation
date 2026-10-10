@@ -40,7 +40,7 @@ test('29 février : une prestation du 29/02/2028 est dans février 2028 ; le 28/
   const lignes = [ligneUnique('2028-02-29', 4500), ligneUnique('2028-03-01', 1000), ligneUnique('2028-02-01', 500)];
   const fev = recapMensuel(lignes, { mois: '2028-02', aujourdHui: '2028-03-05' });
   assert.equal(fev.total.duCentimes, 5000);
-  assert.equal(fev.total.nbPrestations, 2);
+  assert.equal(fev.total.nbSeances + fev.total.nbAutres, 2);
   assert.equal(recapMensuel(lignes, { mois: '2028-03', aujourdHui: '2028-03-05' }).total.duCentimes, 1000);
 });
 

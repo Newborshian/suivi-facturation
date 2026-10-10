@@ -2,6 +2,7 @@
 // suppression d'un patient sans prestation. Le registre ne contient que nom, prénom et « actif » : aucune donnée de santé.
 // Le serveur calcule (nombre de prestations, homonymes, patients supprimables) ; ici on affiche, on filtre localement et on appelle l'API.
 // Aucun nom dans l'URL ni dans le stockage du navigateur : seul le filtre Actifs / Archivés / Tous peut être retenu (sessionStorage).
+// Chargé par patients.html. Écritures par /api/patients ; annulation par le bouton « Annuler » des messages, comme sur Prestations.
 import { ErreurApi, appeler, lireEtat } from '/js/api.js';
 import { afficherBandeaux, alerte } from '/js/bandeaux.js';
 import { el, remplacer } from '/js/dom.js';

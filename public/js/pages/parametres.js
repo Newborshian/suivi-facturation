@@ -1,5 +1,6 @@
 // Écran « Paramètres » : tarifs, sauvegardes et restauration, export, dossier de données (lecture seule), apparence.
 // Le serveur calcule et décide ; ici on affiche. Aucune donnée nominative dans l'URL ni dans le stockage du navigateur.
+// Chargé par parametres.html. Sections : Tarifs, Sauvegardes, Export, Dossier de données, Apparence, Application (Quitter).
 import { ErreurApi, appeler, lireEtat, telecharger } from '/js/api.js';
 import { afficherBandeaux, alerte } from '/js/bandeaux.js';
 import { el, remplacer } from '/js/dom.js';

@@ -1,6 +1,7 @@
 // Dialogue « Les données ont été modifiées ailleurs » (niveau minimal : la restauration d'une sauvegarde est l'issue proposée).
 // Les deux versions ont déjà été sauvegardées par le serveur (conflit-disque, conflit-memoire) : choisir une version revient à
 // restaurer la sauvegarde correspondante. Aucune des deux n'est présentée comme la bonne, aucune fusion.
+// Utilisé par bandeaux.js (bouton « Choisir la version à garder »). Choisir une version = restaurer sa sauvegarde (restauration.js).
 import { ErreurApi } from '/js/api.js';
 import { el } from '/js/dom.js';
 import { formatInstant, pluriel } from '/js/format.js';

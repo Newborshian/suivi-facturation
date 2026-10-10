@@ -1,4 +1,6 @@
 // Serveur de test : 127.0.0.1, port 0 (choisi par l'OS), dossier de données temporaire sous .tmp/tests/.
+// Utilisé par les tests de tests/http/ et tests/qa/ : serveur EN PROCESSUS (pas de vrai `node src/server.js`, voir instance-aide.js pour cela),
+// horloge fixe du 2026-10-02, arrêté et nettoyé par `arreter()`.
 import http from 'node:http';
 import './garde-processus.js';
 import { creerDossierTemp, supprimerDossierTemp } from './temp.js';

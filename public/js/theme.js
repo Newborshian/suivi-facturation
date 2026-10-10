@@ -1,6 +1,7 @@
 // Choix du thème (Paramètres › Apparence) : « auto » (suit le système, défaut), « light » ou « dark ».
 // Le choix manuel est mémorisé dans localStorage (convenance personnelle, non nominative) ; chaque accès est protégé par try/catch.
 // Le thème est appliqué dès le chargement de chaque page par theme-init.js (même clé).
+// Utilisé par Paramètres › Apparence. Même clé de stockage que theme-init.js (chargé en tête de chaque page).
 export const CLE_THEME = 'suivi-facturation.theme';
 export const THEMES = ['auto', 'light', 'dark'];
 

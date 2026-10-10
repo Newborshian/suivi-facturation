@@ -1,5 +1,6 @@
 // GET /api/recap?mois=AAAA-MM&vue=prestation|versement : Facturation du mois.
 // Le serveur calcule tout (centimes entiers) ; le navigateur affiche. Le mois est un paramètre de requête : aucun nom de patient dans l'URL.
+// Appelée par l'écran Facturation du mois (public/js/pages/facturation.js).
 import { aFacturerGlobal, moisProposes, recapMensuel } from '../../domain/recap.js';
 import { validerParametresRecap } from '../../domain/validation.js';
 

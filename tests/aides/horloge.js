@@ -1,4 +1,5 @@
 // Horloge fixe : `maintenant` est un Date en heure locale, `aujourdHui` la date civile correspondante.
+// À utiliser dans tout test qui dépend de la date : un test ne doit jamais dépendre du jour où il est lancé.
 export function horlogeFixe(date = '2026-10-02', heure = '09:14:03') {
   const [a, m, j] = date.split('-').map(Number);
   const [h, mi, s] = heure.split(':').map(Number);

@@ -1,4 +1,6 @@
 // Table de routes minimale : méthode + motif ("/api/prestations/{id}"). HEAD utilise la route GET.
+// Utilisé par serveur.js ; les routes sont déclarées dans http/api/*.js. Une route à chemin fixe (« /statut ») doit être déclarée
+// AVANT la route à identifiant de même forme (« /{id} »), sinon elle serait prise pour un identifiant.
 
 export function creerRouteur() {
   const routes = [];
