@@ -1,8 +1,12 @@
 // Dialogues de l'écran Prestations : versement, mode de paiement, homonymes, modification.
-// `ctx` (fourni par la page) : { catalogue, aujourdHui, dernierMode (lecture/écriture), notifier({texte, avertissements, annulation}) }.
+// `ctx` (fourni par la page) : { catalogue, aujourdHui, dernierMode (lecture/écriture), ecriture, explication, notifier({texte, avertissements, annulation}) }.
+// `ctx.ecriture` faux (lecture seule, conflit, mode dégradé) : les boutons d'écriture des dialogues sont désactivés et la raison est affichée.
 import { ErreurApi, appeler } from '/js/api.js';
+import { creerChoixMode } from '/js/choix-mode.js';
 import { el } from '/js/dom.js';
-import { LIBELLES_ETAT, LIBELLES_MODE, formatDate, formatEuros, formatMontantSaisie, lireMontant, pluriel } from '/js/format.js';
+import { LIBELLES_ETAT, formatDate, formatEuros, formatMontantSaisie, lireMontant, pluriel } from '/js/format.js';
+import { EN_MODE } from '/js/paiement-libelles.js';
+import { changerModeVersement } from '/js/paiement-rapide.js';
 import { creerFormulairePrestation } from '/js/pages/prestations-formulaire.js';
 import { confirmer, creerChamp, creerDialogue, creerEntreeMontant, creerResume } from '/js/ui.js';
 
@@ -10,12 +14,10 @@ const bouton = (texte, classe, auClic, attributs = {}) => el('button', { classe:
 const alerteDansDialogue = (variante, titre, texte) =>
   el('div', { classe: `alerte alerte--${variante}`, attributs: { role: variante === 'danger' ? 'alert' : 'status' } }, el('div', { classe: 'alerte__corps' }, el('strong', { classe: 'alerte__titre', texte: titre }), el('p', { classe: 'alerte__texte', texte })));
 
-function optionsMode(selectionne) {
-  return [
-    ...(selectionne ? [] : [el('option', { texte: 'Choisir le mode de paiement', attributs: { value: '' } })]),
-    ...Object.entries(LIBELLES_MODE).map(([valeur, libelle]) => el('option', { texte: libelle, attributs: { value: valeur, selected: valeur === selectionne } })),
-  ];
-}
+/** Écriture impossible : alerte visible dans le dialogue (même raison que le bandeau de la page) ; les boutons d'écriture sont désactivés. */
+const ecritureBloquee = (ctx) => ctx.ecriture === false;
+const alerteEcriture = (ctx) => (ecritureBloquee(ctx) ? alerteDansDialogue('attention', 'Modification impossible', ctx.explication) : null);
+const accesDialogue = (ctx) => (ecritureBloquee(ctx) ? { disabled: true, title: ctx.explication } : {});
 
 // ------------------------------------------------------------ Homonymes
 
@@ -88,28 +90,26 @@ export function choisirRenommage({ ancien, nouveau, autresLignes }) {
 
 // ---------------------------------------------------------- Mode de paiement
 
-/** Aucun mode de paiement n'a jamais été utilisé (422 MODE_REQUIS) : demander lequel. -> Promise<mode | null> */
+/** Repli du paiement en un clic (422 MODE_REQUIS) : demander le mode, avec les mêmes cinq boutons que partout. -> Promise<mode | null> */
 export function choisirMode({ resteCentimes }) {
   return new Promise((resolve) => {
     const d = creerDialogue({ titre: 'Quel mode de paiement ?' });
     let reponse = null;
-    const champ = creerChamp({ label: 'Mode de paiement', requis: true, creerEntree: (id) => el('select', { classe: 'input', attributs: { id } }, ...optionsMode(null)) });
-    d.corps.append(
-      el('p', { texte: `Ce sera un versement de ${formatEuros(resteCentimes)}, daté d'aujourd'hui. Le mode choisi sera proposé la prochaine fois.` }),
-      champ.racine,
-    );
+    const choix = creerChoixMode();
+    d.corps.append(el('p', { texte: `Ce sera un versement de ${formatEuros(resteCentimes)}, daté d'aujourd'hui. Le mode choisi sera proposé la prochaine fois.` }), choix.racine);
     const valider = () => {
-      if (!champ.entree.value) {
-        champ.erreur('Choisissez le mode de paiement.');
-        champ.entree.focus();
+      const mode = choix.valeur();
+      if (!mode) {
+        choix.erreur('Choisissez le mode de paiement.');
+        choix.entree.focus();
         return;
       }
-      reponse = champ.entree.value;
+      reponse = mode;
       d.fermer();
     };
     d.pied.append(bouton('Annuler', 'btn--secondaire', () => d.fermer()), bouton('Enregistrer le paiement', 'btn--primaire', valider));
     d.dialogue.addEventListener('close', () => resolve(reponse));
-    d.ouvrir(champ.entree);
+    d.ouvrir(choix.entree);
   });
 }
 
@@ -135,8 +135,8 @@ export function dialogueVersement({ ligne, versement = null, ctx }) {
       creerEntree: (id) => creerEntreeMontant(id, versement ? formatMontantSaisie(versement.montantCentimes) : ligne.resteCentimes > 0 ? formatMontantSaisie(ligne.resteCentimes) : ''),
     });
     const champDate = creerChamp({ label: 'Date du versement', requis: true, creerEntree: (id) => el('input', { classe: 'input', attributs: { id, type: 'date' }, proprietes: { value: versement?.date ?? ctx.aujourdHui } }) });
-    const modeInitial = versement?.mode ?? ctx.dernierMode.valeur ?? null;
-    const champMode = creerChamp({ label: 'Mode de paiement', requis: true, creerEntree: (id) => el('select', { classe: 'input', attributs: { id } }, ...optionsMode(modeInitial)) });
+    // Ajout : le dernier mode utilisé est présélectionné et signalé. Modification : le mode du versement, sans mention « dernier mode utilisé ».
+    const champMode = creerChoixMode({ selectionne: versement ? versement.mode : ctx.dernierMode.valeur, recent: versement ? null : ctx.dernierMode.valeur });
     const champs = { montantCentimes: champMontant, date: champDate, mode: champMode };
     const entrees = { montantCentimes: champMontant.saisie, date: champDate.entree, mode: champMode.entree };
 
@@ -157,13 +157,15 @@ export function dialogueVersement({ ligne, versement = null, ctx }) {
       { classe: 'pile', attributs: { novalidate: true, id: `form-versement-${ligne.id}` } },
       el('p', { classe: 'champ__aide', texte: `Prestation du ${formatDate(ligne.date)} — montant ${formatEuros(ligne.montantCentimes)}, reste à payer ${formatEuros(ligne.resteCentimes)}.` }),
       resume.racine,
-      el('div', { classe: 'formulaire-grille' }, champMontant.racine, champDate.racine, champMode.racine),
+      alerteEcriture(ctx),
+      el('div', { classe: 'formulaire-grille' }, champMontant.racine, champDate.racine),
+      champMode.racine,
       zoneAvertissements,
       zoneErreur,
     );
     d.corps.append(formulaire);
 
-    const enregistrer = bouton(versement ? 'Enregistrer les modifications' : 'Enregistrer le versement', 'btn--primaire', null, { type: 'submit', form: formulaire.id });
+    const enregistrer = bouton(versement ? 'Enregistrer les modifications' : 'Enregistrer le versement', 'btn--primaire', null, { type: 'submit', form: formulaire.id, ...accesDialogue(ctx) });
     d.pied.append(bouton('Annuler', 'btn--secondaire', () => d.fermer()), enregistrer);
 
     formulaire.addEventListener('submit', async (evenement) => {
@@ -172,13 +174,14 @@ export function dialogueVersement({ ligne, versement = null, ctx }) {
       resume.masquer();
       zoneErreur.replaceChildren();
       const montant = lireMontant(champMontant.saisie.value);
-      const corps = { montantCentimes: montant.ok ? montant.centimes : null, date: champDate.entree.value, mode: champMode.entree.value };
+      const corps = { montantCentimes: montant.ok ? montant.centimes : null, date: champDate.entree.value, mode: champMode.valeur() ?? '' };
       enregistrer.setAttribute('aria-busy', 'true');
       enregistrer.disabled = true;
       try {
         const chemin = `/api/prestations/${ligne.id}/versements`;
         const r = versement ? await appeler('PATCH', `${chemin}/${versement.id}`, corps) : await appeler('POST', chemin, corps);
-        if (corps.mode) ctx.dernierMode.valeur = corps.mode;
+        // Seul un nouveau versement change le « dernier mode utilisé » (le serveur fait de même) : corriger un ancien versement n'est pas payer.
+        if (!versement && corps.mode) ctx.dernierMode.valeur = corps.mode;
         resultat = { ligne: r.donnees, avertissements: r.avertissements, annulation: r.annulation };
         d.fermer();
       } catch (err) {
@@ -228,12 +231,15 @@ export function dialogueModification({ ligne: ligneInitiale, ctx }) {
 
     // --- Section versements
     const sectionVersements = el('section', { classe: 'pile pile--s', attributs: { 'aria-labelledby': `${idForm}-versements` } });
-    const rendreVersements = () => {
+    const zoneMessage = el('div', { attributs: { 'aria-live': 'polite' } }); // confirmation du changement de mode, avec « Annuler » (la fenêtre modale rend le message de la page inatteignable)
+    const acces = accesDialogue(ctx);
+    // `focus` : { id, mode } -> le bouton du mode qui vient d'être choisi reprend le focus après le nouveau rendu.
+    const rendreVersements = (focus = null) => {
       const entete = el(
         'div',
         { classe: 'groupe-horizontal' },
         el('h3', { texte: 'Versements', attributs: { id: `${idForm}-versements` } }),
-        bouton('Ajouter un versement', 'btn--secondaire btn--petit', () => ouvrirVersement(null)),
+        bouton('Ajouter un versement', 'btn--secondaire btn--petit', () => ouvrirVersement(null), acces),
       );
       const recap = el('p', { classe: 'champ__aide', texte: `${LIBELLES_ETAT[ligne.etat]} — versé ${formatEuros(ligne.verseCentimes)}, reste à payer ${formatEuros(ligne.resteCentimes)}${ligne.tropPercuCentimes > 0 ? `, trop-perçu ${formatEuros(ligne.tropPercuCentimes)}` : ''}.` });
       let liste;
@@ -256,7 +262,7 @@ export function dialogueModification({ ligne: ligneInitiale, ctx }) {
                   'tr',
                   {},
                   el('td', { texte: formatDate(v.date) }),
-                  el('td', { texte: LIBELLES_MODE[v.mode] }),
+                  el('td', {}, changerModeVersement({ versement: v, desactive: ecritureBloquee(ctx), explication: ctx.explication, auChoix: (mode) => changerMode(v, mode) })),
                   el('td', { classe: 'col-montant', texte: formatEuros(v.montantCentimes) }),
                   el(
                     'td',
@@ -264,8 +270,8 @@ export function dialogueModification({ ligne: ligneInitiale, ctx }) {
                     el(
                       'span',
                       { classe: 'actions-ligne' },
-                      bouton('Modifier', 'btn--secondaire btn--petit', () => ouvrirVersement(v), { 'aria-label': `Modifier le versement du ${formatDate(v.date)}` }),
-                      bouton('Supprimer', 'btn--danger-discret btn--petit', () => supprimerVersement(v), { 'aria-label': `Supprimer le versement du ${formatDate(v.date)}` }),
+                      bouton('Modifier', 'btn--secondaire btn--petit', () => ouvrirVersement(v), { 'aria-label': `Modifier le versement du ${formatDate(v.date)}`, ...acces }),
+                      bouton('Supprimer', 'btn--danger-discret btn--petit', () => supprimerVersement(v), { 'aria-label': `Supprimer le versement du ${formatDate(v.date)}`, ...acces }),
                     ),
                   ),
                 ),
@@ -274,10 +280,53 @@ export function dialogueModification({ ligne: ligneInitiale, ctx }) {
           ),
         );
       }
-      sectionVersements.replaceChildren(entete, recap, liste);
+      sectionVersements.replaceChildren(entete, zoneMessage, recap, liste);
+      if (focus) {
+        // Grand écran : le bouton du mode choisi ; variante compacte (modes masqués) : le déclencheur du même groupe.
+        const modes = sectionVersements.querySelector(`[id="mode-versement-${focus.id}"]`);
+        const cible = modes?.querySelector(`[data-mode="${focus.mode}"]`);
+        cible?.focus();
+        if (cible && document.activeElement !== cible) modes.parentElement.querySelector('.paiement-rapide__declencheur')?.focus();
+      }
     };
 
+    /** Changement direct du mode d'un versement (montant et date inchangés) : enregistré aussitôt, annulable depuis la fenêtre. */
+    async function changerMode(v, mode) {
+      zoneAlerte.replaceChildren();
+      zoneMessage.replaceChildren();
+      try {
+        const r = await appeler('PATCH', `/api/prestations/${ligne.id}/versements/${v.id}`, { mode });
+        ligne = r.donnees;
+        modifiee = true;
+        rendreVersements({ id: v.id, mode });
+        const texte = `Versement du ${formatDate(v.date)} passé ${EN_MODE[mode]}.`;
+        zoneMessage.replaceChildren(
+          el(
+            'div',
+            { classe: 'alerte alerte--succes', attributs: { role: 'status' } },
+            el('div', { classe: 'alerte__corps' }, el('p', { classe: 'alerte__texte', texte })),
+            el('div', { classe: 'alerte__actions' }, bouton('Annuler', 'btn--secondaire btn--petit', () => annulerChangementMode(r.annulation, v), { 'aria-label': `Annuler : ${texte}` })),
+          ),
+        );
+      } catch (err) {
+        zoneAlerte.replaceChildren(alerteDansDialogue('danger', 'Erreur', err.message));
+      }
+    }
+
+    async function annulerChangementMode(jeton, v) {
+      zoneMessage.replaceChildren();
+      try {
+        await appeler('POST', `/api/annulations/${jeton}`);
+        ligne = (await appeler('GET', `/api/prestations/${ligne.id}`)).donnees;
+        rendreVersements({ id: v.id, mode: v.mode });
+        zoneMessage.replaceChildren(alerteDansDialogue('succes', 'Annulé', 'Le mode du versement est revenu comme avant.'));
+      } catch (err) {
+        zoneAlerte.replaceChildren(alerteDansDialogue('danger', 'Erreur', err.message));
+      }
+    }
+
     async function ouvrirVersement(versement) {
+      zoneMessage.replaceChildren();
       const r = await dialogueVersement({ ligne, versement, ctx });
       if (!r) return;
       ligne = r.ligne;
@@ -287,6 +336,7 @@ export function dialogueModification({ ligne: ligneInitiale, ctx }) {
     }
 
     async function supprimerVersement(v) {
+      zoneMessage.replaceChildren();
       const ok = await confirmer({
         titre: 'Supprimer ce versement ?',
         texte: `Le versement de ${formatEuros(v.montantCentimes)} du ${formatDate(v.date)} sera supprimé. L'état de paiement sera recalculé. Une sauvegarde est faite avant la suppression.`,
@@ -393,10 +443,10 @@ export function dialogueModification({ ligne: ligneInitiale, ctx }) {
       evenement.preventDefault();
       enregistrer();
     });
-    const boutonEnregistrer = bouton('Enregistrer', 'btn--primaire', null, { type: 'submit', form: idForm });
+    const boutonEnregistrer = bouton('Enregistrer', 'btn--primaire', null, { type: 'submit', form: idForm, ...acces });
     rendreVersements();
-    d.corps.append(formulaire, zoneAlerte, sectionVersements);
-    d.pied.append(bouton('Supprimer cette prestation', 'btn--danger-discret', supprimerPrestation), bouton('Annuler', 'btn--secondaire', () => d.fermer()), boutonEnregistrer);
+    d.corps.append(...[alerteEcriture(ctx), formulaire, zoneAlerte, sectionVersements].filter(Boolean));
+    d.pied.append(bouton('Supprimer cette prestation', 'btn--danger-discret', supprimerPrestation, acces), bouton('Annuler', 'btn--secondaire', () => d.fermer()), boutonEnregistrer);
     d.dialogue.addEventListener('close', () => resolve({ modifiee }));
     d.ouvrir(form.entrees.nom);
   });

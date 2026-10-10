@@ -1,11 +1,13 @@
 // Tableau « Facturation du mois » : une ligne par patient, détail dépliable, ligne de total.
 // Construction du DOM par textContent uniquement (dom.js) ; aucune donnée n'est injectée comme HTML.
 import { el } from '/js/dom.js';
+import { modeConnu } from '/js/paiement-libelles.js';
+import { paiementRapide } from '/js/paiement-rapide.js';
 import { lignesAMarquer } from '/js/recap-regles.js';
 import { LIBELLES_ETAT, LIBELLES_MODE, LIBELLES_STATUT, formatDate, formatDateCourte, formatEuros, formatMois, nomPatient, pluriel } from '/js/format.js';
 
-const bouton = (texte, classe, auClic, { desactive = false, label } = {}) =>
-  el('button', { classe: `btn ${classe}`, texte, attributs: { type: 'button', disabled: desactive, 'aria-label': label }, evenements: { click: auClic } });
+const bouton = (texte, classe, auClic, { desactive = false, label, versement } = {}) =>
+  el('button', { classe: `btn ${classe}`, texte, attributs: { type: 'button', disabled: desactive, 'aria-label': label, 'data-versement': versement }, evenements: { click: auClic } });
 
 const montant = (centimes, { reste = false } = {}) => el('span', { classe: centimes === 0 ? 'montant montant--zero' : reste ? 'montant montant--reste' : 'montant', texte: formatEuros(centimes) });
 const badgeEtat = (etat) => el('span', { classe: 'badge', texte: LIBELLES_ETAT[etat], attributs: { 'data-etat': etat } });
@@ -23,7 +25,7 @@ function celluleEtat(e, vue) {
 }
 
 /** Détail des prestations du mois d'un patient, avec les actions modifier et versement sans quitter l'écran. */
-function tableauLignes(e, { aujourdHui, ecriture, actions }) {
+function tableauLignes(e, { aujourdHui, ecriture, actions, dernierMode, explication, raisonId }) {
   const annee = aujourdHui.slice(0, 4);
   const lignes = e.lignes.map((l) => {
     const nom = nomPatient(l.patient);
@@ -40,9 +42,12 @@ function tableauLignes(e, { aujourdHui, ecriture, actions }) {
       evenements: { click: () => actions.basculerStatut(l) },
     });
     const boutons = el('span', { classe: 'actions-ligne' });
-    if (l.resteCentimes > 0) boutons.append(bouton('Payé en totalité', 'btn--petit btn-payer', () => actions.payer(l), { desactive: !ecriture, label: `Payé en totalité : ${formatEuros(l.resteCentimes)} pour ${designation}` }));
+    // Un bouton par mode (ordre fixe) à la place de « Payé en totalité » : un clic enregistre le reste à payer avec ce mode. Rien si le reste est 0.
+    if (l.resteCentimes > 0) {
+      boutons.append(paiementRapide({ ligne: { id: l.id, date: l.date, patient: nom, resteCentimes: l.resteCentimes }, dernierMode: modeConnu(dernierMode) ? dernierMode : null, desactive: !ecriture, explication, raisonId, auChoix: (mode) => actions.payer(l, mode) }));
+    }
     boutons.append(
-      bouton('Versement', 'btn--petit btn--secondaire', () => actions.versement(l), { desactive: !ecriture, label: `Ajouter un versement à ${designation}` }),
+      bouton('Versement', 'btn--petit btn--secondaire', () => actions.versement(l), { desactive: !ecriture, label: `Ajouter un versement à ${designation}`, versement: l.id }),
       bouton('Modifier', 'btn--petit btn--secondaire', () => actions.modifier(l), { desactive: !ecriture, label: `Modifier ${designation}` }),
     );
     return el(
@@ -126,9 +131,9 @@ function tableauVersements(e, mois) {
 }
 
 function detail(e, recap, options) {
-  const { actions, ecriture } = options;
+  const { actions, ecriture, dernierMode, explication, raisonId } = options;
   const contenu = el('div', { classe: 'ligne-detail__contenu pile pile--s' });
-  if (e.lignes.length > 0) contenu.append(tableauLignes(e, { aujourdHui: recap.aujourdHui, ecriture, actions }));
+  if (e.lignes.length > 0) contenu.append(tableauLignes(e, { aujourdHui: recap.aujourdHui, ecriture, actions, dernierMode, explication, raisonId }));
   else contenu.append(el('p', { texte: 'Aucune prestation ce mois-ci pour ce patient : seuls des versements ont été reçus.' }));
   if (recap.vue === 'versement' && e.versements.length > 0) contenu.append(tableauVersements(e, recap.mois));
   if (e.lignes.length > 0) {
@@ -138,8 +143,8 @@ function detail(e, recap, options) {
 }
 
 /**
- * -> <table class="table recap">. `options` : { ouverts:Set, detailImpression, recent, ecriture, actions }.
- * actions : { basculer(id), marquerFacture(entree), copierDetail(entree, bouton), basculerStatut(l), payer(l), versement(l), modifier(l) }.
+ * -> <table class="table recap">. `options` : { ouverts:Set, detailImpression, recent, ecriture, explication, raisonId, dernierMode, actions }.
+ * actions : { basculer(id), marquerFacture(entree), copierDetail(entree, bouton), basculerStatut(l), payer(l, mode), versement(l), modifier(l) }.
  */
 export function construireTableau(recap, options) {
   const { ouverts, detailImpression, recent, ecriture, actions } = options;

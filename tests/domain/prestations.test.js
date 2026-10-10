@@ -433,3 +433,15 @@ test('registre : modifier une ligne orpheline (patient absent du registre, état
   assert.deepEqual(etat.patients, [{ id: a.patient.id, nom: 'LAPIN', prenom: 'Pierre', actif: true }]);
   assert.ok(identiteRegistre(etat));
 });
+
+test('D3 : modifierVersement ne touche jamais au dernier mode utilisé (corriger un versement n\'est pas payer)', () => {
+  const etat = etatVide();
+  const l = creer(etat);
+  const v = ajouterVersement(etat, l.id, { montantCentimes: 1000, date: '2026-10-02', mode: 'carte' }, ctx()).resultat.versements[0];
+  assert.equal(etat.parametres.dernierModePaiement, 'carte');
+  modifierVersement(etat, l.id, v.id, { mode: 'cheque' }, ctx());
+  assert.equal(etat.prestations[0].versements[0].mode, 'cheque');
+  assert.equal(etat.parametres.dernierModePaiement, 'carte');
+  modifierVersement(etat, l.id, v.id, { montantCentimes: 1100, date: '2026-10-01', mode: 'autre' }, ctx());
+  assert.equal(etat.parametres.dernierModePaiement, 'carte');
+});

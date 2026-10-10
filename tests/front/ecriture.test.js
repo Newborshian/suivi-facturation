@@ -41,8 +41,8 @@ test('écran Prestations (lecture du code) : les contrôles d\'écriture passent
   const src = await fs.readFile(path.join(RACINE, 'public', 'js', 'pages', 'prestations.js'), 'utf8');
   assert.match(src, /from '\/js\/ecriture\.js'/);
   const lignes = src.split('\n');
-  // Case de sélection, « Tout sélectionner », statut, « Payé en totalité », « Versement », « Modifier » : chacun reçoit les attributs désactivés.
-  for (const motif of ["'aria-label': `Sélectionner la prestation", "'aria-label': 'Tout sélectionner'", "'aria-label': `Statut de facturation", "'aria-label': `Payé en totalité", "'aria-label': `Ajouter un versement", "'aria-label': `Modifier la prestation"]) {
+  // Case de sélection, « Tout sélectionner », statut, « Versement », « Modifier » : chacun reçoit les attributs désactivés.
+  for (const motif of ["'aria-label': `Sélectionner la prestation", "'aria-label': 'Tout sélectionner'", "'aria-label': `Statut de facturation","'aria-label': `Ajouter un versement", "'aria-label': `Modifier la prestation"]) {
     const ligne = lignes.find((l) => l.includes(motif));
     assert.ok(ligne, motif);
     assert.match(ligne, /\.\.\.accesEcriture\(\)/, `${motif} : désactivé quand l'écriture est impossible`);
@@ -50,6 +50,8 @@ test('écran Prestations (lecture du code) : les contrôles d\'écriture passent
   assert.match(src, /if \(explication \|\| !page\.ecriture\)/, 'formulaire d\'ajout désactivé');
   assert.match(src, /accesEcriture = \(\) => \(page\.ecriture \? \{\} : \{ disabled: true, title: page\.explication, 'aria-describedby': ID_RAISON \}\)/);
   assert.match(src, /id: ID_RAISON/, 'texte lié par aria-describedby présent dans la page');
+  // Les boutons « Payer » (un par mode) sont désactivés avec la raison, comme les autres contrôles d'écriture.
+  assert.match(src, /paiementRapide\(\{[\s\S]*?desactive: !page\.ecriture,\s*explication: page\.explication,\s*raisonId: ID_RAISON/);
 });
 
 test('Facturation du mois, Prestations et Paramètres (lecture du code) : une seule règle « écriture possible », celle de ecriture.js', async () => {

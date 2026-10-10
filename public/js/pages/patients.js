@@ -522,7 +522,7 @@ function construirePage() {
       el('dt', { texte: 'Patient archivé' }),
       el('dd', { texte: "N'est plus proposé en premier à la saisie. Ses prestations, ses chiffres, ses exports et ses sauvegardes ne changent pas. Vous pouvez le réactiver à tout moment." }),
       el('dt', { texte: 'Archives annuelles' }),
-      el('dd', { texte: "Anciennes prestations rangées par année, en lecture seule (Paramètres). Archiver un patient n'a aucun rapport avec elles." }),
+      el('dd', { texte: "Anciennes prestations rangées par année, en lecture seule. Cette fonction n'est pas encore disponible. Archiver un patient n'a aucun rapport avec elles." }),
     ),
   );
 

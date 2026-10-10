@@ -8,7 +8,9 @@ import { LIEN_TARIFS, etatCatalogue, explicationFormulaireDesactive, saisieImpos
 import { el, elementModesPaiement, remplacer } from '/js/dom.js';
 import { afficherEcranDegrade } from '/js/ecran-degrade.js';
 import { ecritureAutorisee, explicationEcritureImpossible } from '/js/ecriture.js';
-import { LIBELLES_ETAT, LIBELLES_STATUT, correspondPatient, formatDate, formatDateCourte, formatEuros, formatMois, libelleTranche, listeModesPaiement, montantDernierVersement, pluriel, resumePaiement, totaliserLignes } from '/js/format.js';
+import { LIBELLES_ETAT, LIBELLES_STATUT, correspondPatient, formatDate, formatDateCourte, formatEuros, formatMois, libelleTranche, listeModesPaiement, pluriel, resumePaiement, totaliserLignes } from '/js/format.js';
+import { modeConnu, messagePaiement } from '/js/paiement-libelles.js';
+import { focaliserVersement, paiementRapide } from '/js/paiement-rapide.js';
 import { choisirHomonyme, choisirMode, dialogueModification, dialogueVersement } from '/js/pages/prestations-dialogues.js';
 import { creerFormulairePrestation } from '/js/pages/prestations-formulaire.js';
 import { lignesAMarquer } from '/js/recap-regles.js';
@@ -77,7 +79,7 @@ function memoriserFiltres() {
 
 // ---------------------------------------------------------------- Notifications
 
-function notifier({ texte, avertissements = [], annulation }) {
+function notifier({ texte, avertissements = [], annulation, ligneId }) {
   const messages = avertissements.map((a) => a.message);
   // Une sauvegarde automatique en échec ne doit pas rester dans un toast éphémère : le bandeau persistant est rafraîchi tout de suite
   // (il disparaît de lui-même à la première sauvegarde réussie).
@@ -85,18 +87,21 @@ function notifier({ texte, avertissements = [], annulation }) {
   afficherToast({
     texte: [texte, ...messages].join(' '),
     variante: messages.length > 0 ? 'attention' : 'succes',
-    action: annulation ? { libelle: 'Annuler', auClic: () => proteger(() => annulerAction(annulation)) } : undefined,
+    action: annulation ? { libelle: 'Annuler', auClic: () => proteger(() => annulerAction(annulation, ligneId)) } : undefined,
   });
 }
 
-async function annulerAction(jeton) {
+async function annulerAction(jeton, ligneId) {
   try {
     await appeler('POST', `/api/annulations/${jeton}`);
     afficherToast({ texte: 'Action annulée.' });
   } catch (err) {
     afficherToast({ texte: err.message, variante: 'erreur' });
   }
+  // L'annulation restaure aussi le dernier mode utilisé (réglage) : la mise en évidence des boutons suit.
+  await lireEtat().then((etat) => { page.dernierMode.valeur = etat.dernierModePaiement ?? null; }).catch(() => {});
   await Promise.all([charger(), chargerPatients()]); // l'annulation d'une création peut retirer aussi le patient créé avec elle
+  if (ligneId) focaliserVersement(zone.liste, ligneId);
 }
 
 /** Une seule action à la fois (évite les doubles clics) ; toute erreur devient un message clair. */
@@ -119,7 +124,7 @@ async function proteger(action) {
 async function actualiserBandeaux() {
   try {
     const etat = await lireEtat();
-    page.dernierMode.valeur = etat.dernierModePaiement ?? page.dernierMode.valeur;
+    page.dernierMode.valeur = etat.dernierModePaiement ?? null;
     page.alerteSauvegarde = (etat.avertissements ?? []).some((a) => a.code === 'SAUVEGARDE_ECHOUEE');
     const change = appliquerEtatEcriture(etat);
     afficherBandeaux(document.getElementById('bandeaux'), etat);
@@ -140,7 +145,8 @@ async function actualiserBandeaux() {
  */
 async function actualiserDate() {
   try {
-    const { aujourdHui } = await lireEtat();
+    const { aujourdHui, dernierModePaiement } = await lireEtat();
+    page.dernierMode.valeur = dernierModePaiement ?? null; // un paiement fait dans un autre onglet change le mode mis en évidence
     if (!aujourdHui || aujourdHui === page.aujourdHui) return;
     const ancienne = page.aujourdHui;
     page.aujourdHui = aujourdHui;
@@ -217,13 +223,16 @@ async function marquerSelectionFacturee() {
   await charger();
 }
 
+/** Paiement en un clic : le reste à payer (celui du serveur à cet instant), daté d'aujourd'hui, avec le mode du bouton cliqué. */
 async function payerEnTotalite(ligne, mode) {
   try {
-    const r = await appeler('POST', `/api/prestations/${ligne.id}/payer-totalite`, mode ? { mode } : {});
-    page.dernierMode.valeur = r.donnees.versements.at(-1)?.mode ?? page.dernierMode.valeur;
+    const r = await appeler('POST', `/api/prestations/${ligne.id}/payer-totalite`, { mode });
+    const paiement = messagePaiement(r.donnees, ligne.resteCentimes);
+    if (paiement.mode) page.dernierMode.valeur = paiement.mode;
     page.recent = ligne.id;
-    notifier({ texte: `${formatEuros(montantDernierVersement(r.donnees, ligne.resteCentimes))} enregistrés.`, avertissements: r.avertissements, annulation: r.annulation });
+    notifier({ texte: paiement.texte, avertissements: r.avertissements, annulation: r.annulation, ligneId: ligne.id });
     await charger();
+    focaliserVersement(zone.liste, ligne.id);
   } catch (err) {
     if (err instanceof ErreurApi && err.code === 'MODE_REQUIS') {
       const choisi = await choisirMode({ resteCentimes: ligne.resteCentimes });
@@ -263,6 +272,12 @@ const ctx = {
     return page.aujourdHui;
   },
   dernierMode: page.dernierMode,
+  get ecriture() {
+    return page.ecriture;
+  },
+  get explication() {
+    return page.explication;
+  },
   notifier,
 };
 
@@ -305,18 +320,21 @@ function creerLigne(l, recent) {
   const modesPaiement = listeModesPaiement(l);
   const detailPaiement = `versé ${formatEuros(l.verseCentimes)} · reste ${formatEuros(l.resteCentimes)}`;
   const actions = el('span', { classe: 'actions-ligne' });
+  // Un bouton par mode (ordre fixe) à la place de « Payé en totalité » : un clic enregistre le reste à payer avec ce mode. Rien si le reste est 0.
   if (l.resteCentimes > 0) {
     actions.append(
-      el('button', {
-        classe: 'btn btn--petit btn-payer',
-        texte: 'Payé en totalité',
-        attributs: { type: 'button', 'aria-label': `Payé en totalité : ${formatEuros(l.resteCentimes)} pour la prestation du ${formatDate(l.date)} de ${nomComplet}`, ...accesEcriture() },
-        evenements: { click: () => proteger(() => payerEnTotalite(l)) },
+      paiementRapide({
+        ligne: { id: l.id, date: l.date, patient: nomComplet, resteCentimes: l.resteCentimes },
+        dernierMode: modeConnu(page.dernierMode.valeur) ? page.dernierMode.valeur : null,
+        desactive: !page.ecriture,
+        explication: page.explication,
+        raisonId: ID_RAISON,
+        auChoix: (mode) => proteger(() => payerEnTotalite(l, mode)),
       }),
     );
   }
   actions.append(
-    el('button', { classe: 'btn btn--petit btn--secondaire', texte: 'Versement', attributs: { type: 'button', 'aria-label': `Ajouter un versement à la prestation du ${formatDate(l.date)} de ${nomComplet}`, ...accesEcriture() }, evenements: { click: () => proteger(() => ajouterVersement(l)) } }),
+    el('button', { classe: 'btn btn--petit btn--secondaire', texte: 'Versement', attributs: { type: 'button', 'data-versement': l.id, 'aria-label': `Ajouter un versement à la prestation du ${formatDate(l.date)} de ${nomComplet}`, ...accesEcriture() }, evenements: { click: () => proteger(() => ajouterVersement(l)) } }),
     el('button', { classe: 'btn btn--petit btn--secondaire', texte: 'Modifier', attributs: { type: 'button', 'aria-label': `Modifier la prestation du ${formatDate(l.date)} de ${nomComplet}`, ...accesEcriture() }, evenements: { click: () => proteger(() => modifier(l)) } }),
   );
 

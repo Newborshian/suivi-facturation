@@ -7,8 +7,10 @@ import { LIEN_TARIFS, saisieImpossible } from '/js/catalogue-etat.js';
 import { afficherBandeaux, alerte } from '/js/bandeaux.js';
 import { el, remplacer } from '/js/dom.js';
 import { afficherEcranDegrade } from '/js/ecran-degrade.js';
-import { ecritureAutorisee } from '/js/ecriture.js';
-import { formatDate, formatEuros, formatMois, moisPlusN, montantDernierVersement, nomPatient, pluriel } from '/js/format.js';
+import { ecritureAutorisee, explicationEcritureImpossible } from '/js/ecriture.js';
+import { formatDate, formatEuros, formatMois, moisPlusN, nomPatient, pluriel } from '/js/format.js';
+import { messagePaiement } from '/js/paiement-libelles.js';
+import { focaliserVersement } from '/js/paiement-rapide.js';
 import { dialogueModification, dialogueVersement, choisirMode } from '/js/pages/prestations-dialogues.js';
 import { construireTableau } from '/js/pages/facturation-tableau.js';
 import { formaterDetailTexte, formaterRecapTexte } from '/js/recap-texte.js';
@@ -28,11 +30,13 @@ const page = {
   detailImpression: false, // décoché par défaut
   recent: null,
   ecriture: true,
+  explication: '', // pourquoi l'écriture est impossible (infobulle et texte lié aux boutons de paiement désactivés)
   occupe: false,
   alerteSauvegarde: false,
   requete: 0, // numéro de la dernière requête : une réponse tardive n'écrase pas une plus récente
 };
 const zone = {};
+const ID_RAISON = 'raison-ecriture';
 
 // ------------------------------------------------------- Stockage (non nominatif)
 
@@ -57,24 +61,27 @@ function memoriser() {
 
 // ---------------------------------------------------------------- Messages
 
-function notifier({ texte, avertissements = [], annulation }) {
+function notifier({ texte, avertissements = [], annulation, ligneId }) {
   const messages = avertissements.map((a) => a.message);
   if (page.alerteSauvegarde || avertissements.some((a) => a.code === 'SAUVEGARDE_ECHOUEE')) actualiserBandeaux();
   afficherToast({
     texte: [texte, ...messages].join(' '),
     variante: messages.length > 0 ? 'attention' : 'succes',
-    action: annulation ? { libelle: 'Annuler', auClic: () => proteger(() => annulerAction(annulation)) } : undefined,
+    action: annulation ? { libelle: 'Annuler', auClic: () => proteger(() => annulerAction(annulation, ligneId)) } : undefined,
   });
 }
 
-async function annulerAction(jeton) {
+async function annulerAction(jeton, ligneId) {
   try {
     await appeler('POST', `/api/annulations/${jeton}`);
     afficherToast({ texte: 'Action annulée.' });
   } catch (err) {
     afficherToast({ texte: err.message, variante: 'erreur' });
   }
+  // L'annulation restaure aussi le dernier mode utilisé (réglage) : la mise en évidence des boutons suit.
+  await lireEtat().then((etat) => { page.dernierMode.valeur = etat.dernierModePaiement ?? null; }).catch(() => {});
   await charger();
+  if (ligneId) focaliserVersement(zone.contenu, ligneId);
 }
 
 /** Une seule action à la fois (évite les doubles clics) ; toute erreur devient un message clair. */
@@ -94,12 +101,19 @@ async function proteger(action) {
   }
 }
 
+/** Mémorise la possibilité d'écrire et sa raison (texte lié aux boutons de paiement désactivés). */
+function appliquerEtatEcriture(etat) {
+  page.ecriture = ecritureAutorisee(etat);
+  page.explication = explicationEcritureImpossible(etat);
+  if (zone.raison) zone.raison.textContent = page.explication;
+}
+
 async function actualiserBandeaux() {
   try {
     const etat = await lireEtat();
-    page.dernierMode.valeur = etat.dernierModePaiement ?? page.dernierMode.valeur;
+    page.dernierMode.valeur = etat.dernierModePaiement ?? null;
     page.alerteSauvegarde = (etat.avertissements ?? []).some((a) => a.code === 'SAUVEGARDE_ECHOUEE');
-    page.ecriture = ecritureAutorisee(etat);
+    appliquerEtatEcriture(etat);
     afficherBandeaux(document.getElementById('bandeaux'), etat);
   } catch {
     // l'erreur de chargement est déjà signalée par la page
@@ -185,13 +199,16 @@ async function basculerStatut(ligne) {
   await charger();
 }
 
+/** Paiement en un clic : le reste à payer (celui du serveur à cet instant), daté d'aujourd'hui, avec le mode du bouton cliqué. */
 async function payer(ligne, mode) {
   try {
-    const r = await appeler('POST', `/api/prestations/${ligne.id}/payer-totalite`, mode ? { mode } : {});
-    page.dernierMode.valeur = r.donnees.versements.at(-1)?.mode ?? page.dernierMode.valeur;
+    const r = await appeler('POST', `/api/prestations/${ligne.id}/payer-totalite`, { mode });
+    const paiement = messagePaiement(r.donnees, ligne.resteCentimes);
+    if (paiement.mode) page.dernierMode.valeur = paiement.mode;
     page.recent = ligne.patient.id;
-    notifier({ texte: `${formatEuros(montantDernierVersement(r.donnees, ligne.resteCentimes))} enregistrés.`, avertissements: r.avertissements, annulation: r.annulation });
+    notifier({ texte: paiement.texte, avertissements: r.avertissements, annulation: r.annulation, ligneId: ligne.id });
     await charger();
+    focaliserVersement(zone.contenu, ligne.id);
   } catch (err) {
     if (err instanceof ErreurApi && err.code === 'MODE_REQUIS') {
       const choisi = await choisirMode({ resteCentimes: ligne.resteCentimes });
@@ -210,6 +227,12 @@ const ctxDialogues = {
     return page.recap?.aujourdHui ?? '';
   },
   dernierMode: page.dernierMode,
+  get ecriture() {
+    return page.ecriture;
+  },
+  get explication() {
+    return page.explication;
+  },
   notifier,
 };
 
@@ -439,6 +462,9 @@ function rendre() {
       detailImpression: page.detailImpression,
       recent: page.recent,
       ecriture: page.ecriture,
+      explication: page.explication,
+      raisonId: ID_RAISON,
+      dernierMode: page.dernierMode.valeur,
       actions: {
         basculer: (id) => {
           if (page.ouverts.has(id)) page.ouverts.delete(id);
@@ -449,7 +475,7 @@ function rendre() {
         marquerFacture: (e) => proteger(() => marquerFacture(e.lignes, `de ${nomPatient(e.patient)}`)),
         copierDetail,
         basculerStatut: (l) => proteger(() => basculerStatut(l)),
-        payer: (l) => proteger(() => payer(l)),
+        payer: (l, mode) => proteger(() => payer(l, mode)),
         versement: (l) => proteger(() => ajouterVersement(l)),
         modifier: (l) => proteger(() => modifier(l)),
       },
@@ -460,7 +486,7 @@ function rendre() {
 
   const note = el('p', { classe: 'recap__note-vue no-print', texte: 'Séances = prestations de catégorie « Séance » ; les autres catégories (bilan, autre) sont dans « Autres ».' });
   const pied = el('p', { classe: 'recap__pied-impression', texte: 'Séances = prestations de catégorie « Séance » ; les autres catégories (bilan, autre) sont comptées dans « Autres ».' });
-  remplacer(zone.contenu, titreImpression, outils, indicateurAFacturer(recap), actions, noteVue, corps, vide ? null : note, pied);
+  remplacer(zone.contenu, zone.raison, titreImpression, outils, indicateurAFacturer(recap), actions, noteVue, corps, vide ? null : note, pied);
   if (vide) remplacerSiFichierVide(corps, { ajouter: true, catalogue: page.catalogue }); // premier démarrage : accueil explicite (fichier sans aucune prestation)
 }
 
@@ -473,7 +499,8 @@ async function demarrer() {
     const etat = await lireEtat();
     afficherBandeaux(zoneBandeaux, etat);
     page.alerteSauvegarde = (etat.avertissements ?? []).some((a) => a.code === 'SAUVEGARDE_ECHOUEE');
-    page.ecriture = ecritureAutorisee(etat);
+    zone.raison = el('p', { classe: 'sr-only', attributs: { id: ID_RAISON } }); // lié (aria-describedby) aux boutons de paiement désactivés
+    appliquerEtatEcriture(etat);
     if (etat.modeDegrade) {
       await afficherEcranDegrade(zone.contenu, etat);
       return;
@@ -485,7 +512,10 @@ async function demarrer() {
     await charger();
     // Page laissée ouverte, ou données modifiées dans un autre onglet : rechargement au retour sur l'onglet.
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible' && !page.occupe) charger().catch(() => {});
+      if (document.visibilityState === 'visible' && !page.occupe) {
+        // Le dernier mode utilisé (mis en évidence sur les boutons de paiement) peut avoir changé dans un autre onglet.
+        lireEtat().then((etat) => { page.dernierMode.valeur = etat.dernierModePaiement ?? null; }).catch(() => {}).then(() => charger()).catch(() => {});
+      }
     });
   } catch (err) {
     remplacer(zoneBandeaux, alerte('danger', 'Erreur', err.message, 'alert'));
