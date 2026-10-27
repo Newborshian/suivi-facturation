@@ -14,7 +14,7 @@ import { formatDate, formatEuros, formatMois, moisPlusN, nomPatient, pluriel } f
 import { messagePaiement } from '/js/paiement-libelles.js';
 import { focaliserVersement } from '/js/paiement-rapide.js';
 import { dialogueModification, dialogueVersement } from '/js/pages/prestations-dialogues.js';
-import { construireTableau } from '/js/pages/facturation-tableau.js';
+import { construirePaiementsParMode, construireTableau } from '/js/pages/facturation-tableau.js';
 import { formaterDetailTexte, formaterRecapTexte } from '/js/recap-texte.js';
 import { lignesAMarquer, lignesAMarquerDuMois, nbAVenirAFacturer, recapACopier, toutesLesLignes } from '/js/recap-regles.js';
 import { afficherToast, confirmer, creerDialogue } from '/js/ui.js';
@@ -482,7 +482,9 @@ function rendre() {
 
   const note = el('p', { classe: 'recap__note-vue no-print', texte: 'Séances = prestations de catégorie « Séance » ; les autres catégories (bilan, autre) sont dans « Autres ».' });
   const pied = el('p', { classe: 'recap__pied-impression', texte: 'Séances = prestations de catégorie « Séance » ; les autres catégories (bilan, autre) sont comptées dans « Autres ».' });
-  remplacer(zone.contenu, zone.raison, titreImpression, outils, indicateurAFacturer(recap), actions, noteVue, corps, vide ? null : note, pied);
+  // Compteur par mode : versements datés du mois (y compris sur des prestations d'autres mois), affiché dans les deux vues.
+  const parMode = recap.paiementsParMode?.total.nombre > 0 ? construirePaiementsParMode(recap) : null;
+  remplacer(zone.contenu, zone.raison, titreImpression, outils, indicateurAFacturer(recap), actions, noteVue, corps, vide ? null : note, parMode, pied);
   if (vide) remplacerSiFichierVide(corps, { ajouter: true, catalogue: page.catalogue }); // premier démarrage : accueil explicite (fichier sans aucune prestation)
 }
 

@@ -1,7 +1,7 @@
 // GET /api/recap?mois=AAAA-MM&vue=prestation|versement : Facturation du mois.
 // Le serveur calcule tout (centimes entiers) ; le navigateur affiche. Le mois est un paramètre de requête : aucun nom de patient dans l'URL.
 // Appelée par l'écran Facturation du mois (public/js/pages/facturation.js).
-import { aFacturerGlobal, moisProposes, recapMensuel } from '../../domain/recap.js';
+import { aFacturerGlobal, moisProposes, paiementsParMode, recapMensuel } from '../../domain/recap.js';
 import { validerParametresRecap } from '../../domain/validation.js';
 
 export function routesRecap(routeur, { store, horloge }) {
@@ -16,6 +16,7 @@ export function routesRecap(routeur, { store, horloge }) {
         aujourdHui,
         moisDisponibles: moisProposes(prestations, aujourdHui, mois, vue),
         aFacturer: aFacturerGlobal(prestations, aujourdHui),
+        paiementsParMode: paiementsParMode(prestations, mois), // versements datés du mois, quelle que soit la vue
         fichierVide: prestations.length === 0, // le bandeau « Tout est facturé » n'a pas de sens sans aucune prestation
       },
     };

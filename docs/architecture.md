@@ -306,6 +306,7 @@ Une prestation à 0 € est « payée » d'office. Le trop-perçu reste attaché
 - **Vue `prestation`** (défaut) : lignes dont la **date** est dans le mois, tous statuts, à venir comprises. Par patient et au total : `nbSeances` (catégorie `seance`), `nbAutres`, `du = Σ montant`, `paye = Σ paye`, `reste = Σ reste`, `tropPercu = Σ tropPercu`. Invariant : `du = paye + reste`. État du groupe (`etatDepuisTotaux`) : `reste = 0` → payé ; `paye = 0` et `du > 0` → non payé ; sinon partiel.
 - **Vue `versement`** (trésorerie) : `paye` = Σ des versements **datés** dans le mois, toutes prestations confondues (y compris d'autres mois), trop-perçu compris ; `du` reste celui des prestations du mois ; `reste`, `tropPercu` et `etat` valent `null`.
 - **Mois proposés** (`moisDisponibles`, `moisProposes`) : mois contenant des prestations, mois en cours et mois demandé, du plus ancien au plus récent. En vue `versement`, les mois qui n'ont **que des versements** (prestation d'un autre mois payée plus tard) sont aussi proposés.
+- `paiementsParMode` (identique dans les deux vues, `paiementsParMode` dans recap.js) : versements **datés** dans le mois, toutes prestations confondues, trop-perçu compris, comptés et sommés par mode de paiement. Un versement = un paiement (une prestation réglée en deux fois compte deux paiements). `{ modes: [{ mode, nombre, montantCentimes }], total: { nombre, montantCentimes } }` ; les cinq modes sont toujours présents, dans l'ordre de `MODES_PAIEMENT`. Le total égale `paye` du total de la vue `versement`.
 - `aFacturer` (global, tous mois) : lignes `a_facturer` de montant > 0 et de date ≤ aujourd'hui ; les lignes à venir sont comptées à part (`aVenirNombre`, `aVenirMontantCentimes`) ; les lignes à 0 € non facturées sont seulement dénombrées (`zeroNombre`).
 
 ### 6.6 Indicateurs (`src/domain/indicateurs.js`)
@@ -580,7 +581,7 @@ Une erreur pendant ces étapes est écrite au journal (sans message), le verrou 
 | `DELETE /api/prestations/{id}/versements/{vid}` | sauvegarde `avant-suppression` | 404 |
 | `POST /api/prestations/{id}/payer-totalite` | corps facultatif `{ date?, mode? }` → 201 | 409 `DEJA_PAYEE`, 422 `MODE_REQUIS` |
 | `POST /api/annulations/{jeton}` | annule la dernière écriture | 409 `ANNULATION_IMPOSSIBLE` |
-| `GET /api/recap` | `mois`, `vue` → récapitulatif (§6.5) + `aujourdHui`, `moisDisponibles` (selon la vue), `aFacturer`, `fichierVide` | 400 |
+| `GET /api/recap` | `mois`, `vue` → récapitulatif (§6.5) + `aujourdHui`, `moisDisponibles` (selon la vue), `aFacturer`, `paiementsParMode`, `fichierVide` | 400 |
 | `GET /api/indicateurs/synthese` | indicateurs de tête du mois en cours | 400 |
 | `GET /api/indicateurs/ca-mensuel` | `de`, `a`, `vue=prestation\|versement` | 400 |
 | `GET /api/indicateurs/seances` | `de`, `a`, `granularite=mois\|semaine` | 400 |

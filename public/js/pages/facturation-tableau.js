@@ -2,6 +2,7 @@
 // Construction du DOM par textContent uniquement (dom.js) ; aucune donnée n'est injectée comme HTML.
 // Utilisé par pages/facturation.js seulement.
 import { el } from '/js/dom.js';
+import { iconeMode } from '/js/icones-paiement.js';
 import { modeConnu } from '/js/paiement-libelles.js';
 import { paiementRapide } from '/js/paiement-rapide.js';
 import { lignesAMarquer } from '/js/recap-regles.js';
@@ -141,6 +142,61 @@ function detail(e, recap, options) {
     contenu.append(el('div', { classe: 'groupe-horizontal' }, bouton('Copier le détail', 'btn--petit btn--secondaire', (evenement) => actions.copierDetail(e, evenement.currentTarget), { label: `Copier le détail des prestations de ${nomPatient(e.patient)}` })));
   }
   return contenu;
+}
+
+/**
+ * Compteur des paiements reçus dans le mois, par mode (GET /api/recap, `paiementsParMode`) : un versement daté du mois = un paiement,
+ * quelle que soit la vue affichée. Les cinq modes sont toujours listés (un mode à 0 reste visible). -> <div class="table-wrap"> ou null.
+ */
+export function construirePaiementsParMode(recap) {
+  const parMode = recap.paiementsParMode;
+  if (!parMode) return null;
+  const titre = `Paiements reçus en ${formatMois(recap.mois)}, par mode de paiement`;
+  const nombre = (n) => el('span', { classe: n === 0 ? 'montant--zero' : null, texte: String(n) });
+  return el(
+    'div',
+    { classe: 'table-wrap paiements-par-mode', attributs: { role: 'region', 'aria-label': titre } },
+    el(
+      'table',
+      { classe: 'table table--dense' },
+      el('caption', { texte: titre }),
+      el(
+        'thead',
+        {},
+        el(
+          'tr',
+          {},
+          el('th', { texte: 'Mode de paiement', attributs: { scope: 'col' } }),
+          el('th', { texte: 'Nombre de paiements', classe: 'col-nombre', attributs: { scope: 'col' } }),
+          el('th', { texte: 'Montant reçu', classe: 'col-montant', attributs: { scope: 'col' } }),
+        ),
+      ),
+      el(
+        'tbody',
+        {},
+        ...parMode.modes.map((m) =>
+          el(
+            'tr',
+            {},
+            el('th', { classe: 'paiements-par-mode__mode', attributs: { scope: 'row' } }, iconeMode(m.mode), el('span', { texte: LIBELLES_MODE[m.mode] ?? m.mode })),
+            el('td', { classe: 'col-nombre' }, nombre(m.nombre)),
+            el('td', { classe: 'col-montant' }, montant(m.montantCentimes)),
+          ),
+        ),
+      ),
+      el(
+        'tfoot',
+        {},
+        el(
+          'tr',
+          { classe: 'ligne--total' },
+          el('th', { texte: 'Total', attributs: { scope: 'row' } }),
+          el('td', { classe: 'col-nombre', texte: String(parMode.total.nombre) }),
+          el('td', { classe: 'col-montant' }, montant(parMode.total.montantCentimes)),
+        ),
+      ),
+    ),
+  );
 }
 
 /**
