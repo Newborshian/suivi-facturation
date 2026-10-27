@@ -40,6 +40,10 @@
 .ligne-detail__contenu .table:not(.versements-liste) :is(th, td):nth-child(2),
 .ligne-detail__contenu .table .col-prestation { min-width: 13rem; }
 .ligne-detail__contenu .table-wrap { max-width: 100%; }
+/* Compteur des paiements reçus dans le mois, par mode : tableau étroit, icône devant le libellé. */
+.paiements-par-mode { max-width: 36rem; }
+.paiements-par-mode__mode { font-weight: 400; white-space: nowrap; }
+.paiements-par-mode__mode .icone-mode { margin-right: var(--e-2); color: var(--c-texte-doux); }
 /* Titre et pied visibles uniquement à l'impression (voir impression.css). */
 .recap__titre-impression,
 .recap__pied-impression { display: none; }

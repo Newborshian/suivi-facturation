@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { aFacturerGlobal, etatDepuisTotaux, moisProposes, recapMensuel } from '../../src/domain/recap.js';
+import { aFacturerGlobal, etatDepuisTotaux, moisProposes, paiementsParMode, recapMensuel } from '../../src/domain/recap.js';
 import { validerParametresRecap } from '../../src/domain/validation.js';
 
 let n = 0;
@@ -259,6 +259,47 @@ test('mois proposés en vue « versement » : les mois qui n\'ont que des versem
   assert.deepEqual(moisProposes(lignes, A, '2026-10', 'versement'), ['2026-08', '2026-09', '2026-10', '2026-11']);
   assert.deepEqual(moisProposes(lignes, A, '2026-10', 'prestation'), ['2026-08', '2026-10']);
   assert.deepEqual(moisProposes(lignes, A, '2026-10'), ['2026-08', '2026-10'], 'vue par défaut : prestation');
+});
+
+// ------------------------------------------------------------------ paiements par mode
+
+test('paiements par mode : versements datés du mois, comptés et sommés par mode ; les cinq modes sont toujours présents', () => {
+  const avecModes = (l, modes) => {
+    l.versements.forEach((v, i) => { v.mode = modes[i]; });
+    return l;
+  };
+  const r = paiementsParMode([
+    avecModes(ligne(lapin, '2026-10-01', 4500, { versements: [[4500, '2026-10-01']] }), ['carte']),
+    avecModes(ligne(ours, '2026-10-05', 4500, { versements: [[2000, '2026-10-05'], [2500, '2026-10-20']] }), ['especes', 'carte']), // réglée en deux fois : deux paiements
+    avecModes(ligne(tortue, '2026-09-28', 3500, { versements: [[3500, '2026-10-03']] }), ['cheque']), // prestation de septembre payée en octobre : comptée
+    avecModes(ligne(tortue, '2026-10-30', 4500, { versements: [[5000, '2026-11-02']] }), ['virement']), // versement de novembre : pas compté
+    ligne(lapin, '2026-10-12', 4500), // non payée
+  ], '2026-10');
+  assert.deepEqual(r.modes, [
+    { mode: 'carte', nombre: 2, montantCentimes: 7000 },
+    { mode: 'cheque', nombre: 1, montantCentimes: 3500 },
+    { mode: 'especes', nombre: 1, montantCentimes: 2000 },
+    { mode: 'virement', nombre: 0, montantCentimes: 0 },
+    { mode: 'autre', nombre: 0, montantCentimes: 0 },
+  ]);
+  assert.deepEqual(r.total, { nombre: 4, montantCentimes: 12500 });
+});
+
+test('paiements par mode : trop-perçu compris (montant versé réel) ; mois sans versement -> tout à zéro', () => {
+  const lignes = [ligne(lapin, '2026-10-01', 4500, { versements: [[5000, '2026-10-01']] })];
+  assert.deepEqual(paiementsParMode(lignes, '2026-10').total, { nombre: 1, montantCentimes: 5000 });
+  const vide = paiementsParMode(lignes, '2026-09');
+  assert.deepEqual(vide.total, { nombre: 0, montantCentimes: 0 });
+  assert.ok(vide.modes.every((m) => m.nombre === 0 && m.montantCentimes === 0));
+  assert.equal(vide.modes.length, 5);
+});
+
+test('paiements par mode : le total égale « Encaissé » de la vue par date de versement', () => {
+  const lignes = [
+    ligne(lapin, '2026-09-10', 4500, { versements: [[4500, '2026-10-01']] }),
+    ligne(ours, '2026-10-02', 6000, { versements: [[1000, '2026-10-02'], [2000, '2026-10-09']] }),
+  ];
+  assert.equal(paiementsParMode(lignes, '2026-10').total.montantCentimes, recap(lignes, { vue: 'versement' }).total.payeCentimes);
 });
 
 // ------------------------------------------------------------------ validation

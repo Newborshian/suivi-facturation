@@ -35,6 +35,23 @@ test('GET /api/recap : sans paramètre = mois en cours, vue prestation ; fichier
     assert.equal(r.json.total.duCentimes, 0);
     assert.deepEqual(r.json.aFacturer, { nombre: 0, montantCentimes: 0, aVenirNombre: 0, aVenirMontantCentimes: 0, zeroNombre: 0 });
     assert.deepEqual(r.json.moisDisponibles, ['2026-10']);
+    assert.deepEqual(r.json.paiementsParMode.total, { nombre: 0, montantCentimes: 0 });
+  }));
+
+test('GET /api/recap : paiementsParMode compte les versements datés du mois par mode, dans les deux vues', () =>
+  avecServeur(async (s, a) => {
+    const l1 = (await a.post('/api/prestations', saisie())).json.donnees;
+    const l2 = (await a.post('/api/prestations', saisie({ date: '2026-09-20' }))).json.donnees;
+    await a.post(`/api/prestations/${l1.id}/versements`, { montantCentimes: 2000, date: '2026-10-01', mode: 'especes' });
+    await a.post(`/api/prestations/${l1.id}/versements`, { montantCentimes: 2500, date: '2026-10-02', mode: 'carte' });
+    await a.post(`/api/prestations/${l2.id}/versements`, { montantCentimes: 4500, date: '2026-10-01', mode: 'carte' });
+    for (const vue of ['prestation', 'versement']) {
+      const { paiementsParMode } = (await a.get(`/api/recap?mois=2026-10&vue=${vue}`)).json;
+      const parMode = Object.fromEntries(paiementsParMode.modes.map((m) => [m.mode, [m.nombre, m.montantCentimes]]));
+      assert.deepEqual(parMode, { carte: [2, 7000], cheque: [0, 0], especes: [1, 2000], virement: [0, 0], autre: [0, 0] }, vue);
+      assert.deepEqual(paiementsParMode.total, { nombre: 3, montantCentimes: 9000 }, vue);
+    }
+    assert.equal((await a.get('/api/recap?mois=2026-09')).json.paiementsParMode.total.nombre, 0);
   }));
 
 test('GET /api/recap : vecteur 1 de bout en bout (3 prestations, un versement) ; le statut se reflète', () =>

@@ -9,6 +9,7 @@
 // Appelé par http/api/recap.js et indicateurs.js (aFacturerGlobal). Le texte copié du récapitulatif est fabriqué dans le navigateur (recap-texte.js).
 import { moisDe } from './dates.js';
 import { enrichir } from './paiement.js';
+import { MODES_PAIEMENT } from './schema.js';
 import { comparerPatients, estPlusRecente, parDateEtCreation } from './tri.js';
 
 export const VUES = ['prestation', 'versement'];
@@ -120,6 +121,29 @@ export function aFacturerGlobal(prestations, aujourdHui) {
     }
   }
   return r;
+}
+
+/**
+ * Paiements reçus dans le mois `mois` (AAAA-MM), par mode de paiement : versements DATÉS dans le mois, sur toutes les prestations
+ * (y compris celles d'autres mois), trop-perçu compris. Indépendant de la vue : même base que « Encaissé » de la vue 'versement'.
+ * Un versement = un paiement (une prestation réglée en deux fois compte deux paiements). Les cinq modes sont toujours présents, dans l'ordre de MODES_PAIEMENT.
+ * -> { modes: [{ mode, nombre, montantCentimes }], total: { nombre, montantCentimes } }
+ */
+export function paiementsParMode(prestations, mois) {
+  const parMode = new Map(MODES_PAIEMENT.map((mode) => [mode, { mode, nombre: 0, montantCentimes: 0 }]));
+  const total = { nombre: 0, montantCentimes: 0 };
+  for (const p of prestations) {
+    for (const v of p.versements) {
+      if (moisDe(v.date) !== mois) continue;
+      const e = parMode.get(v.mode);
+      if (!e) continue; // mode inconnu : impossible après controlerStructure
+      e.nombre += 1;
+      e.montantCentimes += v.montantCentimes;
+      total.nombre += 1;
+      total.montantCentimes += v.montantCentimes;
+    }
+  }
+  return { modes: [...parMode.values()], total };
 }
 
 /**
